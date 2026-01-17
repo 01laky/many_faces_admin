@@ -104,12 +104,16 @@ class FrontendLogger {
     try {
       // Send logs to Seq ingestion endpoint
       // Seq expects format: { "Events": [...] }
-      await axios.post(`${this.seqUrl}/api/events/raw`, { Events: logsToSend }, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        timeout: 5000,
-      });
+      await axios.post(
+        `${this.seqUrl}/api/events/raw`,
+        { Events: logsToSend },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          timeout: 5000,
+        }
+      );
     } catch (error) {
       // If Seq is not available, put logs back in buffer (except in production)
       if (import.meta.env.DEV) {

@@ -1,6 +1,6 @@
 /**
  * App.tsx - Main application component for Admin Demo
- * 
+ *
  * This component sets up the React Router routing structure for the admin panel.
  * It handles:
  * - Language-based routing (e.g., /en/users, /sk/pouzivatelia, /cz/uzivatele)
@@ -8,7 +8,7 @@
  * - Guest-only routes (redirect if authenticated)
  * - Admin-specific routes (users, faces, pages management)
  * - Conditional rendering of Sidebar and Header (only when authenticated)
- * 
+ *
  * Routing structure:
  * - Root (/) redirects to default language
  * - /:lang routes handle language-specific paths
@@ -47,10 +47,10 @@ import './styles/toast.scss';
 
 /**
  * Helper function to get all translated route paths for a given English route
- * 
+ *
  * This function retrieves all possible translations of a route name across all supported languages.
  * For example, 'users' returns ['users', 'pouzivatelia', 'uzivatele'] for en, sk, cz.
- * 
+ *
  * @param englishRoute - The English route name (e.g., 'login', 'users', 'faces')
  * @returns Array of all translated route paths
  */
@@ -62,10 +62,10 @@ const getRoutePaths = (englishRoute: string): string[] => {
 
 /**
  * AppContent component - contains routing logic
- * 
+ *
  * This component is separated from App to allow using useAuth hook
  * (hooks can only be used inside components, not at module level).
- * 
+ *
  * Conditionally renders Sidebar and Header only when user is authenticated.
  */
 function AppContent() {
@@ -73,11 +73,11 @@ function AppContent() {
 
   // Get all possible translations for each route
   // This allows routes to work in all supported languages
-  const loginPaths = getRoutePaths('login');        // ['login', 'prihlasenie', 'prihlaseni']
-  const homepagePaths = getRoutePaths('homepage');  // ['homepage', 'domov', 'domu']
-  const usersPaths = getRoutePaths('users');        // ['users', 'pouzivatelia', 'uzivatele']
-  const facesPaths = getRoutePaths('faces');        // ['faces', 'tvare', 'tvare']
-  
+  const loginPaths = getRoutePaths('login'); // ['login', 'prihlasenie', 'prihlaseni']
+  const homepagePaths = getRoutePaths('homepage'); // ['homepage', 'domov', 'domu']
+  const usersPaths = getRoutePaths('users'); // ['users', 'pouzivatelia', 'uzivatele']
+  const facesPaths = getRoutePaths('faces'); // ['faces', 'tvare', 'tvare']
+
   // Get authentication state to conditionally render Sidebar and Header
   const { isAuthenticated } = useAuth();
 
