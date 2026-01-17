@@ -1,3 +1,21 @@
+/**
+ * App.tsx - Main application component for Admin Demo
+ * 
+ * This component sets up the React Router routing structure for the admin panel.
+ * It handles:
+ * - Language-based routing (e.g., /en/users, /sk/pouzivatelia, /cz/uzivatele)
+ * - Protected routes (require authentication)
+ * - Guest-only routes (redirect if authenticated)
+ * - Admin-specific routes (users, faces, pages management)
+ * - Conditional rendering of Sidebar and Header (only when authenticated)
+ * 
+ * Routing structure:
+ * - Root (/) redirects to default language
+ * - /:lang routes handle language-specific paths
+ * - Each route can have multiple translations
+ * - Admin routes support CRUD operations (list, detail, create, edit)
+ */
+
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { AppProvider } from './contexts/AppContext';
@@ -27,34 +45,67 @@ import { getAllRouteTranslations } from './utils/routeTranslations';
 import i18n from './i18n/config';
 import './styles/toast.scss';
 
-// Get all route translations for routing
+/**
+ * Helper function to get all translated route paths for a given English route
+ * 
+ * This function retrieves all possible translations of a route name across all supported languages.
+ * For example, 'users' returns ['users', 'pouzivatelia', 'uzivatele'] for en, sk, cz.
+ * 
+ * @param englishRoute - The English route name (e.g., 'login', 'users', 'faces')
+ * @returns Array of all translated route paths
+ */
 const getRoutePaths = (englishRoute: string): string[] => {
   return getAllRouteTranslations(englishRoute, (key: string, options?: { lng?: string }) => {
     return i18n.t(key, { lng: options?.lng || 'en' });
   });
 };
 
+/**
+ * AppContent component - contains routing logic
+ * 
+ * This component is separated from App to allow using useAuth hook
+ * (hooks can only be used inside components, not at module level).
+ * 
+ * Conditionally renders Sidebar and Header only when user is authenticated.
+ */
 function AppContent() {
   logger.info('App component mounted');
 
   // Get all possible translations for each route
-  const loginPaths = getRoutePaths('login');
-  const homepagePaths = getRoutePaths('homepage');
-  const usersPaths = getRoutePaths('users');
-  const facesPaths = getRoutePaths('faces');
+  // This allows routes to work in all supported languages
+  const loginPaths = getRoutePaths('login');        // ['login', 'prihlasenie', 'prihlaseni']
+  const homepagePaths = getRoutePaths('homepage');  // ['homepage', 'domov', 'domu']
+  const usersPaths = getRoutePaths('users');        // ['users', 'pouzivatelia', 'uzivatele']
+  const facesPaths = getRoutePaths('faces');        // ['faces', 'tvare', 'tvare']
+  
+  // Get authentication state to conditionally render Sidebar and Header
   const { isAuthenticated } = useAuth();
 
   return (
     <>
+      {/* 
+        Conditionally render Sidebar and Header only when user is authenticated
+        These components provide navigation and user menu for admin panel
+      */}
       {isAuthenticated && <Sidebar />}
       {isAuthenticated && <Header />}
       <Routes>
-        {/* Redirect root to default language */}
+        {/* 
+          Root path redirects to default language (first language in supportedLanguages array)
+          Example: / -> /en
+        */}
         <Route path="/" element={<Navigate to={`/${supportedLanguages[0]}`} replace />} />
 
-        {/* Language-based routes */}
+        {/* 
+          Language-based routes - all routes are prefixed with language code
+          Example: /en/users, /sk/pouzivatelia, /cz/uzivatele
+          LanguageRouter component handles language detection and validation
+        */}
         <Route path="/:lang" element={<LanguageRouter />}>
-          {/* Root route - redirect to login if not authenticated, to homepage if authenticated */}
+          {/* 
+            Root route - protected, redirects to login if not authenticated
+            Example: /en -> shows HomePage (if authenticated) or redirects to /en/login
+          */}
           <Route
             index
             element={
@@ -64,7 +115,11 @@ function AppContent() {
             }
           />
 
-          {/* Login route with all translations - guest only */}
+          {/* 
+            Login route with all language translations - guest only
+            GuestRoute prevents authenticated users from accessing login page
+            Maps all login translations: /en/login, /sk/prihlasenie, /cz/prihlaseni
+          */}
           {loginPaths.map((path) => (
             <Route
               key={path}
@@ -77,7 +132,11 @@ function AppContent() {
             />
           ))}
 
-          {/* Protected homepage route with all translations */}
+          {/* 
+            Protected homepage route with all language translations
+            ProtectedRoute requires authentication - redirects to login if not authenticated
+            Maps all homepage translations: /en/homepage, /sk/domov, /cz/domu
+          */}
           {homepagePaths.map((path) => (
             <Route
               key={path}
@@ -90,7 +149,11 @@ function AppContent() {
             />
           ))}
 
-          {/* Protected users route with all translations */}
+          {/* 
+            Protected users list route with all language translations
+            Displays table of all users with pagination and filtering
+            Maps all users translations: /en/users, /sk/pouzivatelia, /cz/uzivatele
+          */}
           {usersPaths.map((path) => (
             <Route
               key={path}
@@ -103,7 +166,11 @@ function AppContent() {
             />
           ))}
 
-          {/* Protected user detail route - uses :id parameter */}
+          {/* 
+            Protected user detail route - uses :id parameter to show specific user
+            Example: /en/users/123, /sk/pouzivatelia/123
+            Displays detailed information about a single user
+          */}
           {usersPaths.map((path) => (
             <Route
               key={`${path}/:id`}
@@ -116,7 +183,10 @@ function AppContent() {
             />
           ))}
 
-          {/* Protected user create route */}
+          {/* 
+            Protected user create route - form to create new user
+            Example: /en/users/create, /sk/pouzivatelia/create
+          */}
           {usersPaths.map((path) => (
             <Route
               key={`${path}/create`}
@@ -129,7 +199,11 @@ function AppContent() {
             />
           ))}
 
-          {/* Protected user edit route - uses :id parameter */}
+          {/* 
+            Protected user edit route - uses :id parameter to edit specific user
+            Example: /en/users/123/edit, /sk/pouzivatelia/123/edit
+            Displays form pre-filled with user data
+          */}
           {usersPaths.map((path) => (
             <Route
               key={`${path}/:id/edit`}
@@ -142,7 +216,11 @@ function AppContent() {
             />
           ))}
 
-          {/* Protected faces route with all translations */}
+          {/* 
+            Protected faces list route with all language translations
+            Displays table of all faces with pagination and filtering
+            Maps all faces translations: /en/faces, /sk/tvare, /cz/tvare
+          */}
           {facesPaths.map((path) => (
             <Route
               key={path}
@@ -155,7 +233,11 @@ function AppContent() {
             />
           ))}
 
-          {/* Protected face detail route - uses :id parameter */}
+          {/* 
+            Protected face detail route - uses :id parameter to show specific face
+            Example: /en/faces/123, /sk/tvare/123
+            Displays detailed information about a single face and its pages
+          */}
           {facesPaths.map((path) => (
             <Route
               key={`${path}/:id`}
@@ -168,7 +250,10 @@ function AppContent() {
             />
           ))}
 
-          {/* Protected face create route */}
+          {/* 
+            Protected face create route - form to create new face
+            Example: /en/faces/create, /sk/tvare/create
+          */}
           {facesPaths.map((path) => (
             <Route
               key={`${path}/create`}
@@ -181,7 +266,11 @@ function AppContent() {
             />
           ))}
 
-          {/* Protected face edit route - uses :id parameter */}
+          {/* 
+            Protected face edit route - uses :id parameter to edit specific face
+            Example: /en/faces/123/edit, /sk/tvare/123/edit
+            Displays form pre-filled with face data
+          */}
           {facesPaths.map((path) => (
             <Route
               key={`${path}/:id/edit`}
@@ -194,7 +283,11 @@ function AppContent() {
             />
           ))}
 
-          {/* Protected page create route - uses :faceId parameter */}
+          {/* 
+            Protected page create route - uses :faceId parameter to create page for specific face
+            Example: /en/faces/123/pages/create, /sk/tvare/123/pages/create
+            Creates a new page associated with the specified face
+          */}
           {facesPaths.map((path) => (
             <Route
               key={`${path}/:faceId/pages/create`}
@@ -207,7 +300,12 @@ function AppContent() {
             />
           ))}
 
-          {/* Protected page detail route - uses :id parameter (must be before edit) */}
+          {/* 
+            Protected page detail route - uses :id parameter to show specific page
+            Example: /en/pages/123
+            Must be defined before edit route to avoid route conflicts
+            Displays detailed information about a single page
+          */}
           <Route
             path="pages/:id"
             element={
@@ -217,7 +315,11 @@ function AppContent() {
             }
           />
 
-          {/* Protected page edit route - uses :id parameter */}
+          {/* 
+            Protected page edit route - uses :id parameter to edit specific page
+            Example: /en/pages/123/edit
+            Displays form pre-filled with page data
+          */}
           <Route
             path="pages/:id/edit"
             element={
@@ -227,11 +329,18 @@ function AppContent() {
             }
           />
 
-          {/* Redirect invalid routes to home */}
+          {/* 
+            Catch-all route for invalid paths within language context
+            Redirects to parent route (language root)
+            Example: /en/invalid-path -> /en
+          */}
           <Route path="*" element={<Navigate to=".." replace />} />
         </Route>
 
-        {/* Catch all - redirect to default language */}
+        {/* 
+          Global catch-all route - redirects any invalid path to default language
+          Example: /invalid-path -> /en
+        */}
         <Route path="*" element={<Navigate to={`/${supportedLanguages[0]}`} replace />} />
       </Routes>
     </>
