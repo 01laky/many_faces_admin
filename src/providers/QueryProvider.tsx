@@ -3,22 +3,22 @@ import type { ReactNode } from 'react';
 
 // Create a client
 const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
-    mutations: {
-      retry: 1,
-    },
-  },
+	defaultOptions: {
+		queries: {
+			refetchOnWindowFocus: false,
+			retry: 1,
+			staleTime: 5 * 60 * 1000, // 5 minutes
+		},
+		mutations: {
+			retry: 1,
+		},
+	},
 });
 
 interface QueryProviderProps {
-  children: ReactNode;
+	children: ReactNode;
 }
 
 export function QueryProvider({ children }: QueryProviderProps) {
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+	return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 }

@@ -1,0 +1,413 @@
+// AdminLayout.scss - Responsive layout with sidebar + header + content
+// Breakpoints: mobile (<768px), tablet (768-1024px), desktop (>1024px)
+
+$sidebar-width: 260px;
+$header-height: 60px;
+$transition-speed: 0.3s;
+
+// ==================== LAYOUT ROOT ====================
+.admin-layout {
+	min-height: 100vh;
+	background: #f8fafc;
+}
+
+// ==================== HEADER ====================
+.admin-header {
+	position: fixed;
+	top: 0;
+	right: 0;
+	height: $header-height;
+	z-index: 1000;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 1.5rem;
+	background: rgba(13, 110, 253, 0.92);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+	transition: left $transition-speed ease;
+
+	&__left {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	&__title {
+		color: #fff;
+		font-weight: 700;
+		font-size: 1.1rem;
+		white-space: nowrap;
+	}
+
+	&__hamburger {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 38px;
+		height: 38px;
+		background: rgba(255, 255, 255, 0.1);
+		border: 1px solid rgba(255, 255, 255, 0.15);
+		border-radius: 8px;
+		cursor: pointer;
+		transition: background 0.2s;
+
+		&:hover {
+			background: rgba(255, 255, 255, 0.2);
+		}
+	}
+
+	&__right {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	&__user {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	&__avatar {
+		width: 34px;
+		height: 34px;
+		border-radius: 50%;
+		background: rgba(255, 255, 255, 0.2);
+		color: #fff;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: 600;
+		font-size: 0.9rem;
+		flex-shrink: 0;
+		border: 1px solid rgba(255, 255, 255, 0.3);
+	}
+
+	&__email {
+		color: rgba(255, 255, 255, 0.9);
+		font-size: 0.85rem;
+		white-space: nowrap;
+	}
+
+	&__logout {
+		padding: 0.4rem 0.85rem;
+		font-size: 0.8rem;
+		font-weight: 500;
+		background: rgba(255, 255, 255, 0.12);
+		border: 1px solid rgba(255, 255, 255, 0.25);
+		border-radius: 6px;
+		color: #fff;
+		cursor: pointer;
+		transition: all 0.2s;
+		white-space: nowrap;
+
+		&:hover {
+			background: rgba(255, 255, 255, 0.25);
+			border-color: rgba(255, 255, 255, 0.4);
+		}
+	}
+}
+
+// ==================== HAMBURGER ICON ====================
+.hamburger-icon {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	width: 20px;
+	height: 16px;
+	gap: 4px;
+
+	span {
+		display: block;
+		width: 100%;
+		height: 2px;
+		background: #fff;
+		border-radius: 2px;
+		transition: all 0.25s ease;
+		transform-origin: center;
+	}
+
+	&.open {
+		span:nth-child(1) {
+			transform: translateY(6px) rotate(45deg);
+		}
+		span:nth-child(2) {
+			opacity: 0;
+			transform: scaleX(0);
+		}
+		span:nth-child(3) {
+			transform: translateY(-6px) rotate(-45deg);
+		}
+	}
+}
+
+// ==================== SIDEBAR OVERLAY (mobile) ====================
+.admin-sidebar-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.5);
+	z-index: 1050;
+	backdrop-filter: blur(2px);
+}
+
+// ==================== SIDEBAR ====================
+.admin-sidebar {
+	position: fixed;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	width: $sidebar-width;
+	background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%);
+	backdrop-filter: blur(10px);
+	border-right: 1px solid rgba(226, 232, 240, 0.8);
+	box-shadow: 2px 0 12px rgba(0, 0, 0, 0.06);
+	display: flex;
+	flex-direction: column;
+	transition: transform $transition-speed ease;
+	z-index: 1100;
+	overflow: hidden;
+
+	// Desktop states
+	&--desktop {
+		&.admin-sidebar--open {
+			transform: translateX(0);
+		}
+		&.admin-sidebar--closed {
+			transform: translateX(-100%);
+		}
+	}
+
+	// Mobile states (always overlay)
+	&--mobile {
+		&.admin-sidebar--open {
+			transform: translateX(0);
+		}
+		&.admin-sidebar--closed {
+			transform: translateX(-100%);
+		}
+	}
+
+	&__header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 1rem 1.25rem;
+		border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+		min-height: $header-height;
+	}
+
+	&__logo {
+		font-size: 1.2rem;
+		font-weight: 700;
+		color: #1e293b;
+		white-space: nowrap;
+		background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+		background-clip: text;
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+	}
+
+	&__close {
+		width: 32px;
+		height: 32px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: rgba(148, 163, 184, 0.1);
+		border: none;
+		border-radius: 6px;
+		color: #64748b;
+		cursor: pointer;
+		font-size: 1rem;
+		transition: background 0.2s;
+
+		&:hover {
+			background: rgba(148, 163, 184, 0.2);
+		}
+	}
+
+	// ==================== NAV ====================
+	&__nav {
+		flex: 1;
+		padding: 1rem 0.75rem;
+		overflow-y: auto;
+		overflow-x: hidden;
+
+		// Scrollbar
+		&::-webkit-scrollbar {
+			width: 5px;
+		}
+		&::-webkit-scrollbar-track {
+			background: transparent;
+		}
+		&::-webkit-scrollbar-thumb {
+			background: rgba(148, 163, 184, 0.3);
+			border-radius: 3px;
+		}
+	}
+
+	&__item {
+		display: flex;
+		align-items: center;
+		padding: 0.7rem 1rem;
+		margin: 0.2rem 0;
+		border-radius: 8px;
+		color: #64748b;
+		text-decoration: none;
+		transition: all 0.2s;
+		position: relative;
+		white-space: nowrap;
+		font-weight: 500;
+		font-size: 0.925rem;
+
+		&:hover {
+			background: rgba(148, 163, 184, 0.1);
+			color: #334155;
+			text-decoration: none;
+		}
+
+		&--active {
+			background: linear-gradient(90deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.04));
+			color: #3b82f6;
+			font-weight: 600;
+
+			&::before {
+				content: '';
+				position: absolute;
+				left: 0;
+				top: 50%;
+				transform: translateY(-50%);
+				width: 3px;
+				height: 55%;
+				background: #3b82f6;
+				border-radius: 0 3px 3px 0;
+			}
+		}
+	}
+
+	&__icon {
+		font-size: 1.2rem;
+		margin-right: 0.75rem;
+		flex-shrink: 0;
+		width: 26px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	&__label {
+		font-size: inherit;
+	}
+
+	// ==================== FOOTER ====================
+	&__footer {
+		padding: 0.75rem 1rem;
+		border-top: 1px solid rgba(226, 232, 240, 0.5);
+	}
+
+	&__user-card {
+		display: flex;
+		align-items: center;
+		padding: 0.6rem 0.75rem;
+		background: rgba(148, 163, 184, 0.06);
+		border-radius: 8px;
+	}
+
+	&__user-avatar {
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
+		background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+		color: #fff;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: 600;
+		font-size: 0.9rem;
+		flex-shrink: 0;
+	}
+
+	&__user-info {
+		margin-left: 0.65rem;
+		overflow: hidden;
+		min-width: 0;
+	}
+
+	&__user-email {
+		font-size: 0.8rem;
+		font-weight: 600;
+		color: #1e293b;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	&__user-name {
+		font-size: 0.7rem;
+		color: #64748b;
+		margin-top: 0.1rem;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+}
+
+// ==================== MAIN CONTENT ====================
+.admin-main {
+	padding-top: $header-height;
+	min-height: 100vh;
+	transition: margin-left $transition-speed ease;
+}
+
+// ==================== RESPONSIVE: TABLET ====================
+@media (max-width: 1024px) and (min-width: 768px) {
+	.admin-header {
+		padding: 0 1rem;
+
+		&__email {
+			display: none;
+		}
+	}
+
+	.admin-main {
+		margin-left: 0 !important;
+	}
+}
+
+// ==================== RESPONSIVE: MOBILE ====================
+@media (max-width: 767px) {
+	.admin-header {
+		left: 0 !important;
+		padding: 0 0.75rem;
+
+		&__title {
+			font-size: 0.95rem;
+		}
+
+		&__email {
+			display: none;
+		}
+
+		&__avatar {
+			display: none;
+		}
+
+		&__logout {
+			padding: 0.35rem 0.65rem;
+			font-size: 0.75rem;
+		}
+	}
+
+	.admin-sidebar {
+		width: 280px;
+	}
+
+	.admin-main {
+		margin-left: 0 !important;
+		padding-top: $header-height;
+	}
+}

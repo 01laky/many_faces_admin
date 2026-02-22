@@ -2,18 +2,20 @@ import type { SupportedLanguage } from '../i18n/config';
 
 // Map of English route names to their keys in i18n
 const routeKeys: Record<string, string> = {
-  login: 'routes.login',
-  homepage: 'routes.homepage',
-  users: 'routes.users',
-  faces: 'routes.faces',
+	login: 'routes.login',
+	homepage: 'routes.homepage',
+	dashboard: 'routes.dashboard',
+	users: 'routes.users',
+	faces: 'routes.faces',
 };
 
 // Map of route keys to English route names (reverse lookup)
 const routeKeyToEnglish: Record<string, string> = {
-  'routes.login': 'login',
-  'routes.homepage': 'homepage',
-  'routes.users': 'users',
-  'routes.faces': 'faces',
+	'routes.login': 'login',
+	'routes.homepage': 'homepage',
+	'routes.dashboard': 'dashboard',
+	'routes.users': 'users',
+	'routes.faces': 'faces',
 };
 
 /**
@@ -24,32 +26,32 @@ const routeKeyToEnglish: Record<string, string> = {
  * @returns Translated route path
  */
 export function getTranslatedRoute(
-  englishPath: string,
-  language: SupportedLanguage,
-  t: (key: string) => string
+	englishPath: string,
+	language: SupportedLanguage,
+	t: (key: string) => string
 ): string {
-  // If path is empty or root, return empty
-  if (!englishPath || englishPath === '/') {
-    return '';
-  }
+	// If path is empty or root, return empty
+	if (!englishPath || englishPath === '/') {
+		return '';
+	}
 
-  // Remove leading slash if present
-  const cleanPath = englishPath.startsWith('/') ? englishPath.slice(1) : englishPath;
+	// Remove leading slash if present
+	const cleanPath = englishPath.startsWith('/') ? englishPath.slice(1) : englishPath;
 
-  // Split path into segments
-  const segments = cleanPath.split('/');
+	// Split path into segments
+	const segments = cleanPath.split('/');
 
-  // Translate each segment
-  const translatedSegments = segments.map((segment) => {
-    const routeKey = routeKeys[segment];
-    if (routeKey) {
-      return t(routeKey);
-    }
-    // If no translation found, return original segment
-    return segment;
-  });
+	// Translate each segment
+	const translatedSegments = segments.map((segment) => {
+		const routeKey = routeKeys[segment];
+		if (routeKey) {
+			return t(routeKey);
+		}
+		// If no translation found, return original segment
+		return segment;
+	});
 
-  return translatedSegments.join('/');
+	return translatedSegments.join('/');
 }
 
 /**
@@ -60,35 +62,35 @@ export function getTranslatedRoute(
  * @returns English route path
  */
 export function getEnglishRoute(
-  translatedPath: string,
-  language: SupportedLanguage,
-  t: (key: string) => string
+	translatedPath: string,
+	language: SupportedLanguage,
+	t: (key: string) => string
 ): string {
-  // If path is empty or root, return empty
-  if (!translatedPath || translatedPath === '/') {
-    return '';
-  }
+	// If path is empty or root, return empty
+	if (!translatedPath || translatedPath === '/') {
+		return '';
+	}
 
-  // Remove leading slash if present
-  const cleanPath = translatedPath.startsWith('/') ? translatedPath.slice(1) : translatedPath;
+	// Remove leading slash if present
+	const cleanPath = translatedPath.startsWith('/') ? translatedPath.slice(1) : translatedPath;
 
-  // Split path into segments
-  const segments = cleanPath.split('/');
+	// Split path into segments
+	const segments = cleanPath.split('/');
 
-  // Find English route for each segment
-  const englishSegments = segments.map((segment) => {
-    // Try to find which route key matches this translated segment
-    for (const [routeKey, englishRoute] of Object.entries(routeKeyToEnglish)) {
-      const translated = t(routeKey);
-      if (translated === segment) {
-        return englishRoute;
-      }
-    }
-    // If no match found, return original segment
-    return segment;
-  });
+	// Find English route for each segment
+	const englishSegments = segments.map((segment) => {
+		// Try to find which route key matches this translated segment
+		for (const [routeKey, englishRoute] of Object.entries(routeKeyToEnglish)) {
+			const translated = t(routeKey);
+			if (translated === segment) {
+				return englishRoute;
+			}
+		}
+		// If no match found, return original segment
+		return segment;
+	});
 
-  return englishSegments.join('/');
+	return englishSegments.join('/');
 }
 
 /**
@@ -96,24 +98,24 @@ export function getEnglishRoute(
  * Used for route matching
  */
 export function getAllRouteTranslations(
-  englishRoute: string,
-  t: (key: string, options?: { lng?: string }) => string
+	englishRoute: string,
+	t: (key: string, options?: { lng?: string }) => string
 ): string[] {
-  const routeKey = routeKeys[englishRoute];
-  if (!routeKey) {
-    return [englishRoute];
-  }
+	const routeKey = routeKeys[englishRoute];
+	if (!routeKey) {
+		return [englishRoute];
+	}
 
-  const translations: string[] = [englishRoute]; // Always include English
+	const translations: string[] = [englishRoute]; // Always include English
 
-  // Get translations for all supported languages
-  const supportedLanguages: SupportedLanguage[] = ['en', 'sk', 'cz'];
-  supportedLanguages.forEach((lang) => {
-    const translated = t(routeKey, { lng: lang });
-    if (translated !== englishRoute) {
-      translations.push(translated);
-    }
-  });
+	// Get translations for all supported languages
+	const supportedLanguages: SupportedLanguage[] = ['en', 'sk', 'cz'];
+	supportedLanguages.forEach((lang) => {
+		const translated = t(routeKey, { lng: lang });
+		if (translated !== englishRoute) {
+			translations.push(translated);
+		}
+	});
 
-  return translations;
+	return translations;
 }

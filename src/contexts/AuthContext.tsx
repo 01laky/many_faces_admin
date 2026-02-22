@@ -5,36 +5,36 @@ import { logger } from '../utils/logger';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import {
-  useLogin as useLoginMutation,
-  useLogout as useLogoutMutation,
-  useAuthToken,
-  useRefreshToken as useRefreshTokenMutation,
+	useLogin as useLoginMutation,
+	useLogout as useLogoutMutation,
+	useAuthToken,
+	useRefreshToken as useRefreshTokenMutation,
 } from '../hooks/api/useAuthApi';
 
 /**
  * User information interface
  */
 interface User {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
+	id: string;
+	email: string;
+	firstName?: string;
+	lastName?: string;
 }
 
 /**
  * Authentication context type
  */
 interface AuthContextType {
-  // State
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  user: User | null;
-  token: string | null;
+	// State
+	isAuthenticated: boolean;
+	isLoading: boolean;
+	user: User | null;
+	token: string | null;
 
-  // Actions
-  login: (username: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-  refreshAuth: () => Promise<void>;
+	// Actions
+	login: (username: string, password: string) => Promise<void>;
+	logout: () => Promise<void>;
+	refreshAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -43,9 +43,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
  * Storage keys
  */
 const STORAGE_KEYS = {
-  TOKEN: 'auth_token',
-  REFRESH_TOKEN: 'auth_refresh_token',
-  USER: 'auth_user',
+	TOKEN: 'auth_token',
+	REFRESH_TOKEN: 'auth_refresh_token',
+	USER: 'auth_user',
 } as const;
 
 /**
@@ -53,209 +53,209 @@ const STORAGE_KEYS = {
  * Manages authentication state and provides auth methods
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const { t } = useTranslation('common');
+	const [isAuthenticated, setIsAuthenticated] = useState(false);
+	const [isLoading, setIsLoading] = useState(true);
+	const [user, setUser] = useState<User | null>(null);
+	const [token, setToken] = useState<string | null>(null);
+	const { t } = useTranslation('common');
 
-  // React Query hooks
-  const loginMutation = useLoginMutation();
-  const logoutMutation = useLogoutMutation();
-  const refreshTokenMutation = useRefreshTokenMutation();
-  const { data: tokenData, isLoading: tokenLoading } = useAuthToken();
+	// React Query hooks
+	const loginMutation = useLoginMutation();
+	const logoutMutation = useLogoutMutation();
+	const refreshTokenMutation = useRefreshTokenMutation();
+	const { data: tokenData, isLoading: tokenLoading } = useAuthToken();
 
-  /**
-   * Load authentication state from localStorage on mount and sync with React Query
-   */
-  useEffect(() => {
-    const loadAuthState = () => {
-      try {
-        const storedToken = localStorage.getItem(STORAGE_KEYS.TOKEN);
-        const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
+	/**
+	 * Load authentication state from localStorage on mount and sync with React Query
+	 */
+	useEffect(() => {
+		const loadAuthState = () => {
+			try {
+				const storedToken = localStorage.getItem(STORAGE_KEYS.TOKEN);
+				const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
 
-        if (storedToken) {
-          setToken(storedToken);
-          setAuthToken(storedToken);
-          setIsAuthenticated(true);
+				if (storedToken) {
+					setToken(storedToken);
+					setAuthToken(storedToken);
+					setIsAuthenticated(true);
 
-          if (storedUser) {
-            try {
-              setUser(JSON.parse(storedUser));
-            } catch (e) {
-              logger.warn('Failed to parse stored user data', { error: String(e) });
-            }
-          }
-        }
-      } catch (error) {
-        logger.error('Failed to load auth state', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+					if (storedUser) {
+						try {
+							setUser(JSON.parse(storedUser));
+						} catch (e) {
+							logger.warn('Failed to parse stored user data', { error: String(e) });
+						}
+					}
+				}
+			} catch (error) {
+				logger.error('Failed to load auth state', error);
+			} finally {
+				setIsLoading(false);
+			}
+		};
 
-    loadAuthState();
-  }, []);
+		loadAuthState();
+	}, []);
 
-  // Sync token from React Query
-  useEffect(() => {
-    if (tokenData?.accessToken) {
-      setToken(tokenData.accessToken);
-      setAuthToken(tokenData.accessToken);
-      setIsAuthenticated(true);
-    } else if (!tokenLoading && !tokenData) {
-      setToken(null);
-      setAuthToken(null);
-      setIsAuthenticated(false);
-    }
-  }, [tokenData, tokenLoading]);
+	// Sync token from React Query
+	useEffect(() => {
+		if (tokenData?.accessToken) {
+			setToken(tokenData.accessToken);
+			setAuthToken(tokenData.accessToken);
+			setIsAuthenticated(true);
+		} else if (!tokenLoading && !tokenData) {
+			setToken(null);
+			setAuthToken(null);
+			setIsAuthenticated(false);
+		}
+	}, [tokenData, tokenLoading]);
 
-  /**
-   * Login function - uses React Query mutation
-   */
-  const login = useCallback(
-    async (username: string, password: string) => {
-      try {
-        setIsLoading(true);
-        logger.info('Attempting login', { username });
+	/**
+	 * Login function - uses React Query mutation
+	 */
+	const login = useCallback(
+		async (username: string, password: string) => {
+			try {
+				setIsLoading(true);
+				logger.info('Attempting login', { username });
 
-        // Use React Query mutation
-        const result = await loginMutation.mutateAsync({ username, password });
+				// Use React Query mutation
+				const result = await loginMutation.mutateAsync({ username, password });
 
-        if (result?.accessToken) {
-          setToken(result.accessToken);
-          setAuthToken(result.accessToken);
-          setIsAuthenticated(true);
+				if (result?.accessToken) {
+					setToken(result.accessToken);
+					setAuthToken(result.accessToken);
+					setIsAuthenticated(true);
 
-          // Extract user info from token (basic JWT decode)
-          try {
-            const payload = JSON.parse(atob(result.accessToken.split('.')[1]));
-            const userData: User = {
-              id: payload.sub || payload.nameid || '',
-              email: payload.email || username,
-              firstName: payload.given_name || payload.firstName,
-              lastName: payload.family_name || payload.lastName,
-            };
-            setUser(userData);
-            localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
-          } catch (e) {
-            logger.warn('Failed to decode token, using username as email', { error: String(e) });
-            const userData: User = {
-              id: username,
-              email: username,
-            };
-            setUser(userData);
-            localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
-          }
+					// Extract user info from token (basic JWT decode)
+					try {
+						const payload = JSON.parse(atob(result.accessToken.split('.')[1]));
+						const userData: User = {
+							id: payload.sub || payload.nameid || '',
+							email: payload.email || username,
+							firstName: payload.given_name || payload.firstName,
+							lastName: payload.family_name || payload.lastName,
+						};
+						setUser(userData);
+						localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
+					} catch (e) {
+						logger.warn('Failed to decode token, using username as email', { error: String(e) });
+						const userData: User = {
+							id: username,
+							email: username,
+						};
+						setUser(userData);
+						localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
+					}
 
-          logger.info('Login successful', { username });
-          // Toast will be shown in LoginPage component
-        }
-      } catch (error) {
-        logger.error('Login failed', error);
-        setIsAuthenticated(false);
-        setToken(null);
-        setUser(null);
-        setAuthToken(null);
+					logger.info('Login successful', { username });
+					// Toast will be shown in LoginPage component
+				}
+			} catch (error) {
+				logger.error('Login failed', error);
+				setIsAuthenticated(false);
+				setToken(null);
+				setUser(null);
+				setAuthToken(null);
 
-        // Toast will be shown in LoginPage component
-        throw error;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [loginMutation]
-  );
+				// Toast will be shown in LoginPage component
+				throw error;
+			} finally {
+				setIsLoading(false);
+			}
+		},
+		[loginMutation]
+	);
 
-  /**
-   * Logout function - uses React Query mutation
-   */
-  const logout = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      logger.info('Logging out');
+	/**
+	 * Logout function - uses React Query mutation
+	 */
+	const logout = useCallback(async () => {
+		try {
+			setIsLoading(true);
+			logger.info('Logging out');
 
-      // Use React Query mutation
-      await logoutMutation.mutateAsync();
+			// Use React Query mutation
+			await logoutMutation.mutateAsync();
 
-      // Clear local storage
-      localStorage.removeItem(STORAGE_KEYS.TOKEN);
-      localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-      localStorage.removeItem(STORAGE_KEYS.USER);
+			// Clear local storage
+			localStorage.removeItem(STORAGE_KEYS.TOKEN);
+			localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+			localStorage.removeItem(STORAGE_KEYS.USER);
 
-      // Clear local state
-      setAuthToken(null);
-      setToken(null);
-      setIsAuthenticated(false);
-      setUser(null);
+			// Clear local state
+			setAuthToken(null);
+			setToken(null);
+			setIsAuthenticated(false);
+			setUser(null);
 
-      logger.info('Logout successful');
-      toast.success(t('pages.logout.successMessage') || 'Logged out successfully');
-    } catch (error) {
-      logger.error('Logout failed', error);
+			logger.info('Logout successful');
+			toast.success(t('pages.logout.successMessage') || 'Logged out successfully');
+		} catch (error) {
+			logger.error('Logout failed', error);
 
-      // Clear state even if API call fails
-      localStorage.removeItem(STORAGE_KEYS.TOKEN);
-      localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-      localStorage.removeItem(STORAGE_KEYS.USER);
-      setAuthToken(null);
-      setToken(null);
-      setIsAuthenticated(false);
-      setUser(null);
+			// Clear state even if API call fails
+			localStorage.removeItem(STORAGE_KEYS.TOKEN);
+			localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+			localStorage.removeItem(STORAGE_KEYS.USER);
+			setAuthToken(null);
+			setToken(null);
+			setIsAuthenticated(false);
+			setUser(null);
 
-      // Show error toast
-      const errorMessage =
-        error instanceof Error ? error.message : t('pages.logout.errorMessage') || 'Logout failed';
-      toast.error(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [logoutMutation]);
+			// Show error toast
+			const errorMessage =
+				error instanceof Error ? error.message : t('pages.logout.errorMessage') || 'Logout failed';
+			toast.error(errorMessage);
+		} finally {
+			setIsLoading(false);
+		}
+	}, [logoutMutation, t]);
 
-  /**
-   * Refresh authentication token - uses React Query mutation
-   */
-  const refreshAuth = useCallback(async () => {
-    try {
-      const result = await refreshTokenMutation.mutateAsync();
+	/**
+	 * Refresh authentication token - uses React Query mutation
+	 */
+	const refreshAuth = useCallback(async () => {
+		try {
+			const result = await refreshTokenMutation.mutateAsync();
 
-      if (result?.accessToken) {
-        setToken(result.accessToken);
-        setAuthToken(result.accessToken);
-        setIsAuthenticated(true);
-        logger.info('Token refreshed successfully');
-      }
-    } catch (error) {
-      logger.error('Token refresh failed', error);
-      // If refresh fails, logout user
-      await logout();
-    }
-  }, [refreshTokenMutation, logout]);
+			if (result?.accessToken) {
+				setToken(result.accessToken);
+				setAuthToken(result.accessToken);
+				setIsAuthenticated(true);
+				logger.info('Token refreshed successfully');
+			}
+		} catch (error) {
+			logger.error('Token refresh failed', error);
+			// If refresh fails, logout user
+			await logout();
+		}
+	}, [refreshTokenMutation, logout]);
 
-  return (
-    <AuthContext.Provider
-      value={{
-        isAuthenticated,
-        isLoading,
-        user,
-        token,
-        login,
-        logout,
-        refreshAuth,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+	return (
+		<AuthContext.Provider
+			value={{
+				isAuthenticated,
+				isLoading,
+				user,
+				token,
+				login,
+				logout,
+				refreshAuth,
+			}}
+		>
+			{children}
+		</AuthContext.Provider>
+	);
 }
 
 /**
  * Hook to access authentication context
  */
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+	const context = useContext(AuthContext);
+	if (context === undefined) {
+		throw new Error('useAuth must be used within an AuthProvider');
+	}
+	return context;
 }

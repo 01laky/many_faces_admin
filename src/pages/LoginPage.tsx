@@ -14,127 +14,127 @@ import { Button } from '../components/radix/Button';
 import './LoginPage.scss';
 
 interface LoginFormData {
-  email: string;
-  password: string;
+	email: string;
+	password: string;
 }
 
 export function LoginPage() {
-  const { t } = useTranslation('common');
-  const { login, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { lang: _lang } = useParams<{ lang: string }>();
-  const getLocalizedPath = useLocalizedLink();
+	const { t } = useTranslation('common');
+	const { login, isAuthenticated } = useAuth();
+	const navigate = useNavigate();
+	const location = useLocation();
+	const { lang: _lang } = useParams<{ lang: string }>();
+	const getLocalizedPath = useLocalizedLink();
 
-  // Create validation schema with yup
-  const validationSchema = yup.object({
-    email: yup
-      .string()
-      .required(t('pages.login.validation.emailRequired'))
-      .email(t('pages.login.validation.emailInvalid')),
-    password: yup
-      .string()
-      .required(t('pages.login.validation.passwordRequired'))
-      .min(4, t('pages.login.validation.passwordMinLength')),
-  });
+	// Create validation schema with yup
+	const validationSchema = yup.object({
+		email: yup
+			.string()
+			.required(t('pages.login.validation.emailRequired'))
+			.email(t('pages.login.validation.emailInvalid')),
+		password: yup
+			.string()
+			.required(t('pages.login.validation.passwordRequired'))
+			.min(4, t('pages.login.validation.passwordMinLength')),
+	});
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginFormData>({
-    resolver: yupResolver(validationSchema),
-    mode: 'onBlur', // Validate on blur for better UX
-  });
+	const {
+		register,
+		handleSubmit,
+		formState: { errors, isSubmitting },
+	} = useForm<LoginFormData>({
+		resolver: yupResolver(validationSchema),
+		mode: 'onBlur', // Validate on blur for better UX
+	});
 
-  // Redirect if already authenticated
-  const from = (location.state as { from?: string })?.from || getLocalizedPath('/homepage');
+	// Redirect if already authenticated
+	const from = (location.state as { from?: string })?.from || getLocalizedPath('/dashboard');
 
-  if (isAuthenticated) {
-    navigate(from, { replace: true });
-    return null;
-  }
+	if (isAuthenticated) {
+		navigate(from, { replace: true });
+		return null;
+	}
 
-  const onSubmit = async (data: LoginFormData) => {
-    try {
-      await login(data.email, data.password);
-      logger.info('Login successful, redirecting', { email: data.email });
-      toast.success(t('pages.login.success') || 'Login successful!');
-      // Redirect to homepage after successful login
-      const homepagePath = getLocalizedPath('/homepage');
-      navigate(homepagePath, { replace: true });
-    } catch (error) {
-      logger.error('Login failed', error);
-      // Extract error message from error
-      let errorMessage = t('pages.login.error') || 'Login failed';
+	const onSubmit = async (data: LoginFormData) => {
+		try {
+			await login(data.email, data.password);
+			logger.info('Login successful, redirecting', { email: data.email });
+			toast.success(t('pages.login.success') || 'Login successful!');
+			// Redirect to dashboard after successful login
+			const dashboardPath = getLocalizedPath('/dashboard');
+			navigate(dashboardPath, { replace: true });
+		} catch (error) {
+			logger.error('Login failed', error);
+			// Extract error message from error
+			let errorMessage = t('pages.login.error') || 'Login failed';
 
-      if (error instanceof Error) {
-        errorMessage = error.message || errorMessage;
-      } else if (typeof error === 'object' && error !== null) {
-        const errorObj = error as { message?: string; error?: string; errorDescription?: string };
-        errorMessage =
-          errorObj.errorDescription || errorObj.error || errorObj.message || errorMessage;
-      }
+			if (error instanceof Error) {
+				errorMessage = error.message || errorMessage;
+			} else if (typeof error === 'object' && error !== null) {
+				const errorObj = error as { message?: string; error?: string; errorDescription?: string };
+				errorMessage =
+					errorObj.errorDescription || errorObj.error || errorObj.message || errorMessage;
+			}
 
-      toast.error(errorMessage);
-    }
-  };
+			toast.error(errorMessage);
+		}
+	};
 
-  return (
-    <div className="login-page-wrapper">
-      <Container className="h-100">
-        <Row className="h-100">
-          <Col xs={12} className="d-flex align-items-center justify-content-center">
-            <div className="login-card">
-              <h2 className="login-title">{t('pages.login.title')}</h2>
-              <form onSubmit={handleSubmit(onSubmit)} className="login-form">
-                <FormField
-                  label={t('pages.login.email')}
-                  htmlFor="email"
-                  required
-                  error={errors.email?.message}
-                >
-                  <Input
-                    id="email"
-                    type="email"
-                    {...register('email')}
-                    disabled={isSubmitting}
-                    error={!!errors.email}
-                    placeholder={t('pages.login.email')}
-                  />
-                </FormField>
+	return (
+		<div className="login-page-wrapper">
+			<Container className="h-100">
+				<Row className="h-100">
+					<Col xs={12} className="d-flex align-items-center justify-content-center">
+						<div className="login-card">
+							<h2 className="login-title">{t('pages.login.title')}</h2>
+							<form onSubmit={handleSubmit(onSubmit)} className="login-form">
+								<FormField
+									label={t('pages.login.email')}
+									htmlFor="email"
+									required
+									error={errors.email?.message}
+								>
+									<Input
+										id="email"
+										type="email"
+										{...register('email')}
+										disabled={isSubmitting}
+										error={!!errors.email}
+										placeholder={t('pages.login.email')}
+									/>
+								</FormField>
 
-                <FormField
-                  label={t('pages.login.password')}
-                  htmlFor="password"
-                  required
-                  error={errors.password?.message}
-                >
-                  <Input
-                    id="password"
-                    type="password"
-                    {...register('password')}
-                    disabled={isSubmitting}
-                    error={!!errors.password}
-                    placeholder={t('pages.login.password')}
-                  />
-                </FormField>
+								<FormField
+									label={t('pages.login.password')}
+									htmlFor="password"
+									required
+									error={errors.password?.message}
+								>
+									<Input
+										id="password"
+										type="password"
+										{...register('password')}
+										disabled={isSubmitting}
+										error={!!errors.password}
+										placeholder={t('pages.login.password')}
+									/>
+								</FormField>
 
-                <Button
-                  type="submit"
-                  variant="primary"
-                  disabled={isSubmitting}
-                  className="login-submit-button"
-                >
-                  {isSubmitting
-                    ? t('pages.login.submitting') || 'Logging in...'
-                    : t('pages.login.submit')}
-                </Button>
-              </form>
-            </div>
-          </Col>
-        </Row>
-      </Container>
-    </div>
-  );
+								<Button
+									type="submit"
+									variant="primary"
+									disabled={isSubmitting}
+									className="login-submit-button"
+								>
+									{isSubmitting
+										? t('pages.login.submitting') || 'Logging in...'
+										: t('pages.login.submit')}
+								</Button>
+							</form>
+						</div>
+					</Col>
+				</Row>
+			</Container>
+		</div>
+	);
 }

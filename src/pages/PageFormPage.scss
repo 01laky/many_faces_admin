@@ -1,79 +1,79 @@
 .page-form-page-wrapper {
-  min-height: calc(100vh - 80px);
+	min-height: calc(100vh - 80px);
 }
 
 .page-form-content {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  width: 100%;
+	display: flex;
+	flex-direction: column;
+	gap: 2rem;
+	width: 100%;
 }
 
 .page-form-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	margin-bottom: 1rem;
 
-  h1 {
-    margin: 0;
-    font-size: 2rem;
-    font-weight: 600;
-    color: rgba(0, 0, 0, 0.9);
-  }
+	h1 {
+		margin: 0;
+		font-size: 2rem;
+		font-weight: 600;
+		color: rgba(0, 0, 0, 0.9);
+	}
 
-  .back-button {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
+	.back-button {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
 }
 
 .page-form-card {
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 0.5rem;
-  padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+	background: #fff;
+	border: 1px solid rgba(0, 0, 0, 0.1);
+	border-radius: 0.5rem;
+	padding: 2rem;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .page-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+	display: flex;
+	flex-direction: column;
+	gap: 1.5rem;
 }
 
 .page-form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 1rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+	display: flex;
+	justify-content: flex-end;
+	gap: 1rem;
+	margin-top: 1rem;
+	padding-top: 1.5rem;
+	border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .page-form-loading,
 .page-form-error {
-  padding: 3rem;
-  text-align: center;
+	padding: 3rem;
+	text-align: center;
 
-  p {
-    margin-bottom: 1.5rem;
-    color: rgba(0, 0, 0, 0.7);
-  }
+	p {
+		margin-bottom: 1.5rem;
+		color: rgba(0, 0, 0, 0.7);
+	}
 }
 
 .page-form-error {
-  color: #dc3545;
+	color: #dc3545;
 }
 
 // Responsive
 @media (max-width: 768px) {
-  .page-form-actions {
-    flex-direction: column-reverse;
-  }
+	.page-form-actions {
+		flex-direction: column-reverse;
+	}
 
-  .page-form-actions > * {
-    width: 100%;
-  }
+	.page-form-actions > * {
+		width: 100%;
+	}
 }

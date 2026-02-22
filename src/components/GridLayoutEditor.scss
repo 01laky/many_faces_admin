@@ -1,0 +1,152 @@
+.grid-layout-editor {
+	margin-top: 1rem;
+}
+
+.grid-layout-toolbar {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	margin-bottom: 1rem;
+
+	.grid-item-count {
+		font-size: 0.875rem;
+		color: rgba(0, 0, 0, 0.5);
+	}
+}
+
+.grid-layout-canvas {
+	border: 2px dashed rgba(0, 0, 0, 0.15);
+	border-radius: 8px;
+	padding: 8px;
+	min-height: 200px;
+	background: rgba(0, 0, 0, 0.02);
+}
+
+.grid-layout-empty {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 180px;
+
+	p {
+		color: rgba(0, 0, 0, 0.4);
+		font-size: 0.95rem;
+	}
+}
+
+.grid-item-wrapper {
+	border: 2px solid #000;
+	border-radius: 4px;
+	background: #fff;
+	overflow: hidden;
+}
+
+.grid-item-content {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	padding: 6px 8px;
+}
+
+.grid-item-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 4px;
+}
+
+.grid-item-label {
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: rgba(0, 0, 0, 0.7);
+	cursor: text;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+
+	&:hover {
+		color: #0d6efd;
+	}
+}
+
+.grid-item-label-edit {
+	flex: 1;
+
+	input {
+		width: 100%;
+		font-size: 0.8rem;
+		font-weight: 600;
+		border: 1px solid #0d6efd;
+		border-radius: 2px;
+		padding: 1px 4px;
+		outline: none;
+	}
+}
+
+.grid-item-remove {
+	background: none;
+	border: none;
+	font-size: 1.1rem;
+	line-height: 1;
+	cursor: pointer;
+	color: rgba(0, 0, 0, 0.4);
+	padding: 0 2px;
+	flex-shrink: 0;
+
+	&:hover {
+		color: #dc3545;
+	}
+}
+
+.grid-item-info {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.75rem;
+	color: rgba(0, 0, 0, 0.35);
+}
+
+.grid-item-body {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	border-radius: 3px;
+	transition: background 0.15s ease;
+
+	&:hover {
+		background: rgba(13, 110, 253, 0.04);
+	}
+}
+
+.grid-item-component-badge {
+	font-size: 0.72rem;
+	font-weight: 600;
+	color: #0d6efd;
+	background: rgba(13, 110, 253, 0.08);
+	padding: 3px 8px;
+	border-radius: 4px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 100%;
+}
+
+.grid-item-component-placeholder {
+	font-size: 0.72rem;
+	color: rgba(0, 0, 0, 0.3);
+}
+
+/* Override react-grid-layout styles */
+.react-grid-item.react-grid-placeholder {
+	background: #0d6efd !important;
+	opacity: 0.15 !important;
+	border-radius: 4px;
+}
+
+.react-grid-item > .react-resizable-handle::after {
+	border-right-color: rgba(0, 0, 0, 0.3) !important;
+	border-bottom-color: rgba(0, 0, 0, 0.3) !important;
+}

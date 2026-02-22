@@ -9,26 +9,26 @@ import { getTranslatedRoute } from '../utils/routeTranslations';
  * This will translate the path based on current language (e.g., /en/login -> /sk/prihlasenie)
  */
 export function useLocalizedLink() {
-  const { lang } = useParams<{ lang: string }>();
-  const { currentLanguage } = useApp();
-  const { t: i18nT } = useTranslation('common');
+	const { lang } = useParams<{ lang: string }>();
+	const { currentLanguage } = useApp();
+	const { t: i18nT } = useTranslation('common');
 
-  const getLocalizedPath = (path: string): string => {
-    // Remove leading slash if present
-    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+	const getLocalizedPath = (path: string): string => {
+		// Remove leading slash if present
+		const cleanPath = path.startsWith('/') ? path.slice(1) : path;
 
-    // Get current language from URL or context
-    const targetLang = (lang as typeof currentLanguage) || currentLanguage;
+		// Get current language from URL or context
+		const targetLang = (lang as typeof currentLanguage) || currentLanguage;
 
-    // Translate the path based on target language
-    const translatedPath = getTranslatedRoute(cleanPath, targetLang, (key: string) => {
-      // Use i18nT with specific language
-      return i18nT(key, { lng: targetLang });
-    });
+		// Translate the path based on target language
+		const translatedPath = getTranslatedRoute(cleanPath, targetLang, (key: string) => {
+			// Use i18nT with specific language
+			return i18nT(key, { lng: targetLang });
+		});
 
-    // Return path with language prefix and translated route
-    return `/${targetLang}${translatedPath ? `/${translatedPath}` : ''}`;
-  };
+		// Return path with language prefix and translated route
+		return `/${targetLang}${translatedPath ? `/${translatedPath}` : ''}`;
+	};
 
-  return getLocalizedPath;
+	return getLocalizedPath;
 }

@@ -1,0 +1,181 @@
+// DashboardPage.scss
+
+.dashboard-page {
+	padding: 2rem;
+	max-width: 1400px;
+}
+
+// ==================== WELCOME ====================
+.dashboard-welcome {
+	margin-bottom: 2rem;
+
+	&__title {
+		font-size: 1.75rem;
+		font-weight: 700;
+		color: #1e293b;
+		margin: 0 0 0.5rem;
+	}
+
+	&__subtitle {
+		font-size: 1rem;
+		color: #64748b;
+		margin: 0;
+	}
+}
+
+// ==================== STAT CARDS ====================
+.dashboard-card-link {
+	text-decoration: none;
+	display: block;
+
+	&:hover .dashboard-card {
+		transform: translateY(-2px);
+		box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+	}
+}
+
+.dashboard-card {
+	display: flex;
+	align-items: center;
+	padding: 1.25rem 1.5rem;
+	background: #fff;
+	border-radius: 12px;
+	border: 1px solid rgba(226, 232, 240, 0.8);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+	transition: all 0.2s ease;
+	position: relative;
+	overflow: hidden;
+
+	&::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 0;
+		bottom: 0;
+		width: 4px;
+		background: var(--accent-color, #3b82f6);
+		border-radius: 4px 0 0 4px;
+	}
+
+	&__icon {
+		font-size: 2rem;
+		margin-right: 1rem;
+		flex-shrink: 0;
+	}
+
+	&__info {
+		flex: 1;
+		min-width: 0;
+	}
+
+	&__label {
+		font-size: 0.85rem;
+		color: #64748b;
+		font-weight: 500;
+		margin-bottom: 0.25rem;
+	}
+
+	&__value {
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: #1e293b;
+	}
+
+	&__arrow {
+		font-size: 1.25rem;
+		color: #94a3b8;
+		flex-shrink: 0;
+		transition: transform 0.2s;
+	}
+
+	&:hover &__arrow {
+		transform: translateX(3px);
+	}
+}
+
+// ==================== SECTIONS ====================
+.dashboard-section {
+	margin-top: 1rem;
+
+	&__title {
+		font-size: 1.15rem;
+		font-weight: 600;
+		color: #1e293b;
+		margin-bottom: 1rem;
+	}
+}
+
+// ==================== QUICK ACTIONS ====================
+.dashboard-action {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 1rem 1.25rem;
+	background: #fff;
+	border: 1px solid rgba(226, 232, 240, 0.8);
+	border-radius: 10px;
+	text-decoration: none;
+	color: #334155;
+	font-weight: 500;
+	font-size: 0.925rem;
+	transition: all 0.2s;
+
+	&:hover {
+		background: rgba(59, 130, 246, 0.04);
+		border-color: rgba(59, 130, 246, 0.3);
+		color: #3b82f6;
+		text-decoration: none;
+		transform: translateY(-1px);
+	}
+
+	&__icon {
+		font-size: 1.3rem;
+		flex-shrink: 0;
+	}
+
+	&__text {
+		flex: 1;
+	}
+}
+
+// ==================== RESPONSIVE: TABLET ====================
+@media (max-width: 1024px) {
+	.dashboard-page {
+		padding: 1.5rem;
+	}
+
+	.dashboard-welcome__title {
+		font-size: 1.5rem;
+	}
+}
+
+// ==================== RESPONSIVE: MOBILE ====================
+@media (max-width: 767px) {
+	.dashboard-page {
+		padding: 1rem;
+	}
+
+	.dashboard-welcome {
+		margin-bottom: 1.25rem;
+
+		&__title {
+			font-size: 1.25rem;
+		}
+
+		&__subtitle {
+			font-size: 0.9rem;
+		}
+	}
+
+	.dashboard-card {
+		padding: 1rem 1.25rem;
+
+		&__icon {
+			font-size: 1.5rem;
+		}
+
+		&__value {
+			font-size: 1.25rem;
+		}
+	}
+}

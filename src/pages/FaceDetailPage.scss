@@ -1,83 +1,83 @@
 .face-detail-page-wrapper {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: calc(100vh - 80px);
+	flex-grow: 1;
+	display: flex;
+	flex-direction: column;
+	min-height: calc(100vh - 80px);
 }
 
 .face-detail-content {
-  background-color: var(--bs-white);
-  border-radius: 0.5rem;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-  padding: 2rem;
-  margin-top: 1rem;
+	background-color: var(--bs-white);
+	border-radius: 0.5rem;
+	box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+	padding: 2rem;
+	margin-top: 1rem;
 }
 
 .face-detail-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	margin-bottom: 1.5rem;
 
-  h1 {
-    margin: 0;
-    font-size: 1.8rem;
-    color: var(--bs-primary);
-  }
+	h1 {
+		margin: 0;
+		font-size: 1.8rem;
+		color: var(--bs-primary);
+	}
 
-  .back-button {
-    background-color: var(--bs-light);
-    border-color: var(--bs-gray-400);
-    color: var(--bs-dark);
+	.back-button {
+		background-color: var(--bs-light);
+		border-color: var(--bs-gray-400);
+		color: var(--bs-dark);
 
-    &:hover {
-      background-color: var(--bs-gray-200);
-    }
-  }
+		&:hover {
+			background-color: var(--bs-gray-200);
+		}
+	}
 }
 
 .face-detail-card {
-  .face-detail-field {
-    margin-bottom: 1rem;
+	.face-detail-field {
+		margin-bottom: 1rem;
 
-    label {
-      display: block;
-      font-weight: 600;
-      color: var(--bs-secondary);
-      margin-bottom: 0.25rem;
-    }
+		label {
+			display: block;
+			font-weight: 600;
+			color: var(--bs-secondary);
+			margin-bottom: 0.25rem;
+		}
 
-    p {
-      margin: 0;
-      color: var(--bs-body-color);
-    }
+		p {
+			margin: 0;
+			color: var(--bs-body-color);
+		}
 
-    .color-badge {
-      display: inline-block;
-      padding: 0.25rem 0.5rem;
-      border-radius: 0.25rem;
-      color: #fff;
-      font-size: 0.875rem;
-      min-width: 60px;
-      text-align: center;
-    }
-  }
+		.color-badge {
+			display: inline-block;
+			padding: 0.25rem 0.5rem;
+			border-radius: 0.25rem;
+			color: #fff;
+			font-size: 0.875rem;
+			min-width: 60px;
+			text-align: center;
+		}
+	}
 }
 
 .face-detail-loading,
 .face-detail-error,
 .face-detail-not-found {
-  text-align: center;
-  padding: 2rem;
-  color: var(--bs-danger);
+	text-align: center;
+	padding: 2rem;
+	color: var(--bs-danger);
 }
 
 .face-detail-loading {
-  color: var(--bs-info);
+	color: var(--bs-info);
 }
 
 .face-detail-pages-section {
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+	margin-top: 2rem;
+	padding-top: 2rem;
+	border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
