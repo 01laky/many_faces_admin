@@ -106,6 +106,20 @@ export function FaceDetailPage() {
 									</p>
 								</div>
 							</Col>
+							<Col xs={12} md={6}>
+								<div className="face-detail-field">
+									<label>{t('pages.faceDetail.faceVisibility')}</label>
+									<p>{face.visibility ?? '—'}</p>
+								</div>
+							</Col>
+							<Col xs={12} md={6}>
+								<div className="face-detail-field">
+									<label>{t('pages.faceDetail.allowRecensions')}</label>
+									<p>
+										{face.allowRecensions ? t('pages.faceDetail.yes') : t('pages.faceDetail.no')}
+									</p>
+								</div>
+							</Col>
 							{face.description && (
 								<Col xs={12} md={6}>
 									<div className="face-detail-field">

@@ -3,6 +3,8 @@ import { OpenAPI } from '../../api/core/OpenAPI';
 import { request as __request } from '../../api/core/request';
 import { logger } from '../../utils/logger';
 
+export type FaceVisibility = 'Public' | 'Private' | 'Face' | 'Hidden';
+
 export interface Face {
 	id: number;
 	index: string;
@@ -11,6 +13,8 @@ export interface Face {
 	color?: string;
 	gradientSettings?: string | null;
 	isPublic?: boolean;
+	visibility?: FaceVisibility;
+	allowRecensions?: boolean;
 	createdAt?: string;
 	updatedAt?: string | null;
 }
@@ -114,6 +118,8 @@ export interface CreateFaceData {
 	color?: string;
 	gradientSettings?: string;
 	isPublic?: boolean;
+	visibility?: FaceVisibility;
+	allowRecensions?: boolean;
 }
 
 const createFaceRequest = async (data: CreateFaceData): Promise<Face> => {
@@ -145,6 +151,8 @@ export interface UpdateFaceData {
 	color?: string;
 	gradientSettings?: string;
 	isPublic?: boolean;
+	visibility?: FaceVisibility;
+	allowRecensions?: boolean;
 }
 
 const updateFaceRequest = async (id: number, data: UpdateFaceData): Promise<Face> => {

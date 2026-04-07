@@ -12,7 +12,7 @@ import { Input } from '../components/radix/Input';
 import { GradientPicker } from '../components/GradientPicker';
 import { useLocalizedLink } from '../hooks/useLocalizedLink';
 import { useFace } from '../hooks/api/useFacesApi';
-import { updateFace } from '../hooks/api/useFacesApi';
+import { updateFace, type FaceVisibility } from '../hooks/api/useFacesApi';
 import { PagesTable } from '../components/PagesTable';
 import { toast } from 'react-toastify';
 import './FaceFormPage.scss';
@@ -24,6 +24,8 @@ interface EditFaceFormData {
 	color?: string;
 	gradientSettings?: string;
 	isPublic: boolean;
+	visibility: FaceVisibility;
+	allowRecensions: boolean;
 }
 
 export function EditFacePage() {
@@ -53,6 +55,11 @@ export function EditFacePage() {
 		color: yup.string().optional().max(50, t('pages.editFace.validation.colorMaxLength')),
 		gradientSettings: yup.string().optional(),
 		isPublic: yup.boolean().required().default(true),
+		visibility: yup
+			.mixed<FaceVisibility>()
+			.oneOf(['Public', 'Private', 'Face', 'Hidden'])
+			.required(),
+		allowRecensions: yup.boolean().required().default(false),
 	});
 
 	const {
@@ -71,6 +78,8 @@ export function EditFacePage() {
 			color: '',
 			gradientSettings: '',
 			isPublic: true,
+			visibility: 'Public',
+			allowRecensions: false,
 		},
 	});
 
@@ -84,6 +93,8 @@ export function EditFacePage() {
 				color: face.color || '',
 				gradientSettings: face.gradientSettings || '',
 				isPublic: face.isPublic ?? true,
+				visibility: (face.visibility as FaceVisibility) || 'Public',
+				allowRecensions: face.allowRecensions ?? false,
 			});
 		}
 	}, [face, reset]);
@@ -247,6 +258,36 @@ export function EditFacePage() {
 											/>
 											<label className="form-check-label" htmlFor="isPublic">
 												{t('pages.editFace.isPublicHelp')}
+											</label>
+										</div>
+									</FormField>
+								</Col>
+								<Col xs={12} md={6}>
+									<FormField label={t('pages.editFace.visibility', 'Profile visibility')}>
+										<select
+											className="form-select"
+											{...register('visibility')}
+											disabled={isSubmitting}
+										>
+											<option value="Public">Public</option>
+											<option value="Private">Private</option>
+											<option value="Face">Face (members)</option>
+											<option value="Hidden">Hidden</option>
+										</select>
+									</FormField>
+								</Col>
+								<Col xs={12} md={6}>
+									<FormField label={t('pages.editFace.allowRecensions', 'Allow reviews')}>
+										<div className="form-check form-switch mt-2">
+											<input
+												type="checkbox"
+												className="form-check-input"
+												id="allowRecensions"
+												{...register('allowRecensions')}
+												disabled={isSubmitting}
+											/>
+											<label className="form-check-label" htmlFor="allowRecensions">
+												{t('pages.editFace.allowRecensionsHelp', 'Users can write star reviews')}
 											</label>
 										</div>
 									</FormField>

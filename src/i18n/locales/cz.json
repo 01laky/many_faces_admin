@@ -70,6 +70,10 @@
 			"isPublic": "Viditelnost",
 			"public": "Veřejná",
 			"private": "Soukromá",
+			"faceVisibility": "Viditelnost adresáře profilů",
+			"allowRecensions": "Povolit recenze",
+			"yes": "Ano",
+			"no": "Ne",
 			"createdAt": "Vytvořena",
 			"updatedAt": "Aktualizována"
 		},

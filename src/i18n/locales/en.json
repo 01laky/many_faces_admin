@@ -70,6 +70,10 @@
 			"isPublic": "Visibility",
 			"public": "Public",
 			"private": "Private",
+			"faceVisibility": "Profile directory visibility",
+			"allowRecensions": "Allow reviews",
+			"yes": "Yes",
+			"no": "No",
 			"createdAt": "Created At",
 			"updatedAt": "Updated At"
 		},
