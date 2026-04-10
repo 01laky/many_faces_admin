@@ -6,6 +6,7 @@ import { logger } from '../../utils/logger';
 import { isTokenExpired } from '../../utils/jwtUtils';
 import { env } from '../../config/env';
 import { buildPasswordGrantTokenRequest } from './authTokenRequest';
+import { meCapabilitiesKeys } from './useMeCapabilities';
 
 /** Login: password grant + rememberMe for long JWT; useAuthToken rejects expired tokens from localStorage. */
 
@@ -114,6 +115,7 @@ export function useLogin() {
 		onSuccess: (data) => {
 			queryClient.setQueryData(authKeys.token(), data);
 			queryClient.invalidateQueries({ queryKey: authKeys.user() });
+			queryClient.invalidateQueries({ queryKey: meCapabilitiesKeys.all });
 			logger.info('Login successful');
 		},
 		onError: (error) => {
@@ -169,6 +171,7 @@ export function useLogout() {
 		onSuccess: () => {
 			// Clear all auth-related queries
 			queryClient.removeQueries({ queryKey: authKeys.all });
+			queryClient.removeQueries({ queryKey: meCapabilitiesKeys.all });
 		},
 	});
 }
@@ -223,12 +226,14 @@ export function useRefreshToken() {
 		},
 		onSuccess: (data) => {
 			queryClient.setQueryData(authKeys.token(), data);
+			queryClient.invalidateQueries({ queryKey: meCapabilitiesKeys.all });
 			logger.info('Token refreshed successfully');
 		},
 		onError: (error) => {
 			logger.error('Token refresh failed', error);
 			// Clear auth state on refresh failure
 			queryClient.removeQueries({ queryKey: authKeys.all });
+			queryClient.removeQueries({ queryKey: meCapabilitiesKeys.all });
 		},
 	});
 }

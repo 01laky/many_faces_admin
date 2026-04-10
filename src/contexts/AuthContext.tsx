@@ -13,6 +13,7 @@ import {
 	useRefreshToken as useRefreshTokenMutation,
 	authKeys,
 } from '../hooks/api/useAuthApi';
+import { useMeCapabilities } from '../hooks/api/useMeCapabilities';
 
 /**
  * User information interface
@@ -41,6 +42,11 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+function MeCapabilitiesWarmup({ token }: { token: string | null }) {
+	useMeCapabilities(token, Boolean(token));
+	return null;
+}
 
 /**
  * Storage keys
@@ -283,6 +289,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				refreshAuth,
 			}}
 		>
+			<MeCapabilitiesWarmup token={token} />
 			{children}
 		</AuthContext.Provider>
 	);
