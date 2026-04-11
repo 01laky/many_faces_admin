@@ -1,3 +1,7 @@
+/**
+ * ESLint flat config for the **admin** Vite/React SPA (mirrors fe_demo layout: ignore generated `src/api`,
+ * Yarn SDK/PnP artifacts, keep Prettier last). TanStack Table / RHF suppressions live next to call sites.
+ */
 import js from '@eslint/js';
 import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';

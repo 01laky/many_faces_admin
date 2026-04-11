@@ -1,61 +1,51 @@
 /**
- * Environment configuration
- * Centralized place for all environment variables with validation and defaults
+ * Admin SPA bridge over Vite `import.meta.env`. Mirrors `fe_demo/src/config/env.ts` shape so the same
+ * validation helpers (`collectEnvValidationErrors`) can be reused, but defaults differ:
+ * - **`defaultFacePrefix`** is typically `admin` so API traffic is namespaced under `/admin/api/...`.
+ * - **`seqUrl`** defaults to an absolute Seq URL (admin demo enables Seq logging by default); there is
+ *   no hard-coded `/seq-proxy` branch here — add one if this SPA should match the public app’s dev proxy.
  */
 
-interface EnvConfig {
-	// API Configuration
+/** Typed view of supported `VITE_*` keys after defaults merge. */
+export interface EnvConfig {
+	/** REST base URL consumed by OpenAPI-generated clients. */
 	apiUrl: string;
-	/** URL segment for this SPA (admin → /admin/api/...). */
+	/** URL segment before `/api/...` for admin tenant routing (e.g. `admin` → `/admin/api/...`). */
 	defaultFacePrefix: string;
 
-	// OAuth2 Configuration
 	oauth2ClientId: string;
 	oauth2ClientSecret: string;
 
-	// Seq Logging Configuration
+	/** Absolute Seq endpoint when logging is enabled. */
 	seqUrl: string;
+	/** Master switch for forwarding logs to Seq in the admin bundle. */
 	enableSeqLogging: boolean;
 
-	// Application Configuration
 	appName: string;
 	appVersion: string;
 	environment: string;
-
-	// Development Configuration
 	debugMode: boolean;
 }
 
-/**
- * Get environment variable with fallback
- */
 function getEnv(key: string, defaultValue: string): string {
 	return import.meta.env[key] || defaultValue;
 }
 
-/**
- * Get boolean environment variable
- */
 function getBoolEnv(key: string, defaultValue: boolean): boolean {
 	const value = import.meta.env[key];
 	if (value === undefined) return defaultValue;
 	return value === 'true' || value === '1';
 }
 
-/**
- * Get number environment variable
- * @internal - Reserved for future use
- */
-// function _getNumberEnv(key: string, defaultValue: number): number {
+/* Reserved numeric env helper — keep commented until a `VITE_*` number knob ships.
+function _getNumberEnv(key: string, defaultValue: number): number {
 //   const value = import.meta.env[key];
 //   if (value === undefined) return defaultValue;
 //   const parsed = Number(value);
 //   return isNaN(parsed) ? defaultValue : parsed;
-// }
+}
+*/
 
-/**
- * Environment configuration object
- */
 export const env: EnvConfig = {
 	// API Configuration
 	apiUrl: getEnv('VITE_API_URL', 'https://localhost:8001'),
@@ -78,36 +68,38 @@ export const env: EnvConfig = {
 	debugMode: getBoolEnv('VITE_DEBUG_MODE', false),
 };
 
-/**
- * Validate critical environment variables
- */
-export function validateEnv(): void {
+/** Same contract as fe_demo: pure validation list for tests + `validateEnv`. */
+export function collectEnvValidationErrors(cfg: EnvConfig): string[] {
 	const errors: string[] = [];
 
-	// Validate API URL format
 	try {
-		new URL(env.apiUrl);
+		new URL(cfg.apiUrl);
 	} catch {
-		errors.push(`Invalid VITE_API_URL: ${env.apiUrl}`);
+		errors.push(`Invalid VITE_API_URL: ${cfg.apiUrl}`);
 	}
 
-	// Validate Seq URL format if logging is enabled
-	if (env.enableSeqLogging) {
+	if (cfg.enableSeqLogging) {
 		try {
-			new URL(env.seqUrl);
+			new URL(cfg.seqUrl);
 		} catch {
-			errors.push(`Invalid VITE_SEQ_URL: ${env.seqUrl}`);
+			errors.push(`Invalid VITE_SEQ_URL: ${cfg.seqUrl}`);
 		}
 	}
 
-	// Validate OAuth2 credentials are not empty
-	if (!env.oauth2ClientId) {
+	if (!cfg.oauth2ClientId) {
 		errors.push('VITE_OAUTH2_CLIENT_ID is required');
 	}
 
-	if (!env.oauth2ClientSecret) {
+	if (!cfg.oauth2ClientSecret) {
 		errors.push('VITE_OAUTH2_CLIENT_SECRET is required');
 	}
+
+	return errors;
+}
+
+/** Logs configuration problems; throws in **production** builds only (mirrors fe_demo behavior). */
+export function validateEnv(): void {
+	const errors = collectEnvValidationErrors(env);
 
 	if (errors.length > 0) {
 		console.error('❌ Environment configuration errors:');
@@ -118,9 +110,7 @@ export function validateEnv(): void {
 	}
 }
 
-/**
- * Log environment configuration (only in development)
- */
+/** Dev-only diagnostics when `debugMode` is enabled. */
 export function logEnvConfig(): void {
 	if (import.meta.env.DEV && env.debugMode) {
 		console.log('🔧 Environment Configuration:');

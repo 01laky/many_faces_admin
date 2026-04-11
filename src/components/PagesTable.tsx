@@ -131,7 +131,13 @@ export function PagesTable({ faceId }: PagesTableProps) {
 	// Get pages data
 	const pagesData = pages || [];
 
-	// React Table instance
+	/*
+	 * TanStack Table's `useReactTable` returns function-heavy instances that React Compiler cannot safely
+	 * memoize (`react-hooks/incompatible-library`). We consume `table` only inside this component's
+	 * render tree for sorting/pagination UI — no cross-component memoization depends on referential
+	 * stability of those functions, so the library's pattern is acceptable here.
+	 */
+	// eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table; rationale in block comment above
 	const table = useReactTable({
 		data: pagesData,
 		columns,

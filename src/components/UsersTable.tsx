@@ -104,7 +104,12 @@ export function UsersTable() {
 	// Get users data - handle empty state gracefully
 	const users = data?.users || [];
 
-	// React Table instance
+	/*
+	 * Same TanStack Table + React Compiler interaction as other admin tables: `useReactTable` is flagged
+	 * as incompatible with automatic memoization because it returns unstable function identities. Usage
+	 * here is local-only (table markup), which matches TanStack's recommended integration pattern.
+	 */
+	// eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table; rationale in block comment above
 	const table = useReactTable({
 		data: users,
 		columns,

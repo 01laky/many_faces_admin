@@ -95,6 +95,16 @@ export function EditFacePage() {
 		}
 	}, [face, reset]);
 
+	/*
+	 * React Hook Form exposes `watch` as a function tied to internal subscriptions. React Compiler
+	 * treats that API as `react-hooks/incompatible-library` because memoizing a hook that returns such
+	 * a function could freeze subscribed field values across renders.
+	 *
+	 * Here `gradientValue` only drives the gradient preview in this page; we do not forward `watch`
+	 * into memoized children, so subscribing via `watch('gradientSettings')` is the supported RHF
+	 * pattern and the warning is suppressed with an explicit rationale.
+	 */
+	// eslint-disable-next-line react-hooks/incompatible-library -- RHF watch(); rationale in block comment above
 	const gradientValue = watch('gradientSettings');
 
 	const handleGradientChange = useCallback(

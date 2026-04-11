@@ -127,7 +127,16 @@ export function FacesTable() {
 	// Get faces data - handle empty state gracefully
 	const faces = data?.faces || [];
 
-	// React Table instance
+	/*
+	 * TanStack Table's `useReactTable` returns an object full of functions whose identities change
+	 * across renders. React Compiler's `react-hooks/incompatible-library` rule flags that: if this
+	 * hook were memoized like a "pure" hook, downstream memoized children could capture stale row APIs.
+	 *
+	 * In this component we only feed `table` into local JSX (row models, headers, pagination). We do
+	 * not pass unstable table methods across a memo boundary into other components, so skipping compiler
+	 * memoization for this call site is the intended trade-off documented upstream for TanStack Table.
+	 */
+	// eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table; rationale in block comment above
 	const table = useReactTable({
 		data: faces,
 		columns,
