@@ -128,7 +128,6 @@ export function FacesTable() {
 	const faces = data?.faces || [];
 
 	// React Table instance
-	// eslint-disable-next-line react-hooks/incompatible-library
 	const table = useReactTable({
 		data: faces,
 		columns,

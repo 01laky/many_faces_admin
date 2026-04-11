@@ -95,7 +95,6 @@ export function EditFacePage() {
 		}
 	}, [face, reset]);
 
-	// eslint-disable-next-line react-hooks/incompatible-library -- watch() used for live gradient preview
 	const gradientValue = watch('gradientSettings');
 
 	const handleGradientChange = useCallback(

@@ -105,7 +105,6 @@ export function UsersTable() {
 	const users = data?.users || [];
 
 	// React Table instance
-	// eslint-disable-next-line react-hooks/incompatible-library
 	const table = useReactTable({
 		data: users,
 		columns,

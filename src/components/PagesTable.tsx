@@ -132,7 +132,6 @@ export function PagesTable({ faceId }: PagesTableProps) {
 	const pagesData = pages || [];
 
 	// React Table instance
-	// eslint-disable-next-line react-hooks/incompatible-library
 	const table = useReactTable({
 		data: pagesData,
 		columns,
