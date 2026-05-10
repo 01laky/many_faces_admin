@@ -41,6 +41,15 @@ export interface GridItem {
 	minH?: number;
 	label?: string;
 	componentType?: GridComponentType;
+	title?: string | null;
+	icon?: string | null;
+	boundChatRoomId?: number;
+	boundAlbumId?: number;
+	boundBlogId?: number;
+	boundAdId?: number;
+	boundUserProfileId?: string;
+	boundReelId?: number;
+	boundStoryId?: number;
 }
 
 export interface GridSchema {
@@ -105,6 +114,7 @@ export function GridLayoutEditor({ value, onChange }: GridLayoutEditorProps) {
 			const updatedItems = layout.map((layoutItem: LayoutItem) => {
 				const existing = schema.items.find((item) => item.i === layoutItem.i);
 				return {
+					...existing,
 					i: layoutItem.i,
 					x: layoutItem.x,
 					y: layoutItem.y,
