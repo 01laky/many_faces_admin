@@ -20,7 +20,7 @@ From an engineering perspective, this submodule demonstrates a modern React admi
 - Responsive grid schema editing with draggable/resizable blocks.
 - Component picking for albums, ads, blogs, chat rooms, profiles, reels, stories, and their grid/carousel variants.
 - Preservation of component metadata such as title, icon, and bound content ids while layouts are edited.
-- Superadmin-only moderation queue for user-created albums, blogs, and reels submitted from the frontend.
+- Superadmin-only **content moderation** for user-created albums, blogs, and reels: extended **filters**, **metrics** with **alerts**, **bulk** approve/reject/remove/requeue, per-item audit, and detail drawer — see [`docs/guides/ai-assisted-content-approval.md`](../docs/guides/ai-assisted-content-approval.md).
 - OAuth2/JWT-backed protected admin routes.
 - Capability-aware admin state loaded through `/me/capabilities`.
 - Generated OpenAPI API client with typed services and models.
@@ -30,9 +30,17 @@ From an engineering perspective, this submodule demonstrates a modern React admi
 
 ## Content Moderation
 
-The admin portal includes a first `Moderation` area for reviewing FE user-created albums, blogs, and reels. The view is intended for `SUPER_ADMIN` users only in the current phase and mirrors backend enforcement: `ADMIN` and `FACE_ADMIN` are intentionally excluded from approve, reject, and remove actions.
+The **Moderation** area reviews FE user-created albums, blogs, and reels. The UI targets **`SUPER_ADMIN`** only; the API enforces the same for queue reads, metrics, single actions, bulk, and audit fetches.
 
-The page uses typed moderation API hooks, localized routing, and safe display helpers for approval and AI review states. It can filter the queue by content type, approval status, and AI status; show operational counters; display key metadata such as face, author, AI status, confidence, risk, flags, model version, and trace id; open a detail/audit history panel; and send approve/reject/remove decisions with a reason. The backend remains the source of truth for permissions and audit events.
+Typed hooks (`useContentModerationApi`) call `GET /api/contentmoderation`, `GET /api/contentmoderation/metrics` (unwraps `{ metrics, alerts }` for cards and banners), bulk `POST /api/contentmoderation/bulk`, and per-item approve/reject/remove/requeue. **Filters** cover content type, human and AI approval states, face, author, risk, flags substring, confidence band, submitted window, last reviewer, queue age, and moderation version. **Bulk** selection applies a shared reason where the backend requires it and shows per-row success/failure. Helpers in `src/utils/contentModeration.ts` normalize labels and reasons for display; Vitest covers the helpers.
+
+```mermaid
+flowchart LR
+  L[Queue list] --> F[Primary and secondary filters]
+  L --> M[Metrics and alert banner]
+  L --> B[Bulk bar]
+  L --> D[Detail plus audit]
+```
 
 ## Admin Configuration Flow
 
@@ -46,6 +54,7 @@ flowchart LR
 
     admin --> users["Users<br/>CRUD + detail/edit"]
     admin --> faces["Faces<br/>community spaces"]
+    admin --> moderation["Moderation<br/>SUPER_ADMIN queue"]
     admin --> pageTypes["Page Types<br/>page classification"]
     admin --> pages["Pages<br/>metadata, paths, index"]
 
@@ -54,6 +63,7 @@ flowchart LR
 
     users --> api["Backend API"]
     faces --> api
+    moderation --> api
     pageTypes --> api
     translations --> api
     grid --> api

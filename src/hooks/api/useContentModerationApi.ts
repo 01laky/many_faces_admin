@@ -3,10 +3,16 @@ import { OpenAPI } from '../../api/core/OpenAPI';
 import { request as __request } from '../../api/core/request';
 import type {
 	AiReviewStatus,
+	AiReviewRiskLevel,
+	BulkModerationAction,
 	ContentApprovalStatus,
 	ModeratedContentType,
 } from '../../utils/contentModeration';
 
+/**
+ * Typed admin moderation API client (manual `__request` usage instead of regenerated OpenAPI clients).
+ * Covers queue listing, per-item decisions, audit events, metrics (including wrapped `{ metrics, alerts }` payloads), and bulk actions.
+ */
 export interface ModerationItem {
 	contentType: ModeratedContentType;
 	contentId: number;
@@ -51,12 +57,42 @@ export interface ModerationEvent {
 	createdAtUtc: string;
 }
 
+export interface ModerationFlagCount {
+	flag: string;
+	count: number;
+}
+
+export interface ModerationFacePending {
+	faceId: number;
+	faceTitle: string;
+	pendingCount: number;
+}
+
+export interface ModerationAlert {
+	code: string;
+	severity: string;
+	message: string;
+}
+
 export interface ModerationMetrics {
 	pendingSubmissions: number;
 	aiQueuedJobs: number;
 	aiProcessingJobs: number;
 	aiFailedJobs: number;
 	oldestPendingSubmissionUtc?: string | null;
+	oldestPendingAgeHours?: number | null;
+	averageReviewLatencyHours?: number | null;
+	p95ReviewLatencyHours?: number | null;
+	approvedCount: number;
+	rejectedCount: number;
+	removedCount: number;
+	recommendedApproveCount: number;
+	recommendedRejectCount: number;
+	needsHumanReviewCount: number;
+	aiJobsLikelyTimeoutCount: number;
+	topModerationFlags: ModerationFlagCount[];
+	pendingSubmissionsByFace: ModerationFacePending[];
+	alerts?: ModerationAlert[];
 }
 
 export interface ModerationFilters {
@@ -64,11 +100,38 @@ export interface ModerationFilters {
 	approvalStatus?: ContentApprovalStatus;
 	aiReviewStatus?: AiReviewStatus;
 	faceId?: number;
+	authorId?: string;
+	riskLevel?: AiReviewRiskLevel;
+	moderationVersion?: number;
+	flagContains?: string;
+	minConfidence?: number;
+	maxConfidence?: number;
+	submittedFromUtc?: string;
+	submittedToUtc?: string;
+	reviewedByUserId?: string;
+	minQueueAgeHours?: number;
 }
 
 export interface ModerationDecision {
 	reason?: string;
 	userMessage?: string;
+}
+
+export interface BulkModerationPayload {
+	action: BulkModerationAction;
+	items: Array<Pick<ModerationItem, 'contentType' | 'contentId'>>;
+	reason?: string;
+	userMessage?: string;
+}
+
+export interface BulkModerationResult {
+	contentType: ModeratedContentType;
+	contentId: number;
+	success: boolean;
+	statusCode: number;
+	message: string;
+	approvalStatus?: string | null;
+	aiReviewStatus?: string | null;
 }
 
 const moderationKeys = {
@@ -107,11 +170,65 @@ export async function fetchModerationEvents(contentType: ModeratedContentType, c
 	}) as Promise<ModerationEvent[]>;
 }
 
+/**
+ * Normalizes `GET /api/contentmoderation/metrics` responses.
+ * Newer backends return `{ metrics, alerts }`; older responses may be a flat metrics object—both are accepted.
+ */
+export function unwrapModerationMetricsResponse(raw: unknown): ModerationMetrics {
+	if (raw == null || typeof raw !== 'object') {
+		return {
+			pendingSubmissions: 0,
+			aiQueuedJobs: 0,
+			aiProcessingJobs: 0,
+			aiFailedJobs: 0,
+			oldestPendingSubmissionUtc: null,
+			oldestPendingAgeHours: null,
+			averageReviewLatencyHours: null,
+			p95ReviewLatencyHours: null,
+			approvedCount: 0,
+			rejectedCount: 0,
+			removedCount: 0,
+			recommendedApproveCount: 0,
+			recommendedRejectCount: 0,
+			needsHumanReviewCount: 0,
+			aiJobsLikelyTimeoutCount: 0,
+			topModerationFlags: [],
+			pendingSubmissionsByFace: [],
+			alerts: [],
+		};
+	}
+	if ('metrics' in raw) {
+		const wrapped = raw as { metrics: ModerationMetrics; alerts?: ModerationAlert[] };
+		return {
+			...wrapped.metrics,
+			topModerationFlags: wrapped.metrics.topModerationFlags ?? [],
+			pendingSubmissionsByFace: wrapped.metrics.pendingSubmissionsByFace ?? [],
+			alerts: wrapped.alerts ?? [],
+		};
+	}
+	const flat = raw as ModerationMetrics;
+	return {
+		...flat,
+		topModerationFlags: flat.topModerationFlags ?? [],
+		pendingSubmissionsByFace: flat.pendingSubmissionsByFace ?? [],
+		alerts: flat.alerts ?? [],
+	};
+}
+
 export async function fetchModerationMetrics() {
-	return __request(OpenAPI, {
+	const raw = await __request(OpenAPI, {
 		method: 'GET',
 		url: '/api/contentmoderation/metrics',
-	}) as Promise<ModerationMetrics>;
+	});
+	return unwrapModerationMetricsResponse(raw);
+}
+
+export async function applyBulkModeration(payload: BulkModerationPayload) {
+	return __request(OpenAPI, {
+		method: 'POST',
+		url: '/api/contentmoderation/bulk',
+		body: payload,
+	}) as Promise<{ results: BulkModerationResult[] }>;
 }
 
 export function useModerationItems(filters: ModerationFilters = {}, enabled = true) {
@@ -135,6 +252,14 @@ export function useModerationAction() {
 			action: 'approve' | 'reject' | 'remove';
 			decision?: ModerationDecision;
 		}) => applyModerationDecision(item.contentType, item.contentId, action, decision),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: moderationKeys.all }),
+	});
+}
+
+export function useBulkModerationAction() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: applyBulkModeration,
 		onSuccess: () => queryClient.invalidateQueries({ queryKey: moderationKeys.all }),
 	});
 }
