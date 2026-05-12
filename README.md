@@ -446,7 +446,7 @@ Output will be in `dist/` directory, ready for deployment.
 
 ## Integration with Root Project
 
-This admin panel is part of the `_mfai_demo` monorepo and integrates with:
+This admin panel is part of the **`many_faces_main`** monorepo (`admin_demo/` submodule on GitHub: `many_faces_admin`) and integrates with:
 
 - **Backend API**: `be_demo` (ASP.NET Core)
 - **Database**: `db_demo` (PostgreSQL) - via backend
