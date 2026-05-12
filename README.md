@@ -2,7 +2,7 @@
 
 ## Overview
 
-The MFAI admin panel is the operator-facing React application for configuring the Many Faces AI demo. It manages the structural data that shapes the user-facing experience: users, faces, page types, pages, localized routes, role-aware access, and the grid layout schemas rendered by the frontend.
+The MFAI admin panel is the operator-facing React application for configuring Many Faces AI. It manages the structural data that shapes the user-facing experience: users, faces, page types, pages, localized routes, role-aware access, and the grid layout schemas rendered by the frontend.
 
 The admin application is built around the same **faces** concept as the user frontend. A face can represent a public community, private group, branded space, or specialized social environment. Admin users configure those spaces by creating faces, assigning pages, editing page metadata, managing localized route translations, and arranging reusable social modules inside responsive page grids.
 
@@ -275,7 +275,7 @@ The admin panel uses environment variables (configured in `docker-compose.yml` o
 
 - `VITE_API_URL` - Backend API URL (default: `http://localhost:8000`)
 - `VITE_API_HTTPS_URL` - Backend API HTTPS URL (default: `https://localhost:8001`)
-- `VITE_APP_NAME` - Application name (default: `Admin Demo`)
+- `VITE_APP_NAME` - Application name (default: `Many Faces Admin`)
 - `VITE_APP_VERSION` - Application version
 - `VITE_PORT` - Dev server port (default: `8081`)
 - `VITE_DEV_PORT` - Development port mapping (default: `8082`)
