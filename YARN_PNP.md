@@ -94,6 +94,16 @@ Some packages may show peer dependency warnings. This is usually safe to ignore,
 - Add missing peer dependencies: `yarn add -D <package>`
 - Check with: `yarn explain peer-requirements`
 
+### Last resort: switch to `node_modules` linker
+
+If your editor still cannot resolve modules with PnP after `yarn dlx @yarnpkg/sdks vscode` and a TS server restart:
+
+1. In `.yarnrc.yml`, set `nodeLinker: node-modules`.
+2. Run `yarn install`.
+3. Remove PnP-only overrides from `.vscode/settings.json` if you added any, then restart the TypeScript server.
+
+You still use Yarn Berry for installs; only the on-disk layout changes.
+
 ## Benefits
 
 ✅ **No `node_modules`** - Cleaner project structure  

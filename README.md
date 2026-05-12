@@ -166,10 +166,7 @@ many_faces_admin/
 ├── docker-compose.yml      # Docker Compose configuration
 ├── Dockerfile.dev          # Development Dockerfile
 ├── Dockerfile              # Production Dockerfile
-├── start-dev.sh            # Start development script
-├── stop-dev.sh             # Stop development script
-├── clear-dev.sh            # Clear containers script
-├── rebuild-dev.sh          # Rebuild Docker images script
+├── scripts/                # Shell helpers (Docker dev: start/stop/clear/rebuild, lint, fix-editor)
 └── README.md               # This file
 ```
 
@@ -180,7 +177,7 @@ many_faces_admin/
 The easiest way to run the admin panel in development:
 
 ```bash
-./start-dev.sh
+./scripts/start-dev.sh
 ```
 
 This script will:
@@ -210,7 +207,7 @@ docker-compose -f docker-compose.dev.yml up -d admin-demo-dev
 ### Stopping Services
 
 ```bash
-./stop-dev.sh
+./scripts/stop-dev.sh
 ```
 
 Or manually:
@@ -222,7 +219,7 @@ docker-compose -f docker-compose.yml down
 ### Clearing Everything
 
 ```bash
-./clear-dev.sh
+./scripts/clear-dev.sh
 ```
 
 This removes containers, volumes, and images.
@@ -232,10 +229,10 @@ This removes containers, volumes, and images.
 To perform a clean rebuild of Docker images:
 
 ```bash
-./rebuild-dev.sh
+./scripts/rebuild-dev.sh
 ```
 
-**Note**: This only builds images, it does NOT start containers. Use `./start-dev.sh` to start containers after rebuilding.
+**Note**: This only builds images, it does NOT start containers. Use `./scripts/start-dev.sh` to start containers after rebuilding.
 
 ### Local Development (Without Docker)
 
@@ -365,7 +362,7 @@ The admin panel provides custom hooks for API operations:
 
 1. **Start backend**: Ensure backend API is running (via **many_faces_backend** / `many_faces_backend/` or monorepo `./scripts/start-all-dev.sh`)
 
-2. **Start admin panel**: Run `./start-dev.sh` or use monorepo `./scripts/start-all-dev.sh` to start all services
+2. **Start admin panel**: Run `./scripts/start-dev.sh` or use monorepo `./scripts/start-all-dev.sh` to start all services
 
 3. **Make code changes**: Edit code in `src/`
 
@@ -376,7 +373,7 @@ The admin panel provides custom hooks for API operations:
 
 5. **View logs**: Check Docker logs or browser console
 
-6. **Stop services**: Run `./stop-dev.sh` or monorepo `./scripts/stop-all-dev.sh`
+6. **Stop services**: Run `./scripts/stop-dev.sh` or monorepo `./scripts/stop-all-dev.sh`
 
 ## Testing
 
@@ -453,7 +450,7 @@ This admin panel is part of the **`many_faces_main`** monorepo (`many_faces_admi
 - **Redis**: **many_faces_redis** (`many_faces_redis/`) — job queue via backend
 - **Frontend**: **many_faces_portal** (`many_faces_portal/`, user-facing application)
 
-Use root-level scripts to manage all services:
+From the **many_faces_main** repository root, use the orchestration scripts to manage all services:
 
 - `./scripts/start-all-dev.sh` - Start all services with live status screen
 - `./scripts/stop-all-dev.sh` - Stop all services
@@ -493,7 +490,7 @@ lsof -ti:8082
 lsof -ti:8082 | xargs kill -9
 
 # Or use clear script
-./clear-dev.sh
+./scripts/clear-dev.sh
 ```
 
 ### API Connection Failed

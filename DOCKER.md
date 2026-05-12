@@ -7,7 +7,7 @@
 Start the development server in Docker:
 
 ```bash
-./start-dev.sh
+./scripts/start-dev.sh
 ```
 
 Or manually:
@@ -63,7 +63,7 @@ docker-compose logs -f admin-demo-prod
 ### Stop Containers
 
 ```bash
-./stop-dev.sh
+./scripts/stop-dev.sh
 ```
 
 Or manually:
