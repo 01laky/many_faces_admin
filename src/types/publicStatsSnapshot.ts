@@ -1,4 +1,8 @@
-/** Mirror of backend `PublicStatsSnapshotDto` (camelCase JSON). */
+/**
+ * Public aggregate stats returned by `GET /api/Stats/public` (camelCase JSON).
+ * Must stay in sync with backend `PublicStatsSnapshotDto` — update in the same
+ * change as OpenAPI regen (`yarn generate:api`) when the contract changes.
+ */
 export interface PublicStatsSnapshot {
 	usersCount: number;
 	facesCount: number;
