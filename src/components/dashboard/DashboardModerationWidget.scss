@@ -1,0 +1,67 @@
+.dash-mod-widget {
+	margin-top: 2rem;
+	padding: 1.25rem;
+	background: linear-gradient(135deg, rgba(59, 130, 246, 0.06), rgba(16, 185, 129, 0.06));
+	border: 1px solid rgba(59, 130, 246, 0.25);
+	border-radius: 12px;
+
+	&__title {
+		font-size: 1.05rem;
+		font-weight: 600;
+		color: #1e293b;
+		margin: 0 0 1rem;
+	}
+
+	&__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+		gap: 1rem;
+		align-items: center;
+	}
+
+	&__metric {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	&__label {
+		font-size: 0.8rem;
+		color: #64748b;
+		font-weight: 500;
+	}
+
+	&__value {
+		font-size: 1.35rem;
+		font-weight: 700;
+		color: #0f172a;
+	}
+
+	&__link-wrap {
+		display: flex;
+		align-items: center;
+	}
+
+	&__link {
+		font-weight: 600;
+		color: #2563eb;
+		text-decoration: none;
+		&:hover {
+			text-decoration: underline;
+		}
+	}
+
+	&__muted,
+	&__error {
+		margin: 0;
+		font-size: 0.9rem;
+	}
+
+	&__muted {
+		color: #64748b;
+	}
+
+	&__error {
+		color: #b91c1c;
+	}
+}

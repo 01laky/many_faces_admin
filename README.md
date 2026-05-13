@@ -21,6 +21,7 @@ From an engineering perspective, this submodule demonstrates a modern React admi
 - Component picking for albums, ads, blogs, chat rooms, profiles, reels, stories, and their grid/carousel variants.
 - Preservation of component metadata such as title, icon, and bound content ids while layouts are edited.
 - Superadmin-only **content moderation** for user-created albums, blogs, and reels: extended **filters**, **metrics** with **alerts**, **bulk** approve/reject/remove/requeue, per-item audit, and detail drawer — see [`docs/guides/ai-assisted-content-approval.md`](../docs/guides/ai-assisted-content-approval.md).
+- **Operator dashboard** with platform-wide **statistics**, **charts** (`GET /api/Stats`, `GET /api/Stats/timeseries`), and a **full metrics table** — see [`docs/guides/admin-dashboard-metrics.md`](../docs/guides/admin-dashboard-metrics.md).
 - OAuth2/JWT-backed protected admin routes.
 - Capability-aware admin state loaded through `/me/capabilities`.
 - Generated OpenAPI API client with typed services and models.
@@ -41,6 +42,10 @@ flowchart LR
   L --> B[Bulk bar]
   L --> D[Detail plus audit]
 ```
+
+## Dashboard metrics (operator home)
+
+The **Dashboard** page loads consolidated platform statistics from **`GET /api/Stats`** and optional histograms from **`GET /api/Stats/timeseries`**. This requires the admin app to call the API under the **configured admin face prefix** (see `VITE_DEFAULT_FACE_PREFIX` / `src/config/env.ts`) so the backend grants **`CanManageAllFaces`**. See the monorepo guide [**`docs/guides/admin-dashboard-metrics.md`**](../docs/guides/admin-dashboard-metrics.md) for the full field list, ACL rules, performance notes, and test references.
 
 ## Admin Configuration Flow
 

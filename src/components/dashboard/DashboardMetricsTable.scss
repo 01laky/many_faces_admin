@@ -1,0 +1,52 @@
+.dash-metrics {
+	margin-top: 2rem;
+
+	&__title {
+		font-size: 1.15rem;
+		font-weight: 600;
+		color: #1e293b;
+		margin-bottom: 0.75rem;
+	}
+
+	&__table-wrap {
+		overflow-x: auto;
+		border: 1px solid rgba(226, 232, 240, 0.9);
+		border-radius: 12px;
+		background: #fff;
+	}
+
+	&__table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.9rem;
+
+		th,
+		td {
+			padding: 0.5rem 1rem;
+			text-align: left;
+			border-bottom: 1px solid #f1f5f9;
+		}
+
+		th {
+			font-weight: 500;
+			color: #475569;
+			width: 55%;
+		}
+
+		td {
+			font-weight: 600;
+			color: #0f172a;
+			font-variant-numeric: tabular-nums;
+		}
+	}
+
+	&__subhead {
+		background: #f8fafc;
+		font-weight: 600;
+		color: #334155;
+	}
+
+	&__muted {
+		color: #64748b;
+	}
+}
