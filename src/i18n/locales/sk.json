@@ -14,7 +14,8 @@
 		"faces": "tvare",
 		"moderation": "moderacia",
 		"chat": "chat",
-		"settings": "nastavenia"
+		"settings": "nastavenia",
+		"registrationInvites": "registracne-pozvanky"
 	},
 	"pages": {
 		"login": {
@@ -503,6 +504,26 @@
 			"you": "Vy",
 			"ai": "AI",
 			"timeoutError": "Vypršal čas požiadavky. AI sa ešte môže načítavať. Skúste znova o minútu."
+		},
+		"registrationInvites": {
+			"title": "Registračné pozvánky",
+			"subtitle": "Operátorské pozvánky a čakajúce registrácie.",
+			"email": "Email",
+			"firstName": "Meno",
+			"lastName": "Priezvisko",
+			"status": "Stav",
+			"expires": "Platnosť do",
+			"create": "Vytvoriť pozvánku",
+			"resend": "Poslať znova",
+			"resent": "Registračný email bol odoslaný znova.",
+			"resendError": "Nepodarilo sa odoslať email znova.",
+			"revoke": "Zrušiť",
+			"loading": "Načítavam…",
+			"created": "Pozvánka vytvorená.",
+			"revoked": "Pozvánka zrušená.",
+			"loadError": "Nepodarilo sa načítať pozvánky.",
+			"createError": "Nepodarilo sa vytvoriť pozvánku.",
+			"revokeError": "Nepodarilo sa zrušiť pozvánku."
 		},
 		"settings": {
 			"title": "Nastavenia",

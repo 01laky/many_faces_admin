@@ -14,7 +14,8 @@
 		"faces": "faces",
 		"moderation": "moderation",
 		"chat": "chat",
-		"settings": "settings"
+		"settings": "settings",
+		"registrationInvites": "registration-invites"
 	},
 	"pages": {
 		"login": {
@@ -506,6 +507,26 @@
 			"you": "You",
 			"ai": "AI",
 			"timeoutError": "Request timed out. The AI may still be loading. Please try again in a minute."
+		},
+		"registrationInvites": {
+			"title": "Registration invites",
+			"subtitle": "Operator-created invites and pending self-service signups.",
+			"email": "Email",
+			"firstName": "First name",
+			"lastName": "Last name",
+			"status": "Status",
+			"expires": "Expires",
+			"create": "Create invite",
+			"resend": "Resend email",
+			"resent": "Registration email resent.",
+			"resendError": "Could not resend email.",
+			"revoke": "Revoke",
+			"loading": "Loading…",
+			"created": "Invite created and email queued.",
+			"revoked": "Invite revoked.",
+			"loadError": "Could not load invites.",
+			"createError": "Could not create invite.",
+			"revokeError": "Could not revoke invite."
 		},
 		"settings": {
 			"title": "Settings",

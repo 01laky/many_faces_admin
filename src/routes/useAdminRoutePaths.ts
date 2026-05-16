@@ -11,6 +11,7 @@ const ROUTE_IDS = [
 	'moderation',
 	'chat',
 	'settings',
+	'registrationInvites',
 ] as const;
 
 export type AdminRouteId = (typeof ROUTE_IDS)[number];

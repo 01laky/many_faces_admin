@@ -10,6 +10,7 @@ const routeKeys: Record<string, string> = {
 	moderation: 'routes.moderation',
 	chat: 'routes.chat',
 	settings: 'routes.settings',
+	registrationInvites: 'routes.registrationInvites',
 };
 
 // Map of route keys to English route names (reverse lookup)
@@ -22,6 +23,7 @@ const routeKeyToEnglish: Record<string, string> = {
 	'routes.moderation': 'moderation',
 	'routes.chat': 'chat',
 	'routes.settings': 'settings',
+	'routes.registrationInvites': 'registrationInvites',
 };
 
 /**
