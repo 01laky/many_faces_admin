@@ -28,6 +28,13 @@ export interface OperatorAiMessagesPage {
 	oldestId: number | null;
 }
 
+export interface OperatorAiModelStatus {
+	ready: boolean;
+	loading: boolean;
+	unavailable: boolean;
+	modelName: string | null;
+}
+
 export interface OperatorAiMessageAppendedEvent {
 	conversationId: number;
 	userMessage: OperatorAiMessage;
@@ -77,6 +84,14 @@ export async function deleteOperatorAiConversation(token: string, id: number): P
 	if (!res.ok) {
 		throw new Error(await getApiErrorMessage(res, 'Failed to delete conversation'));
 	}
+}
+
+export async function getOperatorAiModelStatus(token: string): Promise<OperatorAiModelStatus> {
+	const res = await authFetch('/api/operator-ai/model-status', token);
+	if (!res.ok) {
+		throw new Error(await getApiErrorMessage(res, 'Failed to load AI model status'));
+	}
+	return (await res.json()) as OperatorAiModelStatus;
 }
 
 export async function getOperatorAiMessages(

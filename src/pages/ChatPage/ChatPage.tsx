@@ -11,17 +11,22 @@ import {
 	type OperatorAiMessageAppendedEvent,
 } from '@/api/services/operatorAiApi';
 import {
-	operatorAiQueryKeys,
 	useCreateOperatorAiConversation,
 	useDeleteOperatorAiConversation,
 	useOperatorAiConversations,
 	useOperatorAiMessages,
+	useOperatorAiModelStatus,
+	operatorAiConversationsQueryKey,
+	operatorAiModelStatusQueryKey,
+	operatorAiQueryKeys,
 } from '@/hooks/api/useOperatorAiApi';
 import { getAdminAiPublicStatsMode } from '@/utils/adminAiStatsSettings';
 import {
 	appendExchangeIfNew,
 	conversationTitle,
 	mapPageToUiMessages,
+	filterTransientStatusExchanges,
+	isTransientAiStatusContent,
 	mergeMessagePages,
 	parseConversationIdFromSearch,
 	type UiChatMessage,
@@ -41,10 +46,16 @@ export function ChatPage() {
 	const conversationId = parseConversationIdFromSearch(searchParams.toString());
 
 	const { data: conversations = [], isLoading: listLoading } = useOperatorAiConversations();
-	const { data: messagesPage, isLoading: messagesLoading } = useOperatorAiMessages(
-		conversationId,
-		conversationId != null
-	);
+	const { data: modelStatus } = useOperatorAiModelStatus();
+	const {
+		data: messagesPage,
+		isLoading: messagesLoading,
+		isFetching: messagesFetching,
+	} = useOperatorAiMessages(conversationId, conversationId != null);
+	const modelReady = modelStatus?.ready === true;
+	const modelUnavailable = modelStatus?.unavailable === true;
+	const modelLoading =
+		!modelUnavailable && !modelReady && (modelStatus == null || modelStatus.loading !== false);
 	const createConversation = useCreateOperatorAiConversation();
 	const deleteConversation = useDeleteOperatorAiConversation();
 
@@ -56,8 +67,6 @@ export function ChatPage() {
 	const [olderByConv, setOlderByConv] = useState<Record<number, UiChatMessage[]>>({});
 	const [pendingByConv, setPendingByConv] = useState<Record<number, UiChatMessage[]>>({});
 
-	const olderMessages = conversationId != null ? (olderByConv[conversationId] ?? []) : [];
-	const pendingTail = conversationId != null ? (pendingByConv[conversationId] ?? []) : [];
 	const hasMore =
 		conversationId != null && conversationId in olderHasMoreByConv
 			? olderHasMoreByConv[conversationId]
@@ -76,20 +85,38 @@ export function ChatPage() {
 	}, [conversationId]);
 
 	const messages = useMemo(() => {
-		const merged = mergeMessagePages(serverMessages, olderMessages);
+		const olderMessages = conversationId != null ? (olderByConv[conversationId] ?? []) : [];
+		const pendingTail = conversationId != null ? (pendingByConv[conversationId] ?? []) : [];
+		const merged = filterTransientStatusExchanges(mergeMessagePages(serverMessages, olderMessages));
 		const ids = new Set(merged.map((m) => m.id));
 		const tail = pendingTail.filter((m) => !ids.has(m.id));
 		return [...merged, ...tail];
-	}, [serverMessages, olderMessages, pendingTail]);
+	}, [serverMessages, olderByConv, pendingByConv, conversationId]);
 
-	const { conversationsKey } = operatorAiQueryKeys();
+	const conversationsKey = operatorAiConversationsQueryKey;
+	const { messagesKey } = operatorAiQueryKeys();
+
+	useEffect(() => {
+		if (conversationId == null) return;
+		void queryClient.invalidateQueries({ queryKey: messagesKey(conversationId) });
+	}, [conversationId, queryClient, messagesKey]);
 
 	const setActiveConversationId = useCallback(
 		(id: number | null) => {
-			if (id == null) setSearchParams({});
-			else setSearchParams({ c: String(id) });
+			if (id == null) {
+				setSearchParams({});
+				return;
+			}
+			setPendingByConv((map) => {
+				if (!(id in map)) return map;
+				const next = { ...map };
+				delete next[id];
+				return next;
+			});
+			void queryClient.invalidateQueries({ queryKey: messagesKey(id) });
+			setSearchParams({ c: String(id) });
 		},
-		[setSearchParams]
+		[setSearchParams, queryClient, messagesKey]
 	);
 
 	const refreshConversationList = useCallback(
@@ -108,6 +135,15 @@ export function ChatPage() {
 		[queryClient, conversationsKey]
 	);
 
+	const refreshConversationListRef = useRef(refreshConversationList);
+	const setActiveConversationIdRef = useRef(setActiveConversationId);
+	const queryClientRef = useRef(queryClient);
+	useEffect(() => {
+		refreshConversationListRef.current = refreshConversationList;
+		setActiveConversationIdRef.current = setActiveConversationId;
+		queryClientRef.current = queryClient;
+	});
+
 	const scrollToBottom = useCallback(() => {
 		messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
 	}, []);
@@ -125,6 +161,17 @@ export function ChatPage() {
 		connection.on('ReceiveAiMessage', (userMessage: string, aiResponse: string) => {
 			const cid = conversationIdRef.current;
 			if (cid == null) return;
+			if (isTransientAiStatusContent(aiResponse)) {
+				setPendingByConv((map) => ({
+					...map,
+					[cid]: [{ id: -Date.now(), role: 'user', content: userMessage }],
+				}));
+				void queryClientRef.current.invalidateQueries({
+					queryKey: operatorAiModelStatusQueryKey,
+				});
+				setIsSending(false);
+				return;
+			}
 			setPendingByConv((map) => ({
 				...map,
 				[cid]: [
@@ -136,7 +183,7 @@ export function ChatPage() {
 		});
 
 		connection.on('OperatorAiMessageAppended', (evt: OperatorAiMessageAppendedEvent) => {
-			refreshConversationList(evt.conversation);
+			refreshConversationListRef.current(evt.conversation);
 			const cid = conversationIdRef.current;
 			if (evt.conversationId !== cid || cid == null) return;
 			setPendingByConv((map) => {
@@ -150,15 +197,16 @@ export function ChatPage() {
 		});
 
 		connection.on('OperatorAiConversationListChanged', (item: OperatorAiConversationListItem) => {
-			refreshConversationList(item);
+			refreshConversationListRef.current(item);
 		});
 
 		connection.on('OperatorAiConversationDeleted', (evt: { conversationId: number }) => {
-			queryClient.setQueryData<OperatorAiConversationListItem[]>(conversationsKey, (prev) =>
-				prev ? prev.filter((c) => c.id !== evt.conversationId) : []
+			queryClientRef.current.setQueryData<OperatorAiConversationListItem[]>(
+				conversationsKey,
+				(prev) => (prev ? prev.filter((c) => c.id !== evt.conversationId) : [])
 			);
 			if (evt.conversationId === conversationIdRef.current) {
-				setActiveConversationId(null);
+				setActiveConversationIdRef.current(null);
 			}
 		});
 
@@ -166,31 +214,22 @@ export function ChatPage() {
 		connection.onreconnected(() => setConnectionState('Connected'));
 		connection.onclose(() => setConnectionState('Disconnected'));
 
-		const syncVisibility = () => {
-			if (document.visibilityState === 'hidden') {
-				setIsSending(false);
-				void connection.stop();
+		queueMicrotask(() => setConnectionState('Connecting'));
+		void connection
+			.start()
+			.then(() => setConnectionState('Connected'))
+			.catch((err) => {
+				console.error('SignalR chat hub connect failed:', err);
 				setConnectionState('Disconnected');
-				return;
-			}
-			queueMicrotask(() => setConnectionState('Connecting'));
-			void connection
-				.start()
-				.then(() => setConnectionState('Connected'))
-				.catch(() => setConnectionState('Disconnected'));
-		};
-
-		document.addEventListener('visibilitychange', syncVisibility);
-		syncVisibility();
+			});
 
 		return () => {
-			document.removeEventListener('visibilitychange', syncVisibility);
 			void connection.stop();
 			connectionRef.current = null;
 			setConnectionState('Disconnected');
 			setIsSending(false);
 		};
-	}, [token, setActiveConversationId, refreshConversationList, queryClient, conversationsKey]);
+	}, [token, conversationsKey]);
 
 	const handleLoadOlder = async () => {
 		if (!token || conversationId == null || loadingOlder || !hasMore || messages.length === 0)
@@ -240,12 +279,27 @@ export function ChatPage() {
 
 	const handleSend = async () => {
 		const text = input.trim();
-		if (!text || isSending || connectionState !== 'Connected' || conversationId == null) return;
+		if (
+			!text ||
+			isSending ||
+			connectionState !== 'Connected' ||
+			conversationId == null ||
+			!modelReady
+		)
+			return;
 
 		const conn = connectionRef.current;
 		if (!conn) return;
 
 		setInput('');
+		const optimisticUserId = -Date.now();
+		setPendingByConv((map) => ({
+			...map,
+			[conversationId]: [
+				...(map[conversationId] ?? []).filter((m) => m.id > 0),
+				{ id: optimisticUserId, role: 'user', content: text },
+			],
+		}));
 		setIsSending(true);
 		const statsMode = getAdminAiPublicStatsMode();
 		try {
@@ -255,15 +309,16 @@ export function ChatPage() {
 			]);
 		} catch (err) {
 			setIsSending(false);
-			if (String(err).includes('timeout') && conversationId != null) {
-				setPendingByConv((map) => ({
-					...map,
-					[conversationId]: [
-						{ id: -Date.now(), role: 'user', content: text },
-						{ id: -Date.now() - 1, role: 'ai', content: t('pages.chat.timeoutError') },
-					],
-				}));
-			}
+			const aiContent = String(err).includes('timeout')
+				? t('pages.chat.timeoutError')
+				: t('pages.chat.errorGeneric');
+			setPendingByConv((map) => ({
+				...map,
+				[conversationId]: [
+					{ id: optimisticUserId, role: 'user', content: text },
+					{ id: optimisticUserId - 1, role: 'ai', content: aiContent },
+				],
+			}));
 		}
 	};
 
@@ -339,6 +394,16 @@ export function ChatPage() {
 					<p className="chat-page__empty-main">{t('pages.chat.selectOrNew')}</p>
 				) : (
 					<>
+						{(modelLoading || modelUnavailable) && (
+							<div
+								className={`chat-page__model-banner${
+									modelUnavailable ? ' chat-page__model-banner--error' : ''
+								}`}
+								role="status"
+							>
+								{modelUnavailable ? t('pages.chat.modelUnavailable') : t('pages.chat.modelLoading')}
+							</div>
+						)}
 						<div
 							ref={messagesContainerRef}
 							className="chat-page__messages"
@@ -354,9 +419,16 @@ export function ChatPage() {
 									{loadingOlder ? t('pages.chat.loadingOlder') : t('pages.chat.loadOlder')}
 								</button>
 							)}
-							{messages.length === 0 && !messagesLoading && connectionState === 'Connected' && (
-								<p className="chat-page__empty">{t('pages.chat.placeholder')}</p>
+							{messages.length === 0 && (messagesLoading || messagesFetching) && !isSending && (
+								<p className="chat-page__empty">{t('pages.chat.loadingMessages')}</p>
 							)}
+							{messages.length === 0 &&
+								!messagesLoading &&
+								!messagesFetching &&
+								!isSending &&
+								connectionState === 'Connected' && (
+									<p className="chat-page__empty">{t('pages.chat.emptyThread')}</p>
+								)}
 							{messages.map((msg) => (
 								<div key={msg.id} className={`chat-page__message chat-page__message--${msg.role}`}>
 									<span className="chat-page__message-label">
@@ -368,7 +440,9 @@ export function ChatPage() {
 							{isSending && (
 								<div className="chat-page__message chat-page__message--ai">
 									<span className="chat-page__message-label">{t('pages.chat.ai')}</span>
-									<div className="chat-page__message-content chat-page__typing">…</div>
+									<div className="chat-page__message-content chat-page__typing">
+										{t('pages.chat.waitingForAi')}
+									</div>
 								</div>
 							)}
 							<div ref={messagesEndRef} />
@@ -378,16 +452,20 @@ export function ChatPage() {
 							<input
 								type="text"
 								className="chat-page__input"
-								placeholder={t('pages.chat.placeholder')}
+								placeholder={
+									modelReady ? t('pages.chat.placeholder') : t('pages.chat.modelLoadingPlaceholder')
+								}
 								value={input}
 								onChange={(e) => setInput(e.target.value)}
 								onKeyDown={handleKeyDown}
-								disabled={connectionState !== 'Connected' || isSending}
+								disabled={connectionState !== 'Connected' || isSending || !modelReady}
 							/>
 							<Button
 								type="button"
 								onClick={() => void handleSend()}
-								disabled={!input.trim() || connectionState !== 'Connected' || isSending}
+								disabled={
+									!input.trim() || connectionState !== 'Connected' || isSending || !modelReady
+								}
 								className="chat-page__send"
 							>
 								{t('pages.chat.send')}

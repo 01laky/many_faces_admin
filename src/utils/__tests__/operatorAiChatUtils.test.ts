@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
 	appendExchangeIfNew,
 	conversationTitle,
+	filterTransientStatusExchanges,
+	isTransientAiStatusContent,
 	mapOperatorMessageToUi,
 	mergeMessagePages,
 	parseConversationIdFromSearch,
@@ -38,6 +40,32 @@ describe('operatorAiChatUtils', () => {
 		expect(mergeMessagePages(existing, older)).toEqual([
 			{ id: 1, role: 'user', content: 'a' },
 			{ id: 2, role: 'ai', content: 'b' },
+		]);
+	});
+
+	it('isTransientAiStatusContent detects model loading placeholders', () => {
+		expect(
+			isTransientAiStatusContent(
+				'⏳ AI model sa práve načítava do pamäte (prvé spustenie po rebuilde).'
+			)
+		).toBe(true);
+		expect(isTransientAiStatusContent('Ahoj, som pripravený.')).toBe(false);
+	});
+
+	it('filterTransientStatusExchanges removes user+placeholder pairs', () => {
+		const filtered = filterTransientStatusExchanges([
+			{ id: 1, role: 'user', content: 'halo' },
+			{
+				id: 2,
+				role: 'ai',
+				content: '⏳ AI model sa práve načítava do pamäte.',
+			},
+			{ id: 3, role: 'user', content: 'test' },
+			{ id: 4, role: 'ai', content: 'Skutočná odpoveď.' },
+		]);
+		expect(filtered).toEqual([
+			{ id: 3, role: 'user', content: 'test' },
+			{ id: 4, role: 'ai', content: 'Skutočná odpoveď.' },
 		]);
 	});
 

@@ -4,12 +4,15 @@ import {
 	createOperatorAiConversation,
 	deleteOperatorAiConversation,
 	getOperatorAiMessages,
+	getOperatorAiModelStatus,
 	listOperatorAiConversations,
 	type OperatorAiConversationListItem,
 } from '@/api/services/operatorAiApi';
 
-const conversationsKey = ['operatorAi', 'conversations'] as const;
+export const operatorAiConversationsQueryKey = ['operatorAi', 'conversations'] as const;
+const conversationsKey = operatorAiConversationsQueryKey;
 const messagesKey = (id: number) => ['operatorAi', 'messages', id] as const;
+export const operatorAiModelStatusQueryKey = ['operatorAi', 'modelStatus'] as const;
 
 export function useOperatorAiConversations() {
 	const { token } = useAuth();
@@ -27,6 +30,25 @@ export function useOperatorAiMessages(conversationId: number | null, enabled: bo
 			conversationId != null ? messagesKey(conversationId) : ['operatorAi', 'messages', 'none'],
 		queryFn: () => getOperatorAiMessages(token!, conversationId!),
 		enabled: Boolean(token) && enabled && conversationId != null,
+		staleTime: 0,
+		refetchOnMount: 'always',
+	});
+}
+
+export function useOperatorAiModelStatus() {
+	const { token } = useAuth();
+	return useQuery({
+		queryKey: operatorAiModelStatusQueryKey,
+		queryFn: () => getOperatorAiModelStatus(token!),
+		enabled: Boolean(token),
+		staleTime: 0,
+		refetchOnMount: 'always',
+		refetchInterval: (query) => {
+			const data = query.state.data;
+			if (data?.ready) return false;
+			if (data?.unavailable) return 10_000;
+			return 3_000;
+		},
 	});
 }
 

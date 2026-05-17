@@ -22,7 +22,7 @@ vi.mock('@microsoft/signalr', () => ({
 }));
 
 vi.mock('../../../config/env', () => ({
-	env: { apiUrl: 'https://api.test/admin' },
+	env: { apiUrl: 'https://api.test', defaultFacePrefix: 'admin' },
 }));
 
 describe('buildAdminAiChatHubConnection', () => {
