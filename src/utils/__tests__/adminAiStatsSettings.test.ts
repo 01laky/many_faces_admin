@@ -32,8 +32,8 @@ describe('adminAiStatsSettings', () => {
 		vi.unstubAllGlobals();
 	});
 
-	it('defaults to off when storage is empty', () => {
-		expect(getAdminAiPublicStatsMode()).toBe('off');
+	it('defaults to inline when storage is empty', () => {
+		expect(getAdminAiPublicStatsMode()).toBe('inline');
 	});
 
 	it.each(['inline', 'live'] as const)('round-trips mode %s', (mode: AdminAiPublicStatsMode) => {
@@ -41,9 +41,9 @@ describe('adminAiStatsSettings', () => {
 		expect(getAdminAiPublicStatsMode()).toBe(mode);
 	});
 
-	it('treats unknown values as off', () => {
+	it('treats unknown values as inline (safe default)', () => {
 		store[KEY] = 'banana';
-		expect(getAdminAiPublicStatsMode()).toBe('off');
+		expect(getAdminAiPublicStatsMode()).toBe('inline');
 	});
 
 	it('treats case-insensitive valid tokens', () => {
@@ -60,12 +60,12 @@ describe('adminAiStatsSettings', () => {
 		spy.mockRestore();
 	});
 
-	it('getAdminAiPublicStatsMode returns off when getItem throws', () => {
+	it('getAdminAiPublicStatsMode returns inline when getItem throws', () => {
 		const ls = globalThis.localStorage as Storage;
 		const spy = vi.spyOn(ls, 'getItem').mockImplementation(() => {
 			throw new Error('denied');
 		});
-		expect(getAdminAiPublicStatsMode()).toBe('off');
+		expect(getAdminAiPublicStatsMode()).toBe('inline');
 		spy.mockRestore();
 	});
 });
