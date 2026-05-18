@@ -13,8 +13,9 @@ import {
 } from '../operatorAiChatUtils';
 
 describe('operatorAiChatUtils', () => {
-	it('formatOperatorAiModelLabel shortens Hugging Face ids', () => {
-		expect(formatOperatorAiModelLabel('Qwen/Qwen3-4B-Instruct-2507')).toBe('Qwen3-4B');
+	it('formatOperatorAiModelLabel shortens model ids', () => {
+		expect(formatOperatorAiModelLabel('org/model-Instruct-2507')).toBe('model');
+		expect(formatOperatorAiModelLabel('qwen2.5:7b-instruct-q4_K_M')).toBe('qwen2.5:7b');
 		expect(formatOperatorAiModelLabel('')).toBe('');
 	});
 

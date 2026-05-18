@@ -8,7 +8,7 @@ export interface UiChatMessage {
 	content: string;
 }
 
-/** Short label for admin UI (e.g. Qwen/Qwen3-4B-Instruct-2507 → Qwen3-4B). */
+/** Short label for admin UI (e.g. org/model-Instruct-2507 → model, qwen2.5:7b-instruct-q4_K_M → qwen2.5:7b). */
 export function formatOperatorAiModelLabel(modelName: string | null | undefined): string {
 	if (!modelName?.trim()) return '';
 	const base = modelName.includes('/')
