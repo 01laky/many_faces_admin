@@ -15,6 +15,7 @@ import { useFace } from '@/hooks/api/useFacesApi';
 import { updateFace, type FaceVisibility } from '@/hooks/api/useFacesApi';
 import { PagesTable } from '@/components/tables/PagesTable';
 import { toast } from 'react-toastify';
+import { isAdminScopeFace } from '@/utils/adminScopeFace';
 import '../../styles/forms/FaceFormPage.scss';
 
 interface EditFaceFormData {
@@ -80,9 +81,21 @@ export function EditFacePage() {
 		},
 	});
 
+	useEffect(() => {
+		if (face && isAdminScopeFace(face)) {
+			toast.info(
+				t(
+					'pages.faces.adminScopeReadOnly',
+					'The admin scope face is read-only and cannot be edited.'
+				)
+			);
+			navigate(getLocalizedPath(`/faces/${faceId}`), { replace: true });
+		}
+	}, [face, faceId, navigate, getLocalizedPath, t]);
+
 	// Reset form when face data loads
 	useEffect(() => {
-		if (face) {
+		if (face && !isAdminScopeFace(face)) {
 			reset({
 				index: face.index || '',
 				title: face.title || '',
@@ -166,6 +179,10 @@ export function EditFacePage() {
 				</Container>
 			</div>
 		);
+	}
+
+	if (isAdminScopeFace(face)) {
+		return null;
 	}
 
 	return (

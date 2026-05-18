@@ -71,6 +71,30 @@ $transition-speed: 0.3s;
 		gap: 0.75rem;
 	}
 
+	&__avatar-trigger {
+		display: flex;
+		padding: 0;
+		border: none;
+		background: transparent;
+		cursor: pointer;
+		border-radius: 50%;
+		line-height: 0;
+		transition:
+			transform 0.15s ease,
+			box-shadow 0.15s ease;
+
+		&:hover .admin-header__avatar,
+		&[data-state='open'] .admin-header__avatar {
+			background: rgba(255, 255, 255, 0.3);
+			border-color: rgba(255, 255, 255, 0.5);
+		}
+
+		&:focus-visible {
+			outline: 2px solid rgba(255, 255, 255, 0.85);
+			outline-offset: 2px;
+		}
+	}
+
 	&__avatar {
 		width: 34px;
 		height: 34px;
@@ -84,6 +108,9 @@ $transition-speed: 0.3s;
 		font-size: 0.9rem;
 		flex-shrink: 0;
 		border: 1px solid rgba(255, 255, 255, 0.3);
+		transition:
+			background 0.2s,
+			border-color 0.2s;
 	}
 
 	&__email {
@@ -92,22 +119,56 @@ $transition-speed: 0.3s;
 		white-space: nowrap;
 	}
 
-	&__logout {
-		padding: 0.4rem 0.85rem;
-		font-size: 0.8rem;
-		font-weight: 500;
-		background: rgba(255, 255, 255, 0.12);
-		border: 1px solid rgba(255, 255, 255, 0.25);
-		border-radius: 6px;
-		color: #fff;
-		cursor: pointer;
-		transition: all 0.2s;
-		white-space: nowrap;
+	&__menu {
+		z-index: 1100;
+		min-width: 10.5rem;
+		padding: 0.35rem;
+		background: #fff;
+		border-radius: 8px;
+		border: 1px solid rgba(226, 232, 240, 0.9);
+		box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14);
+		animation: admin-header-menu-in 0.15s ease-out;
+	}
 
-		&:hover {
-			background: rgba(255, 255, 255, 0.25);
-			border-color: rgba(255, 255, 255, 0.4);
+	&__menu-item {
+		display: flex;
+		align-items: center;
+		width: 100%;
+		padding: 0.55rem 0.75rem;
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: #334155;
+		border-radius: 6px;
+		cursor: pointer;
+		outline: none;
+		user-select: none;
+
+		&:hover,
+		&[data-highlighted] {
+			background: rgba(59, 130, 246, 0.08);
+			color: #1e40af;
 		}
+
+		&--logout {
+			color: #b91c1c;
+
+			&:hover,
+			&[data-highlighted] {
+				background: rgba(239, 68, 68, 0.08);
+				color: #991b1b;
+			}
+		}
+	}
+}
+
+@keyframes admin-header-menu-in {
+	from {
+		opacity: 0;
+		transform: translateY(-4px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
 	}
 }
 
@@ -390,15 +451,6 @@ $transition-speed: 0.3s;
 
 		&__email {
 			display: none;
-		}
-
-		&__avatar {
-			display: none;
-		}
-
-		&__logout {
-			padding: 0.35rem 0.65rem;
-			font-size: 0.75rem;
 		}
 	}
 

@@ -31,7 +31,8 @@ describe('buildAdminAiChatHubConnection', () => {
 	});
 
 	it('targets admin chat hub with access token factory', () => {
-		const conn = buildAdminAiChatHubConnection('jwt-admin');
+		let current = 'jwt-admin';
+		const conn = buildAdminAiChatHubConnection(() => current);
 
 		expect(conn).toEqual({ id: 'admin-chat-hub' });
 		expect(mockWithUrl).toHaveBeenCalledWith(
@@ -42,6 +43,8 @@ describe('buildAdminAiChatHubConnection', () => {
 		);
 		const factory = mockWithUrl.mock.calls[0]![1].accessTokenFactory as () => string;
 		expect(factory()).toBe('jwt-admin');
+		current = 'jwt-refreshed';
+		expect(factory()).toBe('jwt-refreshed');
 		expect(mockWithAutomaticReconnect).toHaveBeenCalled();
 	});
 });

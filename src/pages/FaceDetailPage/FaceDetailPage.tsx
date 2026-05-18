@@ -6,6 +6,7 @@ import { gradientPreviewStyle } from '@/utils/gradientPreview';
 import { Button } from '@/components/radix/Button';
 import { PagesTable } from '@/components/tables/PagesTable';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
+import { isAdminScopeFace } from '@/utils/adminScopeFace';
 import './FaceDetailPage.scss';
 
 export function FaceDetailPage() {
@@ -70,15 +71,19 @@ export function FaceDetailPage() {
 							← {t('common.back')}
 						</Button>
 						<h1>{t('pages.faceDetail.pageHeading')}</h1>
-						<Button onClick={() => navigate(getLocalizedPath(`/faces/${faceId}/edit`))}>
-							{t('common.edit')}
-						</Button>
-						<Button
-							variant="outline"
-							onClick={() => navigate(getLocalizedPath(`/faces/${faceId}/wall-tickets`))}
-						>
-							{t('pages.faceDetail.wallTickets')}
-						</Button>
+						{!isAdminScopeFace(face) && (
+							<Button onClick={() => navigate(getLocalizedPath(`/faces/${faceId}/edit`))}>
+								{t('common.edit')}
+							</Button>
+						)}
+						{!isAdminScopeFace(face) && (
+							<Button
+								variant="outline"
+								onClick={() => navigate(getLocalizedPath(`/faces/${faceId}/wall-tickets`))}
+							>
+								{t('pages.faceDetail.wallTickets')}
+							</Button>
+						)}
 					</div>
 
 					<div className="face-detail-card">

@@ -25,6 +25,7 @@ import { Button } from '@/components/radix/Button';
 import { Input } from '@/components/radix/Input';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { gradientPreviewStyle } from '@/utils/gradientPreview';
+import { isAdminScopeFace } from '@/utils/adminScopeFace';
 import './FacesTable.scss';
 
 export function FacesTable() {
@@ -49,15 +50,22 @@ export function FacesTable() {
 				accessorKey: 'id',
 				header: 'ID',
 				enableSorting: true,
-				cell: (info) => (
-					<button
-						type="button"
-						className="table-link-button"
-						onClick={() => navigate(getLocalizedPath(`/faces/${info.getValue()}`))}
-					>
-						{info.getValue() as number}
-					</button>
-				),
+				cell: (info) => {
+					const face = info.row.original;
+					const id = info.getValue() as number;
+					if (isAdminScopeFace(face)) {
+						return <span>{id}</span>;
+					}
+					return (
+						<button
+							type="button"
+							className="table-link-button"
+							onClick={() => navigate(getLocalizedPath(`/faces/${id}`))}
+						>
+							{id}
+						</button>
+					);
+				},
 			},
 			{
 				accessorKey: 'index',
@@ -114,12 +122,19 @@ export function FacesTable() {
 				header: t('common.actions'),
 				enableSorting: false,
 				cell: (info) => {
-					const faceId = info.row.original.id;
+					const face = info.row.original;
+					if (isAdminScopeFace(face)) {
+						return (
+							<span className="text-muted" title={t('pages.faces.adminScopeReadOnly')}>
+								—
+							</span>
+						);
+					}
 					return (
 						<div className="table-actions">
 							<Button
 								variant="outline"
-								onClick={() => navigate(getLocalizedPath(`/faces/${faceId}/edit`))}
+								onClick={() => navigate(getLocalizedPath(`/faces/${face.id}/edit`))}
 							>
 								{t('common.edit')}
 							</Button>

@@ -34,6 +34,7 @@ import {
 	type UiChatMessage,
 } from '@/utils/operatorAiChatUtils';
 import { Button } from '@/components/radix/Button';
+import { useConfirmModal } from '@/hooks/useConfirmModal';
 import './ChatPage.scss';
 
 type ConnectionState = 'Connecting' | 'Connected' | 'Disconnected' | 'Reconnecting';
@@ -42,7 +43,7 @@ const SEND_TIMEOUT_MS = 360_000;
 
 export function ChatPage() {
 	const { t } = useTranslation('common');
-	const { token } = useAuth();
+	const { token, isAuthenticated } = useAuth();
 	const queryClient = useQueryClient();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const conversationId = parseConversationIdFromSearch(searchParams.toString());
@@ -60,6 +61,7 @@ export function ChatPage() {
 		!modelUnavailable && !modelReady && (modelStatus == null || modelStatus.loading !== false);
 	const createConversation = useCreateOperatorAiConversation();
 	const deleteConversation = useDeleteOperatorAiConversation();
+	const { confirm, ConfirmModalHost } = useConfirmModal();
 
 	const serverMessages = useMemo(
 		() => (messagesPage ? mapPageToUiMessages(messagesPage.items) : []),
@@ -80,6 +82,11 @@ export function ChatPage() {
 	const [sendingElapsedSec, setSendingElapsedSec] = useState(0);
 
 	const connectionRef = useRef<HubConnection | null>(null);
+	const hubStartInFlightRef = useRef(false);
+	const tokenRef = useRef(token);
+	useEffect(() => {
+		tokenRef.current = token;
+	}, [token]);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const messagesContainerRef = useRef<HTMLDivElement>(null);
 	const conversationIdRef = useRef(conversationId);
@@ -164,10 +171,15 @@ export function ChatPage() {
 	}, [isSending]);
 
 	useEffect(() => {
-		if (!token) return;
+		if (!isAuthenticated || !token) {
+			hubStartInFlightRef.current = false;
+			return;
+		}
 
-		const connection = buildAdminAiChatHubConnection(token);
+		const getAccessToken = () => tokenRef.current ?? localStorage.getItem('auth_token');
+		const connection = buildAdminAiChatHubConnection(getAccessToken);
 		connectionRef.current = connection;
+		let cancelled = false;
 
 		connection.on('ReceiveAiMessage', (userMessage: string, aiResponse: string) => {
 			const cid = conversationIdRef.current;
@@ -228,22 +240,34 @@ export function ChatPage() {
 		connection.onreconnected(() => setConnectionState('Connected'));
 		connection.onclose(() => setConnectionState('Disconnected'));
 
-		queueMicrotask(() => setConnectionState('Connecting'));
-		void connection
-			.start()
-			.then(() => setConnectionState('Connected'))
-			.catch((err) => {
+		const startHub = async () => {
+			if (hubStartInFlightRef.current) return;
+			hubStartInFlightRef.current = true;
+			setConnectionState('Connecting');
+			try {
+				await connection.start();
+				if (!cancelled) setConnectionState('Connected');
+			} catch (err) {
 				console.error('SignalR chat hub connect failed:', err);
-				setConnectionState('Disconnected');
-			});
+				if (!cancelled) setConnectionState('Disconnected');
+			} finally {
+				hubStartInFlightRef.current = false;
+			}
+		};
+
+		void startHub();
 
 		return () => {
+			cancelled = true;
+			hubStartInFlightRef.current = false;
 			void connection.stop();
 			connectionRef.current = null;
 			setConnectionState('Disconnected');
 			setIsSending(false);
 		};
-	}, [token, conversationsKey]);
+		// token read via tokenRef — omit from deps to avoid hub reconnect loop on refresh
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- messagesKey stable; hub lifetime tied to auth + conversation list key
+	}, [isAuthenticated, conversationsKey]);
 
 	const handleLoadOlder = async () => {
 		if (!token || conversationId == null || loadingOlder || !hasMore || messages.length === 0)
@@ -286,7 +310,12 @@ export function ChatPage() {
 
 	const handleDelete = async () => {
 		if (conversationId == null) return;
-		if (!window.confirm(t('pages.chat.confirmDelete'))) return;
+		const confirmed = await confirm({
+			title: t('pages.chat.deleteChat'),
+			message: t('pages.chat.confirmDelete'),
+			confirmVariant: 'danger',
+		});
+		if (!confirmed) return;
 		await deleteConversation.mutateAsync(conversationId);
 		setActiveConversationId(null);
 	};
@@ -374,6 +403,7 @@ export function ChatPage() {
 
 	return (
 		<div className="chat-page-shell">
+			{ConfirmModalHost}
 			<div className="chat-page">
 				<aside className="chat-page__sidebar">
 					<div className="chat-page__sidebar-header">
@@ -429,7 +459,12 @@ export function ChatPage() {
 							</span>
 						</div>
 						{conversationId != null && (
-							<Button type="button" size="sm" onClick={() => void handleDelete()}>
+							<Button
+								type="button"
+								size="sm"
+								onClick={() => void handleDelete()}
+								disabled={deleteConversation.isPending}
+							>
 								{t('pages.chat.deleteChat')}
 							</Button>
 						)}

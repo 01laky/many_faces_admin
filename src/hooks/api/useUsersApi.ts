@@ -22,58 +22,84 @@ interface UseUsersResponse {
 	total: number;
 	page: number;
 	pageSize: number;
+	totalPages: number;
 }
 
-// Fetch users from API
+interface UsersListApiResponse {
+	items?: User[];
+	totalCount?: number;
+	page?: number;
+	pageSize?: number;
+	totalPages?: number;
+}
+
+/** @internal Exported for unit tests — maps backend paginated Users DTO to hook shape. */
+export function parseUsersListResponse(
+	response: unknown,
+	fallbackPage: number,
+	fallbackPageSize: number
+): UseUsersResponse {
+	if (Array.isArray(response)) {
+		return {
+			users: response as User[],
+			total: response.length,
+			page: fallbackPage,
+			pageSize: fallbackPageSize,
+			totalPages: Math.max(1, Math.ceil(response.length / fallbackPageSize)),
+		};
+	}
+
+	const body = response as UsersListApiResponse;
+	const items = Array.isArray(body?.items) ? body.items : [];
+	const totalCount = typeof body?.totalCount === 'number' ? body.totalCount : items.length;
+	const page = typeof body?.page === 'number' ? body.page : fallbackPage;
+	const pageSize = typeof body?.pageSize === 'number' ? body.pageSize : fallbackPageSize;
+	const totalPages =
+		typeof body?.totalPages === 'number'
+			? body.totalPages
+			: Math.max(0, Math.ceil(totalCount / pageSize));
+
+	return {
+		users: items,
+		total: totalCount,
+		page,
+		pageSize,
+		totalPages,
+	};
+}
+
 const fetchUsers = async (params: UseUsersParams): Promise<UseUsersResponse> => {
+	const page = params.page || 1;
+	const pageSize = params.pageSize || 10;
+
 	logger.info('Fetching users from API', params);
 
 	try {
 		const response = await __request(OpenAPI, {
 			method: 'GET',
-			url: '/api/users',
+			url: '/api/Users',
+			query: {
+				page,
+				pageSize,
+				...(params.search?.trim() ? { search: params.search.trim() } : {}),
+			},
 		});
 
-		let users: User[] = Array.isArray(response) ? response : [];
-
-		// Client-side filtering if search is provided
-		if (params.search) {
-			const searchLower = params.search.toLowerCase();
-			users = users.filter(
-				(user) =>
-					user.email?.toLowerCase().includes(searchLower) ||
-					user.firstName?.toLowerCase().includes(searchLower) ||
-					user.lastName?.toLowerCase().includes(searchLower)
-			);
-		}
-
-		// Client-side pagination
-		const page = params.page || 1;
-		const pageSize = params.pageSize || 10;
-		const start = (page - 1) * pageSize;
-		const end = start + pageSize;
-		const paginatedUsers = users.slice(start, end);
-
-		return {
-			users: paginatedUsers,
-			total: users.length,
-			page,
-			pageSize,
-		};
+		return parseUsersListResponse(response, page, pageSize);
 	} catch (error) {
 		logger.error('Error fetching users', error);
 		throw error;
 	}
 };
 
-// Fetch single user by ID from API
 const fetchUser = async (id: string): Promise<User> => {
 	logger.info('Fetching user from API', { id });
 
 	try {
 		const response = await __request(OpenAPI, {
 			method: 'GET',
-			url: `/api/users/${id}`,
+			url: '/api/Users/{id}',
+			path: { id },
 		});
 
 		return response as User;
@@ -87,7 +113,7 @@ export function useUsers(params: UseUsersParams = {}) {
 	return useQuery({
 		queryKey: ['users', params],
 		queryFn: () => fetchUsers(params),
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		staleTime: 5 * 60 * 1000,
 		keepPreviousData: true,
 	});
 }
@@ -96,12 +122,11 @@ export function useUser(id: string) {
 	return useQuery({
 		queryKey: ['user', id],
 		queryFn: () => fetchUser(id),
-		enabled: !!id, // Only fetch if ID is provided
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		enabled: !!id,
+		staleTime: 5 * 60 * 1000,
 	});
 }
 
-// Create user mutation
 export interface CreateUserData {
 	email: string;
 	password: string;
@@ -115,7 +140,7 @@ const createUserRequest = async (data: CreateUserData): Promise<User> => {
 	try {
 		const response = await __request(OpenAPI, {
 			method: 'POST',
-			url: '/api/users',
+			url: '/api/Users',
 			body: data,
 		});
 
@@ -130,7 +155,6 @@ export function createUser(data: CreateUserData): Promise<User> {
 	return createUserRequest(data);
 }
 
-// Update user mutation
 export interface UpdateUserData {
 	email?: string;
 	password?: string;
@@ -144,7 +168,8 @@ const updateUserRequest = async (id: string, data: UpdateUserData): Promise<User
 	try {
 		const response = await __request(OpenAPI, {
 			method: 'PUT',
-			url: `/api/users/${id}`,
+			url: '/api/Users/{id}',
+			path: { id },
 			body: data,
 		});
 

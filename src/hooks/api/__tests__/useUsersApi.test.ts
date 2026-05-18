@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createUser, updateUser } from '../useUsersApi';
+import { createUser, updateUser, parseUsersListResponse } from '../useUsersApi';
 import type { User, CreateUserData, UpdateUserData } from '../useUsersApi';
 
 // Mock the API request function
@@ -35,6 +35,37 @@ describe('useUsersApi', () => {
 		});
 	});
 
+	describe('parseUsersListResponse', () => {
+		it('maps paginated API body with items and totalCount', () => {
+			const result = parseUsersListResponse(
+				{
+					items: [
+						{ id: 'a', email: 'a@test.com', firstName: 'A', lastName: 'One' },
+						{ id: 'b', email: 'b@test.com', firstName: 'B', lastName: 'Two' },
+					],
+					totalCount: 42,
+					page: 2,
+					pageSize: 10,
+					totalPages: 5,
+				},
+				1,
+				10
+			);
+
+			expect(result.users).toHaveLength(2);
+			expect(result.total).toBe(42);
+			expect(result.page).toBe(2);
+			expect(result.pageSize).toBe(10);
+			expect(result.totalPages).toBe(5);
+		});
+
+		it('returns empty list when response is not an array or paginated object', () => {
+			const result = parseUsersListResponse({}, 1, 10);
+			expect(result.users).toEqual([]);
+			expect(result.total).toBe(0);
+		});
+	});
+
 	describe('createUser', () => {
 		it('should create user successfully', async () => {
 			const newUser: CreateUserData = {
@@ -56,7 +87,10 @@ describe('useUsersApi', () => {
 			const result = await createUser(newUser);
 
 			expect(result).toEqual(createdUser);
-			expect(mockRequest).toHaveBeenCalled();
+			expect(mockRequest).toHaveBeenCalledWith(
+				expect.anything(),
+				expect.objectContaining({ method: 'POST', url: '/api/Users' })
+			);
 		});
 	});
 
@@ -77,7 +111,10 @@ describe('useUsersApi', () => {
 			const result = await updateUser('1', updateData);
 
 			expect(result).toEqual(updatedUser);
-			expect(mockRequest).toHaveBeenCalled();
+			expect(mockRequest).toHaveBeenCalledWith(
+				expect.anything(),
+				expect.objectContaining({ method: 'PUT', url: '/api/Users/{id}', path: { id: '1' } })
+			);
 		});
 	});
 });

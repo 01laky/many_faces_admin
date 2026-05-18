@@ -4,8 +4,6 @@ import {
 	useReactTable,
 	getCoreRowModel,
 	getSortedRowModel,
-	getFilteredRowModel,
-	getPaginationRowModel,
 	type ColumnDef,
 	type SortingState,
 	type ColumnFiltersState,
@@ -33,11 +31,14 @@ export function UsersTable() {
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [search, setSearch] = useState('');
+	const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
 
-	// React Query hook
+	const page = pagination.pageIndex + 1;
+	const pageSize = pagination.pageSize;
+
 	const { data, isLoading, error, refetch } = useUsers({
-		page: 1,
-		pageSize: 10,
+		page,
+		pageSize,
 		search: search || undefined,
 	});
 
@@ -122,18 +123,17 @@ export function UsersTable() {
 		columns,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
 		state: {
 			sorting,
 			columnFilters,
+			pagination,
 		},
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
-		manualPagination: false, // Client-side pagination for demo
-		manualSorting: false, // Client-side sorting for demo
-		manualFiltering: false, // Client-side filtering for demo
-		pageCount: data ? Math.ceil(data.total / (data.pageSize || 10)) : undefined,
+		onPaginationChange: setPagination,
+		manualPagination: true,
+		manualSorting: true,
+		pageCount: data?.totalPages ?? 0,
 	});
 
 	if (isLoading) {
@@ -166,7 +166,10 @@ export function UsersTable() {
 						type="text"
 						placeholder="Search users..."
 						value={search}
-						onChange={(e) => setSearch(e.target.value)}
+						onChange={(e) => {
+							setSearch(e.target.value);
+							setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+						}}
 						className="users-table-search"
 					/>
 					<Button onClick={() => refetch()}>Refresh</Button>

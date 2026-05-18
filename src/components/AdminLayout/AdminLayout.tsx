@@ -2,7 +2,7 @@
  * AdminLayout.tsx - Responsive layout wrapper for authenticated admin pages
  *
  * Provides:
- * - Top header with hamburger menu (mobile/tablet), user info, logout
+ * - Top header with hamburger menu (mobile/tablet), user avatar menu (settings, logout)
  * - Left sidebar navigation (collapsible on desktop, overlay drawer on mobile/tablet)
  * - Main content area that adapts to sidebar state
  * - Responsive breakpoints: mobile (<768px), tablet (768-1024px), desktop (>1024px)
@@ -11,11 +11,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { isSuperAdminFromToken } from '@/utils/contentModeration';
 import { LanguageSwitcher } from '../LanguageSwitcher';
+import { useConfirmModal } from '@/hooks/useConfirmModal';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import './AdminLayout.scss';
 
@@ -50,6 +52,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 	const { t } = useTranslation('common');
 	const { user, logout, token } = useAuth();
 	const getLocalizedPath = useLocalizedLink();
+	const { confirm, ConfirmModalHost } = useConfirmModal();
 	const reduceMotion = useReducedMotion();
 	const navItems = isSuperAdminFromToken(token)
 		? [...NAV_ITEMS, ...SUPER_ADMIN_NAV_ITEMS]
@@ -89,6 +92,21 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 		}
 	};
 
+	const goToSettings = () => {
+		navigate(getLocalizedPath('/settings'));
+	};
+
+	const requestLogout = async () => {
+		const confirmed = await confirm({
+			title: t('pages.logout.title'),
+			message: t('pages.logout.confirmMessage'),
+			confirmVariant: 'danger',
+		});
+		if (confirmed) {
+			await handleLogout();
+		}
+	};
+
 	const sidebarWidth = sidebarOpen && !isMobile ? 260 : 0;
 
 	return (
@@ -118,11 +136,36 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 					<LanguageSwitcher />
 					{user && (
 						<div className="admin-header__user">
-							<div className="admin-header__avatar">{user.email.charAt(0).toUpperCase()}</div>
+							<DropdownMenu.Root>
+								<DropdownMenu.Trigger asChild>
+									<button
+										type="button"
+										className="admin-header__avatar-trigger"
+										aria-label={t('common.userMenu', { defaultValue: 'User menu' })}
+									>
+										<span className="admin-header__avatar" aria-hidden>
+											{user.email.charAt(0).toUpperCase()}
+										</span>
+									</button>
+								</DropdownMenu.Trigger>
+								<DropdownMenu.Portal>
+									<DropdownMenu.Content className="admin-header__menu" sideOffset={8} align="end">
+										<DropdownMenu.Item className="admin-header__menu-item" onSelect={goToSettings}>
+											{t('pages.settings.title') || 'Settings'}
+										</DropdownMenu.Item>
+										<DropdownMenu.Item
+											className="admin-header__menu-item admin-header__menu-item--logout"
+											onSelect={(event) => {
+												event.preventDefault();
+												void requestLogout();
+											}}
+										>
+											{t('pages.logout.title') || 'Logout'}
+										</DropdownMenu.Item>
+									</DropdownMenu.Content>
+								</DropdownMenu.Portal>
+							</DropdownMenu.Root>
 							<span className="admin-header__email">{user.email}</span>
-							<button className="admin-header__logout" onClick={handleLogout}>
-								{t('pages.logout.title') || 'Logout'}
-							</button>
 						</div>
 					)}
 				</div>
@@ -210,6 +253,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 			<main className="admin-main" style={{ marginLeft: isMobile ? 0 : sidebarWidth }}>
 				{children}
 			</main>
+
+			{ConfirmModalHost}
 		</div>
 	);
 }
