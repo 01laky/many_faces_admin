@@ -277,7 +277,7 @@ export function AlbumDetailPage() {
 									onClick={() =>
 										navigate(
 											getLocalizedPath(
-												`/content-moderation?contentType=Album&faceId=${faceId}&search=${albumId}`
+												`/content-moderation?contentType=Album&faceId=${faceId}&contentId=${albumId}`
 											)
 										)
 									}

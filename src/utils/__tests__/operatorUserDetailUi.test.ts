@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
 	canSubmitFaceBan,
 	canSubmitGlobalBan,
+	formatOperatorUserDisplayName,
 	getFaceStatusI18nKey,
 	getUserDetailBadgeI18nKeys,
 } from '../operatorUserDetailUi';
@@ -23,6 +24,23 @@ describe('operatorUserDetailUi', () => {
 		expect(keys).toContain('pages.userDetail.badgeGlobalBan');
 		expect(keys).toContain('pages.userDetail.badgeFaceBans');
 		expect(keys).toContain('pages.userDetail.badgeEmailUnconfirmed');
+	});
+
+	it('formatOperatorUserDisplayName prefers full name then email', () => {
+		expect(
+			formatOperatorUserDisplayName({
+				id: 'u1',
+				firstName: 'Ada',
+				lastName: 'Lovelace',
+				email: 'ada@test.com',
+			})
+		).toBe('Ada Lovelace');
+		expect(
+			formatOperatorUserDisplayName({
+				id: 'u2',
+				email: 'bob@test.com',
+			})
+		).toBe('bob@test.com');
 	});
 
 	it('maps face status labels', () => {

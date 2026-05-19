@@ -18,6 +18,7 @@ import { useConfirmModal } from '@/hooks/useConfirmModal';
 import { canSubmitFaceBan, canSubmitGlobalBan } from '@/utils/operatorUserDetailUi';
 import { UserDetailFacesTable } from './UserDetailFacesTable';
 import { UserDetailAlbumsTable } from './UserDetailAlbumsTable';
+import { UserDetailReelsTable } from './UserDetailReelsTable';
 import './UserDetailPage.scss';
 
 function mutationErrorMessage(error: unknown): string {
@@ -297,6 +298,13 @@ export function UserDetailPage() {
 
 					<div className="user-detail-card">
 						<UserDetailAlbumsTable
+							creatorId={userId}
+							userFaceIds={user.faces.map((f) => f.faceId)}
+						/>
+					</div>
+
+					<div className="user-detail-card">
+						<UserDetailReelsTable
 							creatorId={userId}
 							userFaceIds={user.faces.map((f) => f.faceId)}
 						/>

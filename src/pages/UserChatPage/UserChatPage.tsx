@@ -24,6 +24,7 @@ import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { mapOperatorUserChatHubError } from '@/utils/operatorUserChatHubErrors';
 import { appendUserChatMessage, type UiUserChatMessage } from '@/utils/userChatMessageMerge';
 import { isSuperAdminFromToken } from '@/utils/contentModeration';
+import { formatOperatorUserDisplayName } from '@/utils/operatorUserDetailUi';
 import { Button } from '@/components/radix/Button';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
@@ -66,6 +67,7 @@ export function UserChatPage() {
 
 	const connectionRef = useRef<HubConnection | null>(null);
 	const hubSessionRef = useRef(0);
+	const hubStartInFlightRef = useRef(false);
 	const tokenRef = useRef(token);
 	const selectedUserIdRef = useRef(selectedUserId);
 	const userIdRef = useRef(user?.id);
@@ -124,6 +126,19 @@ export function UserChatPage() {
 	const selectedConversation = conversations.find((c) => c.otherUserId === selectedUserId);
 	const hasMore = hasNextPage ?? infiniteHistory?.pages[0]?.hasMore ?? false;
 
+	const threadDisplayName = useMemo(() => {
+		if (!selectedUserId) return '';
+		const fromList = selectedConversation?.otherUserDisplayName?.trim();
+		if (fromList && fromList !== selectedUserId) return fromList;
+		if (targetUserDetail) return formatOperatorUserDisplayName(targetUserDetail);
+		return '';
+	}, [selectedConversation, targetUserDetail, selectedUserId]);
+
+	const threadEmail =
+		selectedConversation?.otherUserEmail?.trim() || targetUserDetail?.email?.trim() || '';
+	const showThreadEmail =
+		Boolean(threadEmail) && threadEmail !== threadDisplayName && threadEmail !== selectedUserId;
+
 	const setSelectedUserId = useCallback(
 		(id: string | null) => {
 			setPending([]);
@@ -148,6 +163,7 @@ export function UserChatPage() {
 	// Single hub connection per authenticated super-admin session; handlers use refs for selected thread.
 	useEffect(() => {
 		if (!isAuthenticated || !token || !isSuperAdminFromToken(token)) {
+			hubStartInFlightRef.current = false;
 			return;
 		}
 
@@ -218,15 +234,17 @@ export function UserChatPage() {
 		});
 
 		const startHub = async () => {
+			if (hubStartInFlightRef.current) return;
+			hubStartInFlightRef.current = true;
 			setConnectionState('Connecting');
 			try {
-				if (connection.state === HubConnectionState.Disconnected) {
-					await connection.start();
-				}
+				await connection.start();
 				if (isActiveSession()) setConnectionState('Connected');
 			} catch (err) {
 				console.error('Messenger hub connect failed:', err);
 				if (isActiveSession()) setConnectionState('Disconnected');
+			} finally {
+				hubStartInFlightRef.current = false;
 			}
 		};
 
@@ -245,6 +263,7 @@ export function UserChatPage() {
 
 		return () => {
 			cancelled = true;
+			hubStartInFlightRef.current = false;
 			document.removeEventListener('visibilitychange', onVisible);
 			void connection.stop();
 			if (connectionRef.current === connection) {
@@ -254,7 +273,9 @@ export function UserChatPage() {
 				setConnectionState('Disconnected');
 			}
 		};
-	}, [isAuthenticated, token]);
+		// token via tokenRef — omit from deps to avoid hub stop during negotiation (e.g. deep link from reel detail)
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- hub lifetime tied to auth gate only
+	}, [isAuthenticated]);
 
 	const handleReconnect = useCallback(async () => {
 		const conn = connectionRef.current;
@@ -388,10 +409,9 @@ export function UserChatPage() {
 						<div className="chat-page__conversation">
 							<div className="chat-page__header" style={{ borderBottom: '1px solid #dee2e6' }}>
 								<div>
-									<strong>{selectedConversation?.otherUserDisplayName ?? selectedUserId}</strong>
-									<div className="chat-page__thread-meta">
-										{selectedConversation?.otherUserEmail}
-									</div>
+									<strong>{threadDisplayName || t('common.loading')}</strong>
+									<div className="chat-page__thread-meta">{selectedUserId}</div>
+									{showThreadEmail && <div className="chat-page__thread-meta">{threadEmail}</div>}
 								</div>
 								<Link to={getLocalizedPath(`/users/${selectedUserId}`)}>
 									{t('pages.userChat.viewUserDetail')}

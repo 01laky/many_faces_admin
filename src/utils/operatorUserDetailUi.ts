@@ -26,3 +26,15 @@ export function getFaceStatusI18nKey(face: OperatorUserDetail['faces'][number]):
 	if (face.isActiveParticipant) return 'pages.userDetail.faceActive';
 	return '';
 }
+
+/** Primary label for chat header / lists: full name, else email, else user id. */
+export function formatOperatorUserDisplayName(
+	user: Pick<OperatorUserDetail, 'firstName' | 'lastName' | 'email' | 'id'> | null | undefined
+): string {
+	if (!user) return '';
+	const full = `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim();
+	if (full) return full;
+	const email = user.email?.trim();
+	if (email) return email;
+	return user.id;
+}

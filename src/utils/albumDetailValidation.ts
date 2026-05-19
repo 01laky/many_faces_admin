@@ -44,3 +44,13 @@ export function shouldSyncUserMessageFromReason(
 export function nextSyncedUserMessage(reason: string): string {
 	return reason;
 }
+
+/** Validates operator reason only (e.g. approve override when AI recommended reject). */
+export function validateReasonOnly(reason: string): { valid: boolean; reasonError?: string } {
+	const trimmed = reason.trim();
+	let reasonError: string | undefined;
+	if (!trimmed) reasonError = 'required';
+	else if (trimmed.length < MIN_LEN) reasonError = 'min';
+	else if (trimmed.length > MAX_LEN) reasonError = 'max';
+	return { valid: !reasonError, reasonError };
+}

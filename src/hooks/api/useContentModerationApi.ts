@@ -102,6 +102,7 @@ export interface ModerationMetrics {
 }
 
 export interface ModerationFilters {
+	contentId?: number;
 	contentType?: ModeratedContentType;
 	approvalStatus?: ContentApprovalStatus;
 	aiReviewStatus?: AiReviewStatus;

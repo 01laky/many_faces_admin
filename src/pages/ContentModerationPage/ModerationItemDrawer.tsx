@@ -1,7 +1,10 @@
 import { Button, Spinner } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { ModerationItem } from '@/hooks/api/useContentModerationApi';
 import type { useModerationEvents } from '@/hooks/api/useContentModerationApi';
 import { formatOptionalDate, parseModerationFlags } from '@/utils/contentModeration';
+import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import {
 	formatModerationBodyPreview,
 	formatModerationMediaPreview,
@@ -23,6 +26,20 @@ export function ModerationItemDrawer({
 	eventsLoading,
 	onClose,
 }: ModerationItemDrawerProps) {
+	const { t } = useTranslation('common');
+	const navigate = useNavigate();
+	const getLocalizedPath = useLocalizedLink();
+
+	const openContentDetail = () => {
+		if (item.contentType === 'Reel') {
+			navigate(getLocalizedPath(`/reels/${item.contentId}?faceId=${item.faceId}`));
+			return;
+		}
+		if (item.contentType === 'Album') {
+			navigate(getLocalizedPath(`/albums/${item.contentId}?faceId=${item.faceId}`));
+		}
+	};
+
 	return (
 		<section className="content-moderation-page__detail" aria-label="Moderation detail">
 			<div className="content-moderation-page__detail-header">
@@ -34,6 +51,18 @@ export function ModerationItemDrawer({
 						Submitted {formatOptionalDate(item.submittedAtUtc)} by{' '}
 						{item.creatorName.trim() || item.creatorId}
 					</p>
+					{(item.contentType === 'Reel' || item.contentType === 'Album') && (
+						<Button
+							variant="outline-primary"
+							size="sm"
+							className="mt-2"
+							onClick={openContentDetail}
+						>
+							{item.contentType === 'Reel'
+								? t('pages.moderation.openReelDetail')
+								: t('pages.moderation.openAlbumDetail')}
+						</Button>
+					)}
 				</div>
 				<Button variant="outline-secondary" size="sm" onClick={onClose}>
 					Close

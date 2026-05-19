@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { PaginationState, SortingState } from '@tanstack/react-table';
 import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
 import { clampPageIndex, sortingStateToApi } from '@/utils/adminListQuery';
@@ -48,12 +49,21 @@ function parseOptionalDouble(raw: string): number | undefined {
 /**
  * SUPER_ADMIN moderation console: filterable queue, health metrics, structured alerts, bulk actions, and per-item audit drawer.
  */
+function parseUrlContentType(raw: string | null): ModeratedContentType | '' {
+	if (raw === 'Album' || raw === 'Blog' || raw === 'Reel') return raw;
+	return '';
+}
+
 export function ContentModerationPage() {
 	const { token } = useAuth();
+	const [searchParams] = useSearchParams();
 	const isSuperAdmin = useMemo(() => isSuperAdminFromToken(token), [token]);
-	const [contentType, setContentType] = useState<ModeratedContentType | ''>('');
-	const [approvalStatus, setApprovalStatus] = useState<ContentApprovalStatus | ''>(
-		'PendingApproval'
+	const [contentType, setContentType] = useState<ModeratedContentType | ''>(() =>
+		parseUrlContentType(searchParams.get('contentType'))
+	);
+	const [contentIdText] = useState(() => searchParams.get('contentId') ?? '');
+	const [approvalStatus, setApprovalStatus] = useState<ContentApprovalStatus | ''>(() =>
+		searchParams.get('contentId') ? '' : 'PendingApproval'
 	);
 	const [aiReviewStatus, setAiReviewStatus] = useState<AiReviewStatus | ''>('');
 	const [riskLevel, setRiskLevel] = useState<AiReviewRiskLevel | ''>('');
@@ -80,6 +90,7 @@ export function ContentModerationPage() {
 	const [sorting, setSorting] = useState<SortingState>([{ id: 'submittedAtUtc', desc: true }]);
 
 	const filters = {
+		contentId: parseOptionalInt(contentIdText),
 		contentType: contentType || undefined,
 		approvalStatus: approvalStatus || undefined,
 		aiReviewStatus: aiReviewStatus || undefined,

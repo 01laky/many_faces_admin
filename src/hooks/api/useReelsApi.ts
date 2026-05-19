@@ -1,8 +1,18 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { OpenAPI } from '../../api/core/OpenAPI';
 import { request as __request } from '../../api/core/request';
 import { ADMIN_TABLE_PAGE_SIZE } from '../../utils/adminTableUtils';
 import { parsePaginatedEnvelope, type ApiSortDir } from '../../utils/adminListQuery';
+import {
+	applyModerationDecision,
+	moderationKeys,
+	type ModerationDecision,
+} from './useContentModerationApi';
+
+export interface ReelFaceRef {
+	faceId: number;
+	title: string;
+}
 
 export interface ReelListItem {
 	id: number;
@@ -11,6 +21,9 @@ export interface ReelListItem {
 	videoUrl?: string;
 	creatorId: string;
 	creatorName: string;
+	faces?: ReelFaceRef[];
+	likesCount?: number;
+	commentsCount?: number;
 	approvalStatus?: string;
 	aiReviewStatus?: string;
 	creatorStatusLabel?: string;
@@ -22,10 +35,24 @@ export interface ReelDetail extends ReelListItem {
 	aiReviewUserMessage?: string | null;
 	humanDecisionReason?: string | null;
 	submittedAtUtc?: string | null;
+	aiReviewDecision?: string | null;
+	aiReviewRiskLevel?: string | null;
+	aiReviewFlagsJson?: string | null;
+	aiReviewReason?: string | null;
+	aiReviewModelVersion?: string | null;
+	aiReviewTraceId?: string | null;
+	isLikedByMe?: boolean;
+}
+
+export interface OperatorReelDeletePayload {
+	faceId: number;
+	reason: string;
+	userMessage: string;
 }
 
 export interface UseReelsParams {
-	faceId: number;
+	faceId?: number;
+	creatorId?: string;
 	page?: number;
 	pageSize?: number;
 	search?: string;
@@ -37,7 +64,9 @@ export interface UseReelsParams {
 const fetchReels = async (params: UseReelsParams) => {
 	const page = params.page || 1;
 	const pageSize = params.pageSize || ADMIN_TABLE_PAGE_SIZE;
-	const query: Record<string, string | number> = { faceId: params.faceId, page, pageSize };
+	const query: Record<string, string | number> = { page, pageSize };
+	if (params.faceId) query.faceId = params.faceId;
+	if (params.creatorId?.trim()) query.creatorId = params.creatorId.trim();
 	if (params.search?.trim()) query.search = params.search.trim();
 	if (params.sortBy) {
 		query.sortBy = params.sortBy;
@@ -67,7 +96,7 @@ export function useReels(params: UseReelsParams) {
 	return useQuery({
 		queryKey: reelsKeys.list(params),
 		queryFn: () => fetchReels(params),
-		enabled: params.faceId > 0,
+		enabled: (params.faceId ?? 0) > 0 || Boolean(params.creatorId?.trim()),
 		placeholderData: keepPreviousData,
 	});
 }
@@ -78,5 +107,54 @@ export function useReel(id: number, faceId: number) {
 		queryFn: () => fetchReel(id, faceId),
 		enabled: id > 0 && faceId > 0,
 		placeholderData: keepPreviousData,
+	});
+}
+
+export function useDeleteReel() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async ({
+			reelId,
+			payload,
+		}: {
+			reelId: number;
+			payload: OperatorReelDeletePayload;
+		}) => {
+			await __request(OpenAPI, {
+				method: 'POST',
+				url: `/api/operator-content/reels/${reelId}/delete`,
+				body: payload,
+			});
+		},
+		onSuccess: (_data, vars) => {
+			queryClient.invalidateQueries({ queryKey: reelsKeys.all });
+			queryClient.removeQueries({
+				queryKey: reelsKeys.detail(vars.reelId, vars.payload.faceId),
+			});
+			queryClient.invalidateQueries({ queryKey: moderationKeys.all });
+		},
+	});
+}
+
+export function useReelModerationAction() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({
+			reelId,
+			action,
+			decision,
+		}: {
+			reelId: number;
+			faceId: number;
+			action: 'approve' | 'reject' | 'remove';
+			decision?: ModerationDecision;
+		}) => applyModerationDecision('Reel', reelId, action, decision ?? {}),
+		onSuccess: (_data, vars) => {
+			queryClient.invalidateQueries({ queryKey: reelsKeys.all });
+			queryClient.invalidateQueries({
+				queryKey: reelsKeys.detail(vars.reelId, vars.faceId),
+			});
+			queryClient.invalidateQueries({ queryKey: moderationKeys.all });
+		},
 	});
 }
