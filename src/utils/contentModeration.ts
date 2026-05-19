@@ -47,21 +47,46 @@ export function isSuperAdminFromToken(token: string | null | undefined) {
 	}
 }
 
+/** True when super-admin approve/reject actions still apply. */
+export function isPendingModeration(approvalStatus: string | null | undefined): boolean {
+	return approvalStatus === 'PendingApproval';
+}
+
+/** BEM tone suffix for moderation status chips (`moderation-status-chip--{tone}`). */
+export function getModerationStatusChipTone(
+	approvalStatus: string | null | undefined
+): 'pending' | 'approved' | 'rejected' | 'removed' | 'neutral' {
+	switch (approvalStatus) {
+		case 'PendingApproval':
+			return 'pending';
+		case 'Approved':
+			return 'approved';
+		case 'Rejected':
+			return 'rejected';
+		case 'Removed':
+			return 'removed';
+		default:
+			return 'neutral';
+	}
+}
+
 /** Compact label for queue rows combining approval state with AI recommendation when still pending. */
 export function getModerationQueueLabel(
-	approvalStatus: ContentApprovalStatus,
-	aiReviewStatus: AiReviewStatus
+	approvalStatus: ContentApprovalStatus | string | null | undefined,
+	aiReviewStatus: AiReviewStatus | string | null | undefined
 ) {
-	if (approvalStatus === 'PendingApproval' && aiReviewStatus === 'RecommendedApprove') {
+	const approval = (approvalStatus ?? 'PendingApproval') as ContentApprovalStatus;
+	const ai = (aiReviewStatus ?? 'NotQueued') as AiReviewStatus;
+	if (approval === 'PendingApproval' && ai === 'RecommendedApprove') {
 		return 'AI recommended approval';
 	}
-	if (approvalStatus === 'PendingApproval' && aiReviewStatus === 'RecommendedReject') {
+	if (approval === 'PendingApproval' && ai === 'RecommendedReject') {
 		return 'AI recommended rejection';
 	}
-	if (approvalStatus === 'PendingApproval' && aiReviewStatus === 'NeedsHumanReview') {
+	if (approval === 'PendingApproval' && ai === 'NeedsHumanReview') {
 		return 'Needs human review';
 	}
-	return approvalStatus.replace(/([a-z])([A-Z])/g, '$1 $2');
+	return approval.replace(/([a-z])([A-Z])/g, '$1 $2');
 }
 
 /** Parses stored JSON flag arrays from the API; ignores non-string entries for forward compatibility. */

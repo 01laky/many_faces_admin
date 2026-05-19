@@ -13,6 +13,7 @@ import { isSuperAdminFromToken } from '@/utils/contentModeration';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/radix/Button';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
+import { buildLocalizedUserChatPath } from '@/utils/userChatPaths';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
 import { canSubmitFaceBan, canSubmitGlobalBan } from '@/utils/operatorUserDetailUi';
 import { UserDetailFacesTable } from './UserDetailFacesTable';
@@ -300,9 +301,7 @@ export function UserDetailPage() {
 							</h2>
 							<p className="user-detail-hint">{t('pages.userDetail.platformMessageHint')}</p>
 							<Button
-								onClick={() =>
-									navigate(getLocalizedPath(`/user-chat?u=${encodeURIComponent(userId)}`))
-								}
+								onClick={() => navigate(buildLocalizedUserChatPath(getLocalizedPath, userId))}
 							>
 								{threadExists?.hasThread
 									? t('pages.userDetail.openChat')

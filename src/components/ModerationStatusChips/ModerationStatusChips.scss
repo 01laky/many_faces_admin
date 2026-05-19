@@ -1,0 +1,47 @@
+.moderation-status-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+.moderation-status-chip {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.25rem 0.625rem;
+	font-size: 0.75rem;
+	font-weight: 600;
+	line-height: 1.25;
+	border-radius: 999px;
+	border: 1px solid transparent;
+	white-space: nowrap;
+}
+
+.moderation-status-chip--pending {
+	background: #fff4e5;
+	color: #b54708;
+	border-color: #fedf89;
+}
+
+.moderation-status-chip--approved {
+	background: #e6f4ea;
+	color: #137333;
+	border-color: #b7dfc5;
+}
+
+.moderation-status-chip--rejected {
+	background: #fde8e8;
+	color: #b42318;
+	border-color: #fecdca;
+}
+
+.moderation-status-chip--removed {
+	background: #f2f4f7;
+	color: #344054;
+	border-color: #d0d5dd;
+}
+
+.moderation-status-chip--neutral {
+	background: #f2f4f7;
+	color: #475467;
+	border-color: #e4e7ec;
+}

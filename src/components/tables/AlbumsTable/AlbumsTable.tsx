@@ -45,6 +45,12 @@ export function AlbumsTable({ faceId }: AlbumsTableProps) {
 			},
 			{ accessorKey: 'title', header: t('pages.albumsTable.colTitle'), enableSorting: true },
 			{
+				accessorKey: 'mediaCount',
+				header: t('pages.albumsTable.mediaCount'),
+				enableSorting: false,
+				cell: ({ getValue }) => getValue() ?? 0,
+			},
+			{
 				id: 'approval',
 				header: t('pages.albumsTable.colApproval'),
 				cell: ({ row }) => {

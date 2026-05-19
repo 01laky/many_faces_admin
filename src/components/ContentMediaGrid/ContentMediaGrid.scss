@@ -1,0 +1,40 @@
+.content-media-grid {
+	&__tile-wrap {
+		position: relative;
+	}
+
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+	gap: 0.75rem;
+
+	&__tile {
+		position: relative;
+		aspect-ratio: 1;
+		border: 1px solid var(--bs-border-color, #dee2e6);
+		border-radius: 0.375rem;
+		overflow: hidden;
+		cursor: pointer;
+		padding: 0;
+		background: #f8f9fa;
+
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+	}
+
+	&__video-badge {
+		position: absolute;
+		left: 0.35rem;
+		bottom: 0.35rem;
+		font-size: 0.7rem;
+	}
+
+	&__delete {
+		position: absolute;
+		top: 0.25rem;
+		right: 0.25rem;
+		z-index: 2;
+	}
+}

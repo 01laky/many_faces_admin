@@ -14,13 +14,22 @@ export interface LocalizationBundleResponse {
 
 const CACHE_KEY_PREFIX = 'i18nBundle:admin:';
 
+/** Clears cached admin bundle (call after backend .resx deploy if strings still show as keys). */
+export function clearLocalizationBundleCache(app: 'admin' = 'admin'): void {
+	if (typeof localStorage === 'undefined') return;
+	localStorage.removeItem(`${CACHE_KEY_PREFIX}version`);
+	localStorage.removeItem(`${CACHE_KEY_PREFIX}body`);
+	void app;
+}
+
 export async function fetchLocalizationBundle(app: 'admin'): Promise<LocalizationBundleResponse> {
 	const base = env.apiUrl.replace(/\/$/, '');
 	const cachedVersion =
 		typeof localStorage !== 'undefined' ? localStorage.getItem(`${CACHE_KEY_PREFIX}version`) : null;
 
 	const url = new URL(`${base}/api/localization/${app}`);
-	if (cachedVersion) url.searchParams.set('v', cachedVersion);
+	// Production only: conditional GET via ?v= — in dev always fetch fresh bundle after .resx changes.
+	if (import.meta.env.PROD && cachedVersion) url.searchParams.set('v', cachedVersion);
 
 	const response = await fetch(url.toString(), {
 		method: 'GET',

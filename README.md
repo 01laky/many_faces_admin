@@ -1,5 +1,9 @@
 # Many Faces AI (MFAI) - admin panel application
 
+## Agent / AI layout guide
+
+For **list tables** and **detail pages**, follow **[`docs/guides/admin-ui-list-and-detail-pages.md`](../docs/guides/admin-ui-list-and-detail-pages.md)** (Cursor: `.cursor/rules/admin-ui-list-detail-pages.mdc`, entry: [`AGENTS.md`](./AGENTS.md)).
+
 ## Overview
 
 The MFAI admin panel is the operator-facing React application for configuring Many Faces AI. It manages the structural data that shapes the user-facing experience: users, faces, page types, pages, localized routes, role-aware access, and the grid layout schemas rendered by the frontend.
@@ -22,6 +26,7 @@ From an engineering perspective, this submodule demonstrates a modern React admi
 - Preservation of component metadata such as title, icon, and bound content ids while layouts are edited.
 - Superadmin-only **content moderation** for user-created albums, blogs, and reels: extended **filters**, **metrics** with **alerts**, **bulk** approve/reject/remove/requeue, per-item audit, and detail drawer — see [`docs/guides/ai-assisted-content-approval.md`](../docs/guides/ai-assisted-content-approval.md).
 - **Super-admin user chat** (`/user-chat`): two-pane real-time DMs with end users via `MessengerHub` + `SendPlatformDirectMessage`; entry from user detail **Open chat** — see [`docs/guides/admin-superadmin-user-chat.md`](../docs/guides/admin-superadmin-user-chat.md).
+- **Album detail** (`/albums/{id}?faceId=`): operator management console (media grid, moderation, delete + platform DM) — [`docs/guides/admin-album-detail-moderation.md`](../docs/guides/admin-album-detail-moderation.md).
 - **Face wall tickets** (`/faces/:faceId/wall-tickets`): per-face idea backlog for operators — list filters, create ticket, staff comments, approve/deny/delete; entry from face detail on public faces — see [`docs/guides/admin-face-wall-tickets.md`](../docs/guides/admin-face-wall-tickets.md).
 - **Operator dashboard** with platform-wide **statistics**, **charts** (`GET /api/Stats`, `GET /api/Stats/timeseries`), a **full metrics table**, an **“AI & public aggregates”** strip (current **off / inline / live** mode + optional preview of **`GET /api/Stats/public`**), **Settings** for AI statistics, and **AI Chat** that calls **`SendToAiWithOperatorStats`** — see [`docs/guides/admin-dashboard-metrics.md`](../docs/guides/admin-dashboard-metrics.md).
 - OAuth2/JWT-backed protected admin routes.

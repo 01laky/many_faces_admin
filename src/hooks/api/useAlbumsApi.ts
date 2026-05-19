@@ -1,8 +1,14 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { OpenAPI } from '../../api/core/OpenAPI';
 import { request as __request } from '../../api/core/request';
 import { ADMIN_TABLE_PAGE_SIZE } from '../../utils/adminTableUtils';
 import { parsePaginatedEnvelope, type ApiSortDir } from '../../utils/adminListQuery';
+import type { ContentMediaItem } from '@/types/contentMedia';
+import {
+	applyModerationDecision,
+	moderationKeys,
+	type ModerationDecision,
+} from './useContentModerationApi';
 
 export interface AlbumListItem {
 	id: number;
@@ -15,17 +21,25 @@ export interface AlbumListItem {
 	approvalStatus?: string;
 	aiReviewStatus?: string;
 	creatorStatusLabel?: string;
+	mediaCount?: number;
 	createdAt?: string;
 	updatedAt?: string | null;
 }
 
 export interface AlbumDetail extends AlbumListItem {
 	faces?: { faceId: number; title: string }[];
+	mediaItems?: ContentMediaItem[];
 	aiReviewUserMessage?: string | null;
 	humanDecisionReason?: string | null;
 	submittedAtUtc?: string | null;
 	likesCount?: number;
 	commentsCount?: number;
+}
+
+export interface OperatorAlbumDeletePayload {
+	faceId: number;
+	reason: string;
+	userMessage: string;
 }
 
 export interface UseAlbumsParams {
@@ -103,6 +117,82 @@ export function useAlbum(id: number, faceId: number) {
 		queryKey: albumsKeys.detail(id, faceId),
 		queryFn: () => fetchAlbum(id, faceId),
 		enabled: id > 0 && faceId > 0,
-		staleTime: 5 * 60 * 1000,
+		staleTime: 30_000,
+	});
+}
+
+export function useDeleteAlbum() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async ({
+			albumId,
+			payload,
+		}: {
+			albumId: number;
+			payload: OperatorAlbumDeletePayload;
+		}) => {
+			await __request(OpenAPI, {
+				method: 'POST',
+				url: `/api/operator-content/albums/${albumId}/delete`,
+				body: payload,
+			});
+		},
+		onSuccess: (_data, vars) => {
+			queryClient.invalidateQueries({ queryKey: albumsKeys.all });
+			queryClient.removeQueries({
+				queryKey: albumsKeys.detail(vars.albumId, vars.payload.faceId),
+			});
+			queryClient.invalidateQueries({ queryKey: moderationKeys.all });
+		},
+	});
+}
+
+export function useDeleteAlbumMedia() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: async ({
+			albumId,
+			mediaId,
+			payload,
+		}: {
+			albumId: number;
+			mediaId: number;
+			payload: OperatorAlbumDeletePayload;
+		}) => {
+			await __request(OpenAPI, {
+				method: 'POST',
+				url: `/api/operator-content/albums/${albumId}/media/${mediaId}/delete`,
+				body: payload,
+			});
+		},
+		onSuccess: (_data, vars) => {
+			queryClient.invalidateQueries({
+				queryKey: albumsKeys.detail(vars.albumId, vars.payload.faceId),
+			});
+			queryClient.invalidateQueries({ queryKey: albumsKeys.all });
+		},
+	});
+}
+
+export function useAlbumModerationAction() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({
+			albumId,
+			action,
+			decision,
+		}: {
+			albumId: number;
+			faceId: number;
+			action: 'approve' | 'reject' | 'remove';
+			decision?: ModerationDecision;
+		}) => applyModerationDecision('Album', albumId, action, decision ?? {}),
+		onSuccess: (_data, vars) => {
+			queryClient.invalidateQueries({ queryKey: albumsKeys.all });
+			queryClient.invalidateQueries({
+				queryKey: albumsKeys.detail(vars.albumId, vars.faceId),
+			});
+			queryClient.invalidateQueries({ queryKey: moderationKeys.all });
+		},
 	});
 }

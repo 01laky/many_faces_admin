@@ -4,7 +4,7 @@
  * Deep link: /{lang}/user-chat?u={userId} (localized slug via routeTranslations).
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { HubConnection } from '@microsoft/signalr';
+import { HubConnectionState, type HubConnection } from '@microsoft/signalr';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -65,12 +65,18 @@ export function UserChatPage() {
 	const { data: targetUserDetail } = useOperatorUserDetail(selectedUserId ?? '');
 
 	const connectionRef = useRef<HubConnection | null>(null);
-	const hubStartInFlightRef = useRef(false);
+	const hubSessionRef = useRef(0);
 	const tokenRef = useRef(token);
 	const selectedUserIdRef = useRef(selectedUserId);
 	const userIdRef = useRef(user?.id);
+	const tRef = useRef(t);
+	const queryClientRef = useRef(queryClient);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 
+	useEffect(() => {
+		tRef.current = t;
+		queryClientRef.current = queryClient;
+	});
 	useEffect(() => {
 		tokenRef.current = token;
 	}, [token]);
@@ -141,12 +147,17 @@ export function UserChatPage() {
 
 	// Single hub connection per authenticated super-admin session; handlers use refs for selected thread.
 	useEffect(() => {
-		if (!isAuthenticated || !token || !isSuperAdminFromToken(token)) return;
+		if (!isAuthenticated || !token || !isSuperAdminFromToken(token)) {
+			return;
+		}
 
+		const sessionId = ++hubSessionRef.current;
 		const getAccessToken = () => tokenRef.current ?? localStorage.getItem('auth_token');
 		const connection = buildAdminMessengerHubConnection(getAccessToken);
 		connectionRef.current = connection;
 		let cancelled = false;
+
+		const isActiveSession = () => !cancelled && hubSessionRef.current === sessionId;
 
 		connection.on(
 			'ReceiveChatMessage',
@@ -176,8 +187,9 @@ export function UserChatPage() {
 				};
 
 				if (senderId === target) {
+					const qc = queryClientRef.current;
 					const key = [...operatorUserChatMessagesKey(target), 'infinite'] as const;
-					queryClient.setQueryData<InfiniteData<OperatorUserChatHistoryPage>>(key, (old) =>
+					qc.setQueryData<InfiniteData<OperatorUserChatHistoryPage>>(key, (old) =>
 						patchOperatorUserChatInfiniteFirstPage(old, (page) => ({
 							...page,
 							items: appendUserChatMessage(page.items, msg),
@@ -185,30 +197,36 @@ export function UserChatPage() {
 					);
 				}
 				setPending((prev) => appendUserChatMessage(prev, msg));
-				void queryClient.invalidateQueries({ queryKey: operatorUserChatConversationsKey });
+				void queryClientRef.current.invalidateQueries({
+					queryKey: operatorUserChatConversationsKey,
+				});
 			}
 		);
 
 		connection.on('ReceivePlatformChatError', (code: string) => {
-			toast.error(mapOperatorUserChatHubError(t, code));
+			toast.error(mapOperatorUserChatHubError(tRef.current, code));
 		});
 
-		connection.onreconnecting(() => setConnectionState('Reconnecting'));
-		connection.onreconnected(() => setConnectionState('Connected'));
-		connection.onclose(() => setConnectionState('Disconnected'));
+		connection.onreconnecting(() => {
+			if (isActiveSession()) setConnectionState('Reconnecting');
+		});
+		connection.onreconnected(() => {
+			if (isActiveSession()) setConnectionState('Connected');
+		});
+		connection.onclose(() => {
+			if (isActiveSession()) setConnectionState('Disconnected');
+		});
 
 		const startHub = async () => {
-			if (hubStartInFlightRef.current) return;
-			hubStartInFlightRef.current = true;
 			setConnectionState('Connecting');
 			try {
-				await connection.start();
-				if (!cancelled) setConnectionState('Connected');
+				if (connection.state === HubConnectionState.Disconnected) {
+					await connection.start();
+				}
+				if (isActiveSession()) setConnectionState('Connected');
 			} catch (err) {
 				console.error('Messenger hub connect failed:', err);
-				if (!cancelled) setConnectionState('Disconnected');
-			} finally {
-				hubStartInFlightRef.current = false;
+				if (isActiveSession()) setConnectionState('Disconnected');
 			}
 		};
 
@@ -216,22 +234,47 @@ export function UserChatPage() {
 
 		const onVisible = () => {
 			if (document.visibilityState !== 'visible') return;
-			void queryClient.invalidateQueries({ queryKey: operatorUserChatConversationsKey });
+			void queryClientRef.current.invalidateQueries({ queryKey: operatorUserChatConversationsKey });
 			const tid = selectedUserIdRef.current;
-			if (tid) void queryClient.invalidateQueries({ queryKey: operatorUserChatMessagesKey(tid) });
+			if (tid)
+				void queryClientRef.current.invalidateQueries({
+					queryKey: operatorUserChatMessagesKey(tid),
+				});
 		};
 		document.addEventListener('visibilitychange', onVisible);
 
 		return () => {
 			cancelled = true;
 			document.removeEventListener('visibilitychange', onVisible);
-			hubStartInFlightRef.current = false;
 			void connection.stop();
-			connectionRef.current = null;
-			setConnectionState('Disconnected');
+			if (connectionRef.current === connection) {
+				connectionRef.current = null;
+			}
+			if (hubSessionRef.current === sessionId) {
+				setConnectionState('Disconnected');
+			}
 		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps -- token via ref; hub lifetime tied to auth
-	}, [isAuthenticated, queryClient, t]);
+	}, [isAuthenticated, token]);
+
+	const handleReconnect = useCallback(async () => {
+		const conn = connectionRef.current;
+		if (!conn || !token || !isSuperAdminFromToken(token)) return;
+		if (conn.state === HubConnectionState.Connected) {
+			setConnectionState('Connected');
+			return;
+		}
+		setConnectionState('Connecting');
+		try {
+			if (conn.state === HubConnectionState.Disconnected) {
+				await conn.start();
+			}
+			setConnectionState('Connected');
+		} catch (err) {
+			console.error('Messenger hub reconnect failed:', err);
+			setConnectionState('Disconnected');
+			toast.error(t('pages.userChat.hub.errors.unknown'));
+		}
+	}, [token, t]);
 
 	const handleSend = async () => {
 		const text = input.trim();
@@ -332,6 +375,11 @@ export function UserChatPage() {
 						>
 							{statusLabel}
 						</span>
+						{connectionState === 'Disconnected' && (
+							<Button type="button" variant="outline" onClick={() => void handleReconnect()}>
+								{t('common.retry')}
+							</Button>
+						)}
 					</div>
 
 					{selectedUserId == null ? (

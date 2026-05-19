@@ -3,8 +3,27 @@ import {
 	buildBulkModerationPayload,
 	buildModerationRowKey,
 	canRunBulkModeration,
+	getModerationQueueLabel,
+	getModerationStatusChipTone,
+	isPendingModeration,
 	parseModerationRowKey,
 } from '../contentModeration';
+
+describe('album detail moderation helpers', () => {
+	it('isPendingModeration is true only for PendingApproval', () => {
+		expect(isPendingModeration('PendingApproval')).toBe(true);
+		expect(isPendingModeration('Approved')).toBe(false);
+	});
+
+	it('getModerationQueueLabel uses one summary for approved albums', () => {
+		expect(getModerationQueueLabel('Approved', 'NotQueued')).toBe('Approved');
+	});
+
+	it('getModerationStatusChipTone maps approval enum', () => {
+		expect(getModerationStatusChipTone('Approved')).toBe('approved');
+		expect(getModerationStatusChipTone('PendingApproval')).toBe('pending');
+	});
+});
 
 describe('buildModerationRowKey', () => {
 	it('joins content type and numeric id', () => {

@@ -1,5 +1,7 @@
 # Admin components layout
 
+**List tables & detail pages:** [`docs/guides/admin-ui-list-and-detail-pages.md`](../../../docs/guides/admin-ui-list-and-detail-pages.md) — use `FaceDetailEntityTableShell` and `user-detail-*` operator layout; see [`AGENTS.md`](../../AGENTS.md).
+
 Each UI block lives in its own folder next to its styles and barrel export.
 
 ## Convention

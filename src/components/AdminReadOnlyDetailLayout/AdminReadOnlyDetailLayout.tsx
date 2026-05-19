@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
@@ -14,7 +14,11 @@ export interface DetailField {
 interface AdminReadOnlyDetailLayoutProps {
 	title: string;
 	backFaceId: number;
-	fields: DetailField[];
+	fields?: DetailField[];
+	beforeFields?: ReactNode;
+	/** When true, only the back control is shown (page supplies its own title in beforeFields). */
+	hideTitle?: boolean;
+	className?: string;
 	isLoading?: boolean;
 	isError?: boolean;
 	errorMessage?: string;
@@ -23,7 +27,10 @@ interface AdminReadOnlyDetailLayoutProps {
 export function AdminReadOnlyDetailLayout({
 	title,
 	backFaceId,
-	fields,
+	fields = [],
+	beforeFields,
+	hideTitle = false,
+	className,
 	isLoading,
 	isError,
 	errorMessage,
@@ -31,10 +38,11 @@ export function AdminReadOnlyDetailLayout({
 	const { t } = useTranslation('common');
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
+	const rootClass = ['admin-readonly-detail', className].filter(Boolean).join(' ');
 
 	if (isLoading) {
 		return (
-			<Container fluid className="admin-readonly-detail">
+			<Container fluid className={rootClass}>
 				<p>{t('common.loading')}</p>
 			</Container>
 		);
@@ -42,7 +50,7 @@ export function AdminReadOnlyDetailLayout({
 
 	if (isError) {
 		return (
-			<Container fluid className="admin-readonly-detail">
+			<Container fluid className={rootClass}>
 				<p>{errorMessage ?? t('common.error')}</p>
 				<Button onClick={() => navigate(getLocalizedPath(`/faces/${backFaceId}`))}>
 					{t('common.back')}
@@ -52,24 +60,30 @@ export function AdminReadOnlyDetailLayout({
 	}
 
 	return (
-		<Container fluid className="admin-readonly-detail">
+		<Container fluid className={rootClass}>
 			<div className="admin-readonly-detail__header">
-				<Button
-					variant="outline"
+				<button
+					type="button"
+					className="btn btn-outline-secondary btn-sm admin-readonly-detail__back"
 					onClick={() => navigate(getLocalizedPath(`/faces/${backFaceId}`))}
 				>
 					{t('common.back')}
-				</Button>
-				<h1>{title}</h1>
+				</button>
+				{!hideTitle && title ? <h1 className="admin-readonly-detail__title">{title}</h1> : null}
 			</div>
-			<div className="admin-readonly-detail__grid">
-				{fields.map((f) => (
-					<div key={f.label} className="admin-readonly-detail__field">
-						<label>{f.label}</label>
-						<div>{f.value ?? '—'}</div>
-					</div>
-				))}
-			</div>
+			<div className="admin-readonly-detail__body">{beforeFields}</div>
+			{fields.length > 0 ? (
+				<section className="admin-readonly-detail__card">
+					<dl className="admin-readonly-detail__grid">
+						{fields.map((f) => (
+							<div key={f.label} className="admin-readonly-detail__field">
+								<dt>{f.label}</dt>
+								<dd>{f.value ?? '—'}</dd>
+							</div>
+						))}
+					</dl>
+				</section>
+			) : null}
 		</Container>
 	);
 }
