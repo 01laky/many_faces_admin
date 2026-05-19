@@ -4,6 +4,10 @@ import {
 	adminApproveWallTicket,
 	adminCreateWallTicket,
 	adminPostWallTicketComment,
+	adminDenyWallTicket,
+	adminDeleteWallTicket,
+	adminGetWallTicket,
+	adminDeleteWallTicketComment,
 } from '../wallTicketsAdminApi';
 
 vi.mock('../../faceApiRouting', () => ({
@@ -121,6 +125,57 @@ describe('wallTicketsAdminApi', () => {
 		expect(fetchMock).toHaveBeenCalledWith(
 			'https://api.test/admin/api/admin/faces/3/wall-tickets/99/approve',
 			expect.objectContaining({ method: 'POST' })
+		);
+	});
+
+	it('POSTs deny endpoint', async () => {
+		fetchMock.mockResolvedValueOnce({ ok: true, text: async () => '' });
+
+		await adminDenyWallTicket('tok', 4, 11);
+
+		expect(fetchMock).toHaveBeenCalledWith(
+			'https://api.test/admin/api/admin/faces/4/wall-tickets/11/deny',
+			expect.objectContaining({ method: 'POST' })
+		);
+	});
+
+	it('DELETEs ticket', async () => {
+		fetchMock.mockResolvedValueOnce({ ok: true, text: async () => '' });
+
+		await adminDeleteWallTicket('tok', 4, 11);
+
+		expect(fetchMock).toHaveBeenCalledWith(
+			'https://api.test/admin/api/admin/faces/4/wall-tickets/11',
+			expect.objectContaining({ method: 'DELETE' })
+		);
+	});
+
+	it('GETs ticket detail', async () => {
+		const detail = { id: 11, title: 'T', status: 'active' };
+		fetchMock.mockResolvedValueOnce({
+			ok: true,
+			json: async () => detail,
+		});
+
+		const result = await adminGetWallTicket('tok', 4, 11);
+
+		expect(result).toBe(detail);
+		expect(fetchMock).toHaveBeenCalledWith(
+			'https://api.test/admin/api/admin/faces/4/wall-tickets/11',
+			expect.objectContaining({
+				headers: expect.objectContaining({ Authorization: 'Bearer tok' }),
+			})
+		);
+	});
+
+	it('DELETEs comment', async () => {
+		fetchMock.mockResolvedValueOnce({ ok: true, text: async () => '' });
+
+		await adminDeleteWallTicketComment('tok', 4, 11, 55);
+
+		expect(fetchMock).toHaveBeenCalledWith(
+			'https://api.test/admin/api/admin/faces/4/wall-tickets/11/comments/55',
+			expect.objectContaining({ method: 'DELETE' })
 		);
 	});
 });

@@ -21,8 +21,10 @@ import {
 	type AdminWallTicketDetail,
 } from '@/api/services/wallTicketsAdminApi';
 import {
+	parseWallTicketIdFromSearch,
 	statusFilterToQuery,
 	wallTicketActionsForStatus,
+	wallTicketDetailSearchParams,
 	type WallTicketStatusFilter,
 } from '@/utils/wallTicketModeration';
 import './FaceWallTicketsPage.scss';
@@ -126,10 +128,9 @@ export function FaceWallTicketsPage() {
 	);
 
 	useEffect(() => {
-		const raw = searchParams.get('ticketId');
-		if (!raw || !token || !faceId) return;
-		const ticketId = parseInt(raw, 10);
-		if (Number.isFinite(ticketId) && ticketId > 0) {
+		if (!token || !faceId) return;
+		const ticketId = parseWallTicketIdFromSearch(searchParams.get('ticketId'));
+		if (ticketId != null) {
 			// eslint-disable-next-line react-hooks/set-state-in-effect -- deep-link ?ticketId= opens detail once
 			void openDetail(ticketId);
 		}
@@ -176,7 +177,7 @@ export function FaceWallTicketsPage() {
 			setCreateTitle('');
 			setCreateDescription('');
 			await refreshAll(created.id);
-			setSearchParams({ ticketId: String(created.id) });
+			setSearchParams(wallTicketDetailSearchParams(created.id));
 		} catch (err) {
 			toast.error(
 				err instanceof Error && err.message ? err.message : t('pages.faceWallTickets.actionError')
@@ -200,7 +201,7 @@ export function FaceWallTicketsPage() {
 	const detailActions = selected ? wallTicketActionsForStatus(selected.status) : null;
 
 	const selectRow = (row: AdminWallTicketRow) => {
-		setSearchParams({ ticketId: String(row.id) });
+		setSearchParams(wallTicketDetailSearchParams(row.id));
 		void openDetail(row.id);
 	};
 

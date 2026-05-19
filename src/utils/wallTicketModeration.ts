@@ -15,3 +15,17 @@ export type WallTicketStatusFilter = '' | 'active' | 'approved' | 'denied';
 export function statusFilterToQuery(status: WallTicketStatusFilter): string | undefined {
 	return status === '' ? undefined : status;
 }
+
+/** Parses `?ticketId=` from the location search string; invalid values return null. */
+export function parseWallTicketIdFromSearch(raw: string | null): number | null {
+	if (raw == null || raw === '') {
+		return null;
+	}
+	const n = parseInt(raw, 10);
+	return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+/** React Router `setSearchParams` payload for opening a ticket in the detail pane. */
+export function wallTicketDetailSearchParams(ticketId: number): Record<string, string> {
+	return { ticketId: String(ticketId) };
+}
