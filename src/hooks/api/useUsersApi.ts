@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { OpenAPI } from '../../api/core/OpenAPI';
 import { request as __request } from '../../api/core/request';
 import { logger } from '../../utils/logger';
@@ -109,12 +109,18 @@ const fetchUser = async (id: string): Promise<User> => {
 	}
 };
 
+export const usersKeys = {
+	all: ['users'] as const,
+	list: (params: UseUsersParams) => [...usersKeys.all, params] as const,
+	detail: (id: string) => ['user', id] as const,
+};
+
 export function useUsers(params: UseUsersParams = {}) {
 	return useQuery({
-		queryKey: ['users', params],
+		queryKey: usersKeys.list(params),
 		queryFn: () => fetchUsers(params),
 		staleTime: 5 * 60 * 1000,
-		keepPreviousData: true,
+		placeholderData: keepPreviousData,
 	});
 }
 
@@ -182,4 +188,25 @@ const updateUserRequest = async (id: string, data: UpdateUserData): Promise<User
 
 export function updateUser(id: string, data: UpdateUserData): Promise<User> {
 	return updateUserRequest(id, data);
+}
+
+export function useCreateUser() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: createUser,
+		onSuccess: () => {
+			void queryClient.invalidateQueries({ queryKey: usersKeys.all });
+		},
+	});
+}
+
+export function useUpdateUser() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, data }: { id: string; data: UpdateUserData }) => updateUser(id, data),
+		onSuccess: (_user, { id }) => {
+			void queryClient.invalidateQueries({ queryKey: usersKeys.all });
+			void queryClient.invalidateQueries({ queryKey: usersKeys.detail(id) });
+		},
+	});
 }

@@ -1,25 +1,24 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Alert, Container, Form, Modal } from 'react-bootstrap';
 import { toast } from 'react-toastify';
-import { useAuth } from '@/contexts/AuthContext';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { useFace } from '@/hooks/api/useFacesApi';
+import {
+	useAdminApproveWallTicket,
+	useAdminCreateWallTicket,
+	useAdminDeleteWallTicket,
+	useAdminDeleteWallTicketComment,
+	useAdminDenyWallTicket,
+	useAdminPostWallTicketComment,
+	useAdminWallTicketDetail,
+	useAdminWallTicketsList,
+	isWallTicketsForbiddenError,
+	type AdminWallTicketRow,
+} from '@/hooks/api/useWallTicketsAdminApi';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
 import { Button } from '@/components/radix/Button';
-import {
-	adminListWallTickets,
-	adminGetWallTicket,
-	adminCreateWallTicket,
-	adminPostWallTicketComment,
-	adminApproveWallTicket,
-	adminDenyWallTicket,
-	adminDeleteWallTicket,
-	adminDeleteWallTicketComment,
-	type AdminWallTicketRow,
-	type AdminWallTicketDetail,
-} from '@/api/services/wallTicketsAdminApi';
 import {
 	parseWallTicketIdFromSearch,
 	statusFilterToQuery,
@@ -56,153 +55,95 @@ export function FaceWallTicketsPage() {
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
 	const [searchParams, setSearchParams] = useSearchParams();
-	const { token } = useAuth();
 	const { confirm, ConfirmModalHost } = useConfirmModal();
 	const faceId = id ? parseInt(id, 10) : 0;
 	const { data: face } = useFace(faceId);
 
 	const [page, setPage] = useState(1);
 	const [statusFilter, setStatusFilter] = useState<WallTicketStatusFilter>('');
-	const [items, setItems] = useState<AdminWallTicketRow[]>([]);
-	const [totalPages, setTotalPages] = useState(1);
-	const [loading, setLoading] = useState(true);
-	const [forbidden, setForbidden] = useState(false);
-	const [selected, setSelected] = useState<AdminWallTicketDetail | null>(null);
-	const [detailLoading, setDetailLoading] = useState(false);
-	const [actionBusy, setActionBusy] = useState(false);
-
 	const [showCreate, setShowCreate] = useState(false);
 	const [createTitle, setCreateTitle] = useState('');
 	const [createDescription, setCreateDescription] = useState('');
 	const [commentDraft, setCommentDraft] = useState('');
 
 	const statusQuery = useMemo(() => statusFilterToQuery(statusFilter), [statusFilter]);
+	const ticketIdFromUrl = parseWallTicketIdFromSearch(searchParams.get('ticketId'));
 
-	const loadList = useCallback(async () => {
-		if (!faceId || !token) {
-			setLoading(false);
-			return;
-		}
-		setLoading(true);
-		setForbidden(false);
-		try {
-			const res = await adminListWallTickets(token, faceId, page, 20, statusQuery);
-			setItems(res.items);
-			setTotalPages(Math.max(1, res.totalPages));
-		} catch (err) {
-			const msg = err instanceof Error ? err.message : '';
-			if (/403|forbidden/i.test(msg)) {
-				setForbidden(true);
-				setItems([]);
-			} else {
-				toast.error(msg || t('pages.faceWallTickets.loadError'));
-				setItems([]);
-			}
-		} finally {
-			setLoading(false);
-		}
-	}, [faceId, token, page, statusQuery, t]);
+	const {
+		data: listData,
+		isLoading: listLoading,
+		isError: listIsError,
+		error: listError,
+	} = useAdminWallTicketsList(faceId, page, 20, statusQuery);
 
-	useEffect(() => {
-		// Fetch list when face, token, page, or status filter changes (admin-scoped API).
-		// eslint-disable-next-line react-hooks/set-state-in-effect -- data load on dependency change
-		void loadList();
-	}, [loadList]);
+	const {
+		data: selected,
+		isLoading: detailLoading,
+		isFetching: detailFetching,
+	} = useAdminWallTicketDetail(faceId, ticketIdFromUrl);
 
-	const openDetail = useCallback(
-		async (ticketId: number) => {
-			if (!token) return;
-			setDetailLoading(true);
-			try {
-				const d = await adminGetWallTicket(token, faceId, ticketId);
-				setSelected(d);
-			} catch (err) {
-				toast.error(
-					err instanceof Error && err.message ? err.message : t('pages.faceWallTickets.loadError')
-				);
-			} finally {
-				setDetailLoading(false);
-			}
-		},
-		[token, faceId, t]
-	);
+	const createTicket = useAdminCreateWallTicket();
+	const approveTicket = useAdminApproveWallTicket();
+	const denyTicket = useAdminDenyWallTicket();
+	const deleteTicket = useAdminDeleteWallTicket();
+	const postComment = useAdminPostWallTicketComment();
+	const deleteComment = useAdminDeleteWallTicketComment();
 
-	useEffect(() => {
-		if (!token || !faceId) return;
-		const ticketId = parseWallTicketIdFromSearch(searchParams.get('ticketId'));
-		if (ticketId != null) {
-			// eslint-disable-next-line react-hooks/set-state-in-effect -- deep-link ?ticketId= opens detail once
-			void openDetail(ticketId);
-		}
-	}, [searchParams, token, faceId, openDetail]);
-
-	const refreshAll = async (ticketIdToSelect?: number) => {
-		await loadList();
-		const idToLoad = ticketIdToSelect ?? selected?.id;
-		if (idToLoad && token) {
-			try {
-				const d = await adminGetWallTicket(token, faceId, idToLoad);
-				setSelected(d);
-			} catch {
-				setSelected(null);
-			}
-		}
-	};
-
-	const act = async (fn: () => Promise<void>, okMsg: string) => {
-		setActionBusy(true);
-		try {
-			await fn();
-			toast.success(okMsg);
-			await refreshAll();
-		} catch (err) {
-			toast.error(
-				err instanceof Error && err.message ? err.message : t('pages.faceWallTickets.actionError')
-			);
-		} finally {
-			setActionBusy(false);
-		}
-	};
-
-	const handleCreate = async () => {
-		if (!token || !createTitle.trim() || !createDescription.trim()) return;
-		setActionBusy(true);
-		try {
-			const created = await adminCreateWallTicket(token, faceId, {
-				title: createTitle.trim(),
-				description: createDescription.trim(),
-			});
-			toast.success(t('pages.faceWallTickets.created'));
-			setShowCreate(false);
-			setCreateTitle('');
-			setCreateDescription('');
-			await refreshAll(created.id);
-			setSearchParams(wallTicketDetailSearchParams(created.id));
-		} catch (err) {
-			toast.error(
-				err instanceof Error && err.message ? err.message : t('pages.faceWallTickets.actionError')
-			);
-		} finally {
-			setActionBusy(false);
-		}
-	};
-
-	const handlePostComment = async () => {
-		if (!token || !selected || !commentDraft.trim()) return;
-		const content = commentDraft.trim();
-		if (content.length > 255) return;
-		await act(
-			() => adminPostWallTicketComment(token, faceId, selected.id, content),
-			t('pages.faceWallTickets.commentPosted')
-		);
-		setCommentDraft('');
-	};
+	const forbidden = listIsError && isWallTicketsForbiddenError(listError);
+	const items = listData?.items ?? [];
+	const totalPages = Math.max(1, listData?.totalPages ?? 1);
+	const loading = listLoading;
+	const actionBusy =
+		createTicket.isPending ||
+		approveTicket.isPending ||
+		denyTicket.isPending ||
+		deleteTicket.isPending ||
+		postComment.isPending ||
+		deleteComment.isPending;
 
 	const detailActions = selected ? wallTicketActionsForStatus(selected.status) : null;
 
 	const selectRow = (row: AdminWallTicketRow) => {
 		setSearchParams(wallTicketDetailSearchParams(row.id));
-		void openDetail(row.id);
+	};
+
+	const handleCreate = async () => {
+		if (!createTitle.trim() || !createDescription.trim()) return;
+		try {
+			const created = await createTicket.mutateAsync({
+				faceId,
+				body: {
+					title: createTitle.trim(),
+					description: createDescription.trim(),
+				},
+			});
+			toast.success(t('pages.faceWallTickets.created'));
+			setShowCreate(false);
+			setCreateTitle('');
+			setCreateDescription('');
+			setSearchParams(wallTicketDetailSearchParams(created.id));
+		} catch (err) {
+			toast.error(
+				err instanceof Error && err.message ? err.message : t('pages.faceWallTickets.actionError')
+			);
+		}
+	};
+
+	const handlePostComment = async () => {
+		if (!selected || !commentDraft.trim() || commentDraft.trim().length > 255) return;
+		try {
+			await postComment.mutateAsync({
+				faceId,
+				ticketId: selected.id,
+				content: commentDraft.trim(),
+			});
+			toast.success(t('pages.faceWallTickets.commentPosted'));
+			setCommentDraft('');
+		} catch (err) {
+			toast.error(
+				err instanceof Error && err.message ? err.message : t('pages.faceWallTickets.actionError')
+			);
+		}
 	};
 
 	if (!faceId) {
@@ -232,6 +173,12 @@ export function FaceWallTicketsPage() {
 					{t('pages.faceWallTickets.createTicket')}
 				</Button>
 			</div>
+
+			{listIsError && !forbidden && (
+				<Alert variant="danger" className="mt-3">
+					{listError instanceof Error ? listError.message : t('pages.faceWallTickets.loadError')}
+				</Alert>
+			)}
 
 			{forbidden && (
 				<Alert variant="warning" className="mt-3">
@@ -349,8 +296,10 @@ export function FaceWallTicketsPage() {
 				</div>
 
 				<div className="face-wall-tickets-page__detail-pane">
-					{detailLoading && <p>{t('pages.faceWallTickets.detailLoading')}</p>}
-					{!detailLoading && !selected && (
+					{(detailLoading || detailFetching) && ticketIdFromUrl != null && (
+						<p>{t('pages.faceWallTickets.detailLoading')}</p>
+					)}
+					{!detailLoading && !selected && ticketIdFromUrl == null && (
 						<p className="text-muted">{t('pages.faceWallTickets.closeDetail')}</p>
 					)}
 					{selected && (
@@ -362,14 +311,7 @@ export function FaceWallTicketsPage() {
 										#{selected.id} · <WallTicketStatusBadge status={selected.status} />
 									</p>
 								</div>
-								<Button
-									variant="outline"
-									disabled={actionBusy}
-									onClick={() => {
-										setSelected(null);
-										setSearchParams({});
-									}}
-								>
+								<Button variant="outline" disabled={actionBusy} onClick={() => setSearchParams({})}>
 									{t('pages.faceWallTickets.closeDetail')}
 								</Button>
 							</div>
@@ -403,9 +345,17 @@ export function FaceWallTicketsPage() {
 										variant="outline"
 										disabled={actionBusy}
 										onClick={() =>
-											void act(
-												() => adminApproveWallTicket(token!, faceId, selected.id),
-												t('pages.faceWallTickets.approved')
+											void approveTicket.mutateAsync(
+												{ faceId, ticketId: selected.id },
+												{
+													onSuccess: () => toast.success(t('pages.faceWallTickets.approved')),
+													onError: (err) =>
+														toast.error(
+															err instanceof Error
+																? err.message
+																: t('pages.faceWallTickets.actionError')
+														),
+												}
 											)
 										}
 									>
@@ -424,9 +374,17 @@ export function FaceWallTicketsPage() {
 												confirmVariant: 'danger',
 											});
 											if (!ok) return;
-											void act(
-												() => adminDenyWallTicket(token!, faceId, selected.id),
-												t('pages.faceWallTickets.denied')
+											void denyTicket.mutateAsync(
+												{ faceId, ticketId: selected.id },
+												{
+													onSuccess: () => toast.success(t('pages.faceWallTickets.denied')),
+													onError: (err) =>
+														toast.error(
+															err instanceof Error
+																? err.message
+																: t('pages.faceWallTickets.actionError')
+														),
+												}
 											);
 										}}
 									>
@@ -446,11 +404,20 @@ export function FaceWallTicketsPage() {
 												confirmVariant: 'danger',
 											});
 											if (!ok) return;
-											void act(async () => {
-												await adminDeleteWallTicket(token!, faceId, selected.id);
-												setSelected(null);
+											try {
+												await deleteTicket.mutateAsync({
+													faceId,
+													ticketId: selected.id,
+												});
 												setSearchParams({});
-											}, t('pages.faceWallTickets.deletedTicket'));
+												toast.success(t('pages.faceWallTickets.deletedTicket'));
+											} catch (err) {
+												toast.error(
+													err instanceof Error
+														? err.message
+														: t('pages.faceWallTickets.actionError')
+												);
+											}
 										}}
 									>
 										{t('pages.faceWallTickets.deleteTicket')}
@@ -501,9 +468,22 @@ export function FaceWallTicketsPage() {
 														confirmVariant: 'danger',
 													});
 													if (!ok) return;
-													void act(
-														() => adminDeleteWallTicketComment(token!, faceId, selected.id, c.id),
-														t('pages.faceWallTickets.deletedComment')
+													void deleteComment.mutateAsync(
+														{
+															faceId,
+															ticketId: selected.id,
+															commentId: c.id,
+														},
+														{
+															onSuccess: () =>
+																toast.success(t('pages.faceWallTickets.deletedComment')),
+															onError: (err) =>
+																toast.error(
+																	err instanceof Error
+																		? err.message
+																		: t('pages.faceWallTickets.actionError')
+																),
+														}
 													);
 												}}
 											>

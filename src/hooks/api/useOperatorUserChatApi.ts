@@ -1,10 +1,12 @@
 /** React Query hooks for super-admin user chat REST (/api/operator-user-chat/*). Gated on SUPER_ADMIN JWT. */
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { InfiniteData } from '@tanstack/react-query';
 import {
 	fetchOperatorUserChatConversations,
 	fetchOperatorUserChatHistory,
 	fetchOperatorUserChatThreadExists,
 	postOperatorUserChatRead,
+	type OperatorUserChatHistoryPage,
 } from '@/api/operatorUserChatApiClient';
 import { isSuperAdminFromToken } from '@/utils/contentModeration';
 import { useAuth } from '@/contexts/AuthContext';
@@ -31,6 +33,38 @@ export function useOperatorUserChatMessages(targetUserId: string | null, enabled
 		staleTime: 0,
 		refetchOnMount: 'always',
 	});
+}
+
+export function getOperatorUserChatMessagesNextPageParam(
+	lastPage: OperatorUserChatHistoryPage
+): number | undefined {
+	return lastPage.hasMore && lastPage.items[0]?.id ? lastPage.items[0].id : undefined;
+}
+
+export function useOperatorUserChatMessagesInfinite(targetUserId: string | null, enabled: boolean) {
+	const { token } = useAuth();
+	return useInfiniteQuery({
+		queryKey: targetUserId
+			? [...messagesKey(targetUserId), 'infinite']
+			: ['operatorUserChat', 'messages', 'none', 'infinite'],
+		queryFn: ({ pageParam }) =>
+			fetchOperatorUserChatHistory(targetUserId!, {
+				limit: 40,
+				beforeId: pageParam as number | undefined,
+			}),
+		initialPageParam: undefined as number | undefined,
+		getNextPageParam: getOperatorUserChatMessagesNextPageParam,
+		enabled: Boolean(token) && isSuperAdminFromToken(token) && enabled && Boolean(targetUserId),
+		staleTime: 0,
+	});
+}
+
+export function patchOperatorUserChatInfiniteFirstPage(
+	data: InfiniteData<OperatorUserChatHistoryPage> | undefined,
+	patch: (page: OperatorUserChatHistoryPage) => OperatorUserChatHistoryPage
+) {
+	if (!data?.pages?.length) return data;
+	return { ...data, pages: [patch(data.pages[0]), ...data.pages.slice(1)] };
 }
 
 export function useOperatorUserChatThreadExists(targetUserId: string, enabled: boolean) {

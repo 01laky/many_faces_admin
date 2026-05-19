@@ -3,13 +3,12 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useTranslation } from 'react-i18next';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Container, Row, Col } from 'react-bootstrap';
 import { Button } from '@/components/radix/Button';
 import { FormField } from '@/components/radix/FormField';
 import { Input } from '@/components/radix/Input';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
-import { createFace, type CreateFaceData } from '@/hooks/api/useFacesApi';
+import { useCreateFace, type CreateFaceData } from '@/hooks/api/useFacesApi';
 import { toast } from 'react-toastify';
 import '../../styles/forms/FaceFormPage.scss';
 
@@ -24,7 +23,6 @@ export function CreateFacePage() {
 	const { t } = useTranslation('common');
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
-	const queryClient = useQueryClient();
 
 	// Validation schema
 	const validationSchema = yup.object({
@@ -46,7 +44,7 @@ export function CreateFacePage() {
 	const {
 		register,
 		handleSubmit,
-		formState: { errors, isSubmitting },
+		formState: { errors },
 	} = useForm<CreateFaceFormData>({
 		resolver: yupResolver(validationSchema),
 		defaultValues: {
@@ -57,20 +55,18 @@ export function CreateFacePage() {
 		},
 	});
 
-	const createFaceMutation = useMutation({
-		mutationFn: createFace,
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['faces'] });
-			toast.success(t('pages.createFace.success'));
-			navigate(getLocalizedPath('/faces'));
-		},
-		onError: (error: Error) => {
-			toast.error(error.message || t('pages.createFace.error'));
-		},
-	});
+	const createFaceMutation = useCreateFace();
 
 	const onSubmit = async (data: CreateFaceFormData) => {
-		createFaceMutation.mutate(data as CreateFaceData);
+		createFaceMutation.mutate(data as CreateFaceData, {
+			onSuccess: () => {
+				toast.success(t('pages.createFace.success'));
+				navigate(getLocalizedPath('/faces'));
+			},
+			onError: (error: Error) => {
+				toast.error(error.message || t('pages.createFace.error'));
+			},
+		});
 	};
 
 	return (
@@ -106,7 +102,7 @@ export function CreateFacePage() {
 											type="text"
 											{...register('index')}
 											placeholder={t('pages.createFace.indexPlaceholder')}
-											disabled={isSubmitting}
+											disabled={createFaceMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -120,7 +116,7 @@ export function CreateFacePage() {
 											type="text"
 											{...register('title')}
 											placeholder={t('pages.createFace.titlePlaceholder')}
-											disabled={isSubmitting}
+											disabled={createFaceMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -133,7 +129,7 @@ export function CreateFacePage() {
 											type="text"
 											{...register('description')}
 											placeholder={t('pages.createFace.descriptionPlaceholder')}
-											disabled={isSubmitting}
+											disabled={createFaceMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -145,7 +141,7 @@ export function CreateFacePage() {
 												className="form-check-input"
 												id="isPublic"
 												{...register('isPublic')}
-												disabled={isSubmitting}
+												disabled={createFaceMutation.isPending}
 											/>
 											<label className="form-check-label" htmlFor="isPublic">
 												{t('pages.createFace.isPublicHelp')}
@@ -160,12 +156,14 @@ export function CreateFacePage() {
 									type="button"
 									variant="outline"
 									onClick={() => navigate(getLocalizedPath('/faces'))}
-									disabled={isSubmitting}
+									disabled={createFaceMutation.isPending}
 								>
 									{t('common.cancel')}
 								</Button>
-								<Button type="submit" disabled={isSubmitting}>
-									{isSubmitting ? t('pages.createFace.submitting') : t('pages.createFace.submit')}
+								<Button type="submit" disabled={createFaceMutation.isPending}>
+									{createFaceMutation.isPending
+										? t('pages.createFace.submitting')
+										: t('pages.createFace.submit')}
 								</Button>
 							</div>
 						</form>

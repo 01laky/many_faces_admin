@@ -14,7 +14,12 @@ Companion to [`docs/prompts/admin-performance-and-refactor-agent-prompt.md`](../
 | **Global defaults** (`QueryProvider.tsx`)                             | `5 * 60 * 1000` (5 min)          | `10 * 60 * 1000` — inactive cache cleared after 10 min |
 | **`useMeCapabilities`** (via `createMeCapabilitiesQueryOptions`)      | `60_000` (1 min)                 | inherits default `gcTime`                              |
 | **`useAuthToken`** (`useAuthApi.ts`)                                  | `60_000`                         | session-scoped                                         |
-| **`useUsersApi` / `useFacesApi` / `usePagesApi` / `usePageTypesApi`** | `5 * 60 * 1000` on list + detail | detail queries use `enabled: !!id`                     |
+| **`useUsersApi` / `useFacesApi` / `usePagesApi` / `usePageTypesApi`** | `5 * 60 * 1000` on list + detail | list uses `placeholderData: keepPreviousData` (v5)   |
+| **`useWallTicketsAdminApi`**                                            | `45_000`                         | invalidates `['stats']` on ticket mutations            |
+| **`useRegistrationInvitesAdminApi`**                                    | `60_000`                         | list defaults skip=0, take=50                          |
+| **`useOperatorAiMessagesInfinite` / `useOperatorUserChatMessagesInfinite`** | `0`                          | `fetchNextPage` for older messages; hub patches first page |
+
+**Query hook modules (2026-05):** `useWallTicketsAdminApi`, `useRegistrationInvitesAdminApi`; key factories `usersKeys`, `facesKeys`, `pagesKeys`, `wallTicketsKeys`, `registrationInvitesKeys`, exported `moderationKeys`.
 
 **`enabled` audit:** list hooks require auth context token where applicable; detail hooks use `enabled: !!id` so no fetch without an entity id. Capabilities query uses `enabled: Boolean(token)`.
 
@@ -23,7 +28,7 @@ Companion to [`docs/prompts/admin-performance-and-refactor-agent-prompt.md`](../
 | Consumer                                        | Role                                                                                                                    |
 | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | **`MeCapabilitiesWarmup`** in `AuthContext.tsx` | Single mount-time **`useMeCapabilities(token, Boolean(token))`** — primes React Query cache for the session.            |
-| **`useAuthApi`**                                | Imports **`meCapabilitiesKeys`** only for **logout / cache cleanup** (`queryClient.removeQueries`), not a second fetch. |
+| **`useAuthApi`**                                | **`clearAuthAndCapabilitiesQueries`** removes auth, capabilities, and domain query roots on logout / refresh failure. |
 
 No other production components call **`useMeCapabilities`** directly; capability checks read from the warmed cache / ACL helpers as designed.
 
@@ -31,7 +36,7 @@ No other production components call **`useMeCapabilities`** directly; capability
 
 1. **`setupAxiosInterceptors`** (`interceptors.ts`): **401** → refresh queue → on failure **`forceLogout`**, redirect to login, **`setAuthToken(null)`**. No `window` `auth:unauthorized` event in many_faces_admin.
 2. **`AuthContext`**: `localStorage` bootstrap, **`setInterval`** expiry check (paused while `document.visibilityState === 'hidden'`, re-check on `visibilitychange`).
-3. **React Query**: **`useAuthToken`**; logout paths remove **`meCapabilities`** (and related) queries.
+3. **React Query**: **`useAuthToken`**; logout and session expiry call **`clearAuthAndCapabilitiesQueries`** (auth + capabilities + users/faces/pages/chat/moderation/wall tickets/invites, etc.).
 
 ## Phase D — explicit waivers (no code change until product asks)
 

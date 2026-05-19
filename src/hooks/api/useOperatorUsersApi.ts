@@ -7,7 +7,6 @@ import {
 	postOperatorFaceBan,
 	deleteOperatorFaceBan,
 	patchOperatorFaceRole,
-	postOperatorPlatformMessage,
 } from '../../api/operatorUsersApiClient';
 
 export interface OperatorUserFaceRow {
@@ -92,9 +91,5 @@ export function useOperatorUserMutations(userId: string) {
 		onSuccess: invalidate,
 	});
 
-	const sendMessage = useMutation({
-		mutationFn: (content: string) => postOperatorPlatformMessage(userId, content),
-	});
-
-	return { globalBan, globalUnban, faceBan, faceUnban, setFaceRole, sendMessage };
+	return { globalBan, globalUnban, faceBan, faceUnban, setFaceRole };
 }

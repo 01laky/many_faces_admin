@@ -9,17 +9,16 @@ import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { buildAdminMessengerHubConnection } from '@/api/signalr/buildAdminMessengerHubConnection';
-import {
-	fetchOperatorUserChatHistory,
-	type OperatorUserChatMessage,
-} from '@/api/operatorUserChatApiClient';
+import type { InfiniteData } from '@tanstack/react-query';
+import type { OperatorUserChatHistoryPage } from '@/api/operatorUserChatApiClient';
 import { useOperatorUserDetail } from '@/hooks/api/useOperatorUsersApi';
 import {
 	operatorUserChatConversationsKey,
 	operatorUserChatMessagesKey,
 	useMarkOperatorUserChatRead,
 	useOperatorUserChatConversations,
-	useOperatorUserChatMessages,
+	useOperatorUserChatMessagesInfinite,
+	patchOperatorUserChatInfiniteFirstPage,
 } from '@/hooks/api/useOperatorUserChatApi';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { mapOperatorUserChatHubError } from '@/utils/operatorUserChatHubErrors';
@@ -48,19 +47,20 @@ export function UserChatPage() {
 
 	const { data: conversations = [], isLoading: listLoading } = useOperatorUserChatConversations();
 	const {
-		data: historyPage,
+		data: infiniteHistory,
 		isLoading: messagesLoading,
 		isFetching: messagesFetching,
-	} = useOperatorUserChatMessages(selectedUserId, selectedUserId != null);
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
+	} = useOperatorUserChatMessagesInfinite(selectedUserId, selectedUserId != null);
 	const markRead = useMarkOperatorUserChatRead();
 
 	const [pending, setPending] = useState<UiUserChatMessage[]>([]);
 	const [input, setInput] = useState('');
 	const [connectionState, setConnectionState] = useState<ConnectionState>('Disconnected');
 	const [sidebarFilter, setSidebarFilter] = useState('');
-	const [olderMessages, setOlderMessages] = useState<UiUserChatMessage[]>([]);
-	const [olderHasMore, setOlderHasMore] = useState<boolean | null>(null);
-	const [loadingOlder, setLoadingOlder] = useState(false);
+	const loadingOlder = isFetchingNextPage;
 
 	const { data: targetUserDetail } = useOperatorUserDetail(selectedUserId ?? '');
 
@@ -81,11 +81,17 @@ export function UserChatPage() {
 		userIdRef.current = user?.id;
 	}, [user?.id]);
 
-	const serverMessages = useMemo(() => historyPage?.items ?? [], [historyPage?.items]);
+	const serverMessages = useMemo(() => {
+		const pages = infiniteHistory?.pages ?? [];
+		const first = pages[0];
+		const latest = first?.items ?? [];
+		const older = pages.slice(1).flatMap((p) => p.items);
+		return [...older, ...latest];
+	}, [infiniteHistory]);
 
-	// Merge paginated "older" pages, current REST page, and optimistic/hub rows without duplicate ids.
+	// Merge REST pages and optimistic/hub rows without duplicate ids.
 	const messages = useMemo(() => {
-		const merged: UiUserChatMessage[] = [...olderMessages, ...serverMessages];
+		const merged: UiUserChatMessage[] = [...serverMessages];
 		const ids = new Set<number>();
 		const deduped: UiUserChatMessage[] = [];
 		for (const m of merged) {
@@ -97,7 +103,7 @@ export function UserChatPage() {
 			if (!ids.has(p.id)) deduped.push(p);
 		}
 		return deduped;
-	}, [serverMessages, olderMessages, pending]);
+	}, [serverMessages, pending]);
 
 	const filteredConversations = useMemo(() => {
 		const q = sidebarFilter.trim().toLowerCase();
@@ -110,13 +116,11 @@ export function UserChatPage() {
 	}, [conversations, sidebarFilter]);
 
 	const selectedConversation = conversations.find((c) => c.otherUserId === selectedUserId);
-	const hasMore = olderHasMore ?? historyPage?.hasMore ?? false;
+	const hasMore = hasNextPage ?? infiniteHistory?.pages[0]?.hasMore ?? false;
 
 	const setSelectedUserId = useCallback(
 		(id: string | null) => {
 			setPending([]);
-			setOlderMessages([]);
-			setOlderHasMore(null);
 			if (id == null) setSearchParams({});
 			else {
 				setSearchParams({ u: id });
@@ -127,17 +131,8 @@ export function UserChatPage() {
 	);
 
 	const handleLoadOlder = async () => {
-		if (!selectedUserId || loadingOlder || !hasMore || messages.length === 0) return;
-		const beforeId = messages[0]?.id;
-		if (!beforeId || beforeId < 1) return;
-		setLoadingOlder(true);
-		try {
-			const page = await fetchOperatorUserChatHistory(selectedUserId, { beforeId, limit: 40 });
-			setOlderMessages((prev) => [...page.items, ...prev]);
-			setOlderHasMore(page.hasMore);
-		} finally {
-			setLoadingOlder(false);
-		}
+		if (!selectedUserId || loadingOlder || !hasMore) return;
+		await fetchNextPage();
 	};
 
 	useEffect(() => {
@@ -181,15 +176,12 @@ export function UserChatPage() {
 				};
 
 				if (senderId === target) {
-					queryClient.setQueryData(
-						operatorUserChatMessagesKey(target),
-						(old: { items: OperatorUserChatMessage[]; hasMore: boolean } | undefined) => {
-							if (!old) return old;
-							return {
-								...old,
-								items: appendUserChatMessage(old.items, msg),
-							};
-						}
+					const key = [...operatorUserChatMessagesKey(target), 'infinite'] as const;
+					queryClient.setQueryData<InfiniteData<OperatorUserChatHistoryPage>>(key, (old) =>
+						patchOperatorUserChatInfiniteFirstPage(old, (page) => ({
+							...page,
+							items: appendUserChatMessage(page.items, msg),
+						}))
 					);
 				}
 				setPending((prev) => appendUserChatMessage(prev, msg));

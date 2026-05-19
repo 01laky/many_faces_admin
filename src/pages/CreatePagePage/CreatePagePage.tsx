@@ -4,16 +4,15 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useTranslation } from 'react-i18next';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Container, Row, Col } from 'react-bootstrap';
 import { Button } from '@/components/radix/Button';
 import { FormField } from '@/components/radix/FormField';
 import { Input } from '@/components/radix/Input';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
-import { createPage, type CreatePageData } from '@/hooks/api/usePagesApi';
+import { useCreatePage, type CreatePageData } from '@/hooks/api/usePagesApi';
 import { usePageTypes } from '@/hooks/api/usePageTypesApi';
 import {
-	updatePageRouteTranslations,
+	useUpdatePageRouteTranslations,
 	type PageRouteTranslationData,
 } from '@/hooks/api/usePageRouteTranslationsApi';
 import { toast } from 'react-toastify';
@@ -32,9 +31,9 @@ export function CreatePagePage() {
 	const { t } = useTranslation('common');
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
-	const queryClient = useQueryClient();
-
 	const faceIdNum = faceId ? parseInt(faceId, 10) : 0;
+	const createPageMutation = useCreatePage();
+	const updateTranslationsMutation = useUpdatePageRouteTranslations();
 
 	// Fetch page types for dropdown
 	const { data: pageTypes = [], isLoading: pageTypesLoading } = usePageTypes();
@@ -70,7 +69,7 @@ export function CreatePagePage() {
 	const {
 		register,
 		handleSubmit,
-		formState: { errors, isSubmitting },
+		formState: { errors },
 	} = useForm<CreatePageFormData>({
 		resolver: yupResolver(validationSchema),
 		defaultValues: {
@@ -82,41 +81,41 @@ export function CreatePagePage() {
 		},
 	});
 
-	const createPageMutation = useMutation({
-		mutationFn: createPage,
-		onSuccess: async (createdPage) => {
-			// Save route translations for the newly created page
-			const translationData: PageRouteTranslationData[] = Object.entries(translations)
-				.filter(([, value]) => value.trim() !== '')
-				.map(([languageCode, translatedRoute]) => ({
-					languageCode,
-					translatedRoute: translatedRoute.trim(),
-				}));
-
-			if (translationData.length > 0 && createdPage?.id) {
-				try {
-					await updatePageRouteTranslations(createdPage.id, translationData);
-				} catch {
-					toast.error(t('pages.createPage.translationsError'));
-				}
-			}
-
-			queryClient.invalidateQueries({ queryKey: ['pages', { faceId: faceIdNum }] });
-			queryClient.invalidateQueries({ queryKey: ['face', faceIdNum] });
-			toast.success(t('pages.createPage.success'));
-			navigate(getLocalizedPath(`/faces/${faceId}`));
-		},
-		onError: (error: Error) => {
-			toast.error(error.message || t('pages.createPage.error'));
-		},
-	});
-
 	const onSubmit = async (data: CreatePageFormData) => {
 		if (!faceIdNum) return;
-		createPageMutation.mutate({
-			faceId: faceIdNum,
-			...data,
-		} as CreatePageData);
+		createPageMutation.mutate(
+			{
+				faceId: faceIdNum,
+				...data,
+			} as CreatePageData,
+			{
+				onSuccess: async (createdPage) => {
+					const translationData: PageRouteTranslationData[] = Object.entries(translations)
+						.filter(([, value]) => value.trim() !== '')
+						.map(([languageCode, translatedRoute]) => ({
+							languageCode,
+							translatedRoute: translatedRoute.trim(),
+						}));
+
+					if (translationData.length > 0 && createdPage?.id) {
+						try {
+							await updateTranslationsMutation.mutateAsync({
+								pageId: createdPage.id,
+								data: translationData,
+							});
+						} catch {
+							toast.error(t('pages.createPage.translationsError'));
+						}
+					}
+
+					toast.success(t('pages.createPage.success'));
+					navigate(getLocalizedPath(`/faces/${faceId}`));
+				},
+				onError: (error: Error) => {
+					toast.error(error.message || t('pages.createPage.error'));
+				},
+			}
+		);
 	};
 
 	return (
@@ -151,7 +150,7 @@ export function CreatePagePage() {
 										<select
 											{...register('pageTypeId', { valueAsNumber: true })}
 											className="form-select"
-											disabled={isSubmitting || pageTypesLoading}
+											disabled={createPageMutation.isPending || pageTypesLoading}
 											style={{
 												width: '100%',
 												padding: '0.5rem',
@@ -182,7 +181,7 @@ export function CreatePagePage() {
 											type="text"
 											{...register('name')}
 											placeholder={t('pages.createPage.namePlaceholder')}
-											disabled={isSubmitting}
+											disabled={createPageMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -196,7 +195,7 @@ export function CreatePagePage() {
 											type="text"
 											{...register('path')}
 											placeholder={t('pages.createPage.pathPlaceholder')}
-											disabled={isSubmitting}
+											disabled={createPageMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -210,7 +209,7 @@ export function CreatePagePage() {
 											type="number"
 											{...register('index', { valueAsNumber: true })}
 											placeholder={t('pages.createPage.indexPlaceholder')}
-											disabled={isSubmitting}
+											disabled={createPageMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -223,7 +222,7 @@ export function CreatePagePage() {
 											type="text"
 											{...register('description')}
 											placeholder={t('pages.createPage.descriptionPlaceholder')}
-											disabled={isSubmitting}
+											disabled={createPageMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -247,7 +246,7 @@ export function CreatePagePage() {
 														}))
 													}
 													placeholder={t('pages.createPage.routeTranslationPlaceholder')}
-													disabled={isSubmitting}
+													disabled={createPageMutation.isPending}
 												/>
 											</FormField>
 										</Col>
@@ -260,12 +259,14 @@ export function CreatePagePage() {
 									type="button"
 									variant="outline"
 									onClick={() => navigate(getLocalizedPath(`/faces/${faceId}`))}
-									disabled={isSubmitting}
+									disabled={createPageMutation.isPending}
 								>
 									{t('common.cancel')}
 								</Button>
-								<Button type="submit" disabled={isSubmitting}>
-									{isSubmitting ? t('pages.createPage.submitting') : t('pages.createPage.submit')}
+								<Button type="submit" disabled={createPageMutation.isPending}>
+									{createPageMutation.isPending
+										? t('pages.createPage.submitting')
+										: t('pages.createPage.submit')}
 								</Button>
 							</div>
 						</form>

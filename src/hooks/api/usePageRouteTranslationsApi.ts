@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { OpenAPI } from '../../api/core/OpenAPI';
 import { request as __request } from '../../api/core/request';
 import { logger } from '../../utils/logger';
@@ -69,4 +69,15 @@ export function updatePageRouteTranslations(
 	data: PageRouteTranslationData[]
 ): Promise<PageRouteTranslation[]> {
 	return updatePageRouteTranslationsRequest(pageId, data);
+}
+
+export function useUpdatePageRouteTranslations() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ pageId, data }: { pageId: number; data: PageRouteTranslationData[] }) =>
+			updatePageRouteTranslations(pageId, data),
+		onSuccess: (_result, { pageId }) => {
+			void queryClient.invalidateQueries({ queryKey: ['pageRouteTranslations', pageId] });
+		},
+	});
 }

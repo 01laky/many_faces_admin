@@ -11,7 +11,7 @@ import {
 	useLogout as useLogoutMutation,
 	useAuthToken,
 	useRefreshToken as useRefreshTokenMutation,
-	authKeys,
+	clearAuthAndCapabilitiesQueries,
 } from '../hooks/api/useAuthApi';
 import { useMeCapabilities } from '../hooks/api/useMeCapabilities';
 
@@ -103,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 						localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
 						localStorage.removeItem(STORAGE_KEYS.USER);
 						setAuthToken(null);
-						queryClient.removeQueries({ queryKey: authKeys.all });
+						clearAuthAndCapabilitiesQueries(queryClient);
 					}
 				} catch (error) {
 					logger.error('Failed to load auth state', error);
@@ -145,7 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				setToken(null);
 				setIsAuthenticated(false);
 				setUser(null);
-				queryClient.removeQueries({ queryKey: authKeys.all });
+				clearAuthAndCapabilitiesQueries(queryClient);
 				toast.info(
 					t('pages.logout.sessionExpired') || 'Your session has expired. Please log in again.'
 				);

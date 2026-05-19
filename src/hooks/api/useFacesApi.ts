@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { OpenAPI } from '../../api/core/OpenAPI';
 import { request as __request } from '../../api/core/request';
 import { logger } from '../../utils/logger';
@@ -92,12 +92,18 @@ const fetchFace = async (id: number): Promise<Face> => {
 	}
 };
 
+export const facesKeys = {
+	all: ['faces'] as const,
+	list: (params: UseFacesParams) => [...facesKeys.all, params] as const,
+	detail: (id: number) => ['face', id] as const,
+};
+
 export function useFaces(params: UseFacesParams = {}) {
 	return useQuery({
-		queryKey: ['faces', params],
+		queryKey: facesKeys.list(params),
 		queryFn: () => fetchFaces(params),
-		staleTime: 5 * 60 * 1000, // 5 minutes
-		keepPreviousData: true,
+		staleTime: 5 * 60 * 1000,
+		placeholderData: keepPreviousData,
 	});
 }
 
@@ -193,4 +199,23 @@ const deleteFaceRequest = async (id: number): Promise<void> => {
 
 export function deleteFace(id: number): Promise<void> {
 	return deleteFaceRequest(id);
+}
+
+export function useCreateFace() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: createFace,
+		onSuccess: () => void queryClient.invalidateQueries({ queryKey: facesKeys.all }),
+	});
+}
+
+export function useUpdateFace() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, data }: { id: number; data: UpdateFaceData }) => updateFace(id, data),
+		onSuccess: (_face, { id }) => {
+			void queryClient.invalidateQueries({ queryKey: facesKeys.all });
+			void queryClient.invalidateQueries({ queryKey: facesKeys.detail(id) });
+		},
+	});
 }

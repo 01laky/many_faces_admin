@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { InfiniteData } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import {
 	createOperatorAiConversation,
@@ -7,6 +8,13 @@ import {
 	getOperatorAiModelStatus,
 	listOperatorAiConversations,
 	type OperatorAiConversationListItem,
+	type OperatorAiMessagesPage,
+} from '@/api/services/operatorAiApi';
+
+export type {
+	OperatorAiConversationListItem,
+	OperatorAiMessagesPage,
+	OperatorAiMessageAppendedEvent,
 } from '@/api/services/operatorAiApi';
 
 export const operatorAiConversationsQueryKey = ['operatorAi', 'conversations'] as const;
@@ -33,6 +41,41 @@ export function useOperatorAiMessages(conversationId: number | null, enabled: bo
 		staleTime: 0,
 		refetchOnMount: 'always',
 	});
+}
+
+export function getOperatorAiMessagesNextPageParam(
+	lastPage: OperatorAiMessagesPage
+): number | undefined {
+	return lastPage.hasMore && lastPage.items[0]?.id ? lastPage.items[0].id : undefined;
+}
+
+/** Paginated thread history — latest page first, `fetchNextPage` loads older (`beforeId`). */
+export function useOperatorAiMessagesInfinite(conversationId: number | null, enabled: boolean) {
+	const { token } = useAuth();
+	return useInfiniteQuery({
+		queryKey:
+			conversationId != null
+				? [...messagesKey(conversationId), 'infinite']
+				: ['operatorAi', 'messages', 'none', 'infinite'],
+		queryFn: ({ pageParam }) =>
+			getOperatorAiMessages(
+				token!,
+				conversationId!,
+				pageParam != null ? { beforeId: pageParam as number } : undefined
+			),
+		initialPageParam: undefined as number | undefined,
+		getNextPageParam: getOperatorAiMessagesNextPageParam,
+		enabled: Boolean(token) && enabled && conversationId != null,
+		staleTime: 0,
+	});
+}
+
+export function patchOperatorAiInfiniteFirstPage(
+	data: InfiniteData<OperatorAiMessagesPage> | undefined,
+	patch: (page: OperatorAiMessagesPage) => OperatorAiMessagesPage
+) {
+	if (!data?.pages?.length) return data;
+	return { ...data, pages: [patch(data.pages[0]), ...data.pages.slice(1)] };
 }
 
 export function useOperatorAiModelStatus() {

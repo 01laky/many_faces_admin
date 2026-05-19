@@ -5,21 +5,20 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { buildAdminAiChatHubConnection } from '@/api/signalr/buildAdminAiChatHubConnection';
-import {
-	getOperatorAiMessages,
-	type OperatorAiConversationListItem,
-	type OperatorAiMessageAppendedEvent,
-	type OperatorAiMessagesPage,
-} from '@/api/services/operatorAiApi';
+import type { InfiniteData } from '@tanstack/react-query';
 import {
 	useCreateOperatorAiConversation,
 	useDeleteOperatorAiConversation,
 	useOperatorAiConversations,
-	useOperatorAiMessages,
+	useOperatorAiMessagesInfinite,
 	useOperatorAiModelStatus,
 	operatorAiConversationsQueryKey,
 	operatorAiModelStatusQueryKey,
 	operatorAiQueryKeys,
+	patchOperatorAiInfiniteFirstPage,
+	type OperatorAiConversationListItem,
+	type OperatorAiMessageAppendedEvent,
+	type OperatorAiMessagesPage,
 } from '@/hooks/api/useOperatorAiApi';
 import { getAdminAiPublicStatsMode } from '@/utils/adminAiStatsSettings';
 import {
@@ -53,10 +52,13 @@ export function ChatPage() {
 	const { data: conversations = [], isLoading: listLoading } = useOperatorAiConversations();
 	const { data: modelStatus } = useOperatorAiModelStatus();
 	const {
-		data: messagesPage,
+		data: infiniteMessages,
 		isLoading: messagesLoading,
 		isFetching: messagesFetching,
-	} = useOperatorAiMessages(conversationId, conversationId != null);
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
+	} = useOperatorAiMessagesInfinite(conversationId, conversationId != null);
 	const modelReady = modelStatus?.ready === true;
 	const modelUnavailable = modelStatus?.unavailable === true;
 	const modelLoading =
@@ -65,19 +67,21 @@ export function ChatPage() {
 	const deleteConversation = useDeleteOperatorAiConversation();
 	const { confirm, ConfirmModalHost } = useConfirmModal();
 
-	const serverMessages = useMemo(
-		() => (messagesPage ? mapPageToUiMessages(messagesPage.items) : []),
-		[messagesPage]
-	);
-	const [olderHasMoreByConv, setOlderHasMoreByConv] = useState<Record<number, boolean>>({});
-	const [olderByConv, setOlderByConv] = useState<Record<number, UiChatMessage[]>>({});
+	const { serverMessages, hasMore } = useMemo(() => {
+		const pages = infiniteMessages?.pages ?? [];
+		const first = pages[0];
+		let older: UiChatMessage[] = [];
+		for (let i = 1; i < pages.length; i++) {
+			older = mergeMessagePages(mapPageToUiMessages(pages[i].items), older);
+		}
+		const latest = first ? mapPageToUiMessages(first.items) : [];
+		return {
+			serverMessages: filterTransientStatusExchanges(mergeMessagePages(latest, older)),
+			hasMore: hasNextPage ?? first?.hasMore ?? false,
+		};
+	}, [infiniteMessages, hasNextPage]);
 	const [pendingByConv, setPendingByConv] = useState<Record<number, UiChatMessage[]>>({});
-
-	const hasMore =
-		conversationId != null && conversationId in olderHasMoreByConv
-			? olderHasMoreByConv[conversationId]
-			: (messagesPage?.hasMore ?? false);
-	const [loadingOlder, setLoadingOlder] = useState(false);
+	const loadingOlder = isFetchingNextPage;
 	const [input, setInput] = useState('');
 	const [connectionState, setConnectionState] = useState<ConnectionState>('Disconnected');
 	const [isSending, setIsSending] = useState(false);
@@ -97,13 +101,11 @@ export function ChatPage() {
 	}, [conversationId]);
 
 	const messages = useMemo(() => {
-		const olderMessages = conversationId != null ? (olderByConv[conversationId] ?? []) : [];
 		const pendingTail = conversationId != null ? (pendingByConv[conversationId] ?? []) : [];
-		const merged = filterTransientStatusExchanges(mergeMessagePages(serverMessages, olderMessages));
-		const ids = new Set(merged.map((m) => m.id));
+		const ids = new Set(serverMessages.map((m) => m.id));
 		const tail = pendingTail.filter((m) => !ids.has(m.id));
-		return [...merged, ...tail];
-	}, [serverMessages, olderByConv, pendingByConv, conversationId]);
+		return [...serverMessages, ...tail];
+	}, [serverMessages, pendingByConv, conversationId]);
 
 	const conversationsKey = operatorAiConversationsQueryKey;
 	const { messagesKey } = operatorAiQueryKeys();
@@ -220,12 +222,13 @@ export function ChatPage() {
 			const cid = conversationIdRef.current;
 			if (evt.conversationId !== cid || cid == null) return;
 
-			const key = messagesKey(cid);
-			queryClientRef.current.setQueryData<OperatorAiMessagesPage>(key, (old) => {
-				if (!old) return old;
-				return appendExchangeToMessagesPage(old, evt.userMessage, evt.assistantMessage);
-			});
-			void queryClientRef.current.invalidateQueries({ queryKey: key });
+			const key = [...messagesKey(cid), 'infinite'] as const;
+			queryClientRef.current.setQueryData<InfiniteData<OperatorAiMessagesPage>>(key, (old) =>
+				patchOperatorAiInfiniteFirstPage(old, (page) =>
+					appendExchangeToMessagesPage(page, evt.userMessage, evt.assistantMessage)
+				)
+			);
+			void queryClientRef.current.invalidateQueries({ queryKey: messagesKey(cid) });
 
 			setPendingByConv((map) => {
 				if (!(cid in map)) return map;
@@ -284,31 +287,13 @@ export function ChatPage() {
 	}, [isAuthenticated, conversationsKey]);
 
 	const handleLoadOlder = async () => {
-		if (!token || conversationId == null || loadingOlder || !hasMore || messages.length === 0)
-			return;
-		const beforeId = messages[0]?.id;
-		if (!beforeId || beforeId < 1) return;
-
+		if (conversationId == null || loadingOlder || !hasMore) return;
 		const el = messagesContainerRef.current;
 		const prevHeight = el?.scrollHeight ?? 0;
-
-		setLoadingOlder(true);
-		try {
-			const page = await getOperatorAiMessages(token, conversationId, { beforeId });
-			setOlderByConv((map) => ({
-				...map,
-				[conversationId]: mergeMessagePages(
-					mapPageToUiMessages(page.items),
-					map[conversationId] ?? []
-				),
-			}));
-			setOlderHasMoreByConv((map) => ({ ...map, [conversationId]: page.hasMore }));
-			requestAnimationFrame(() => {
-				if (el) el.scrollTop = el.scrollHeight - prevHeight;
-			});
-		} finally {
-			setLoadingOlder(false);
-		}
+		await fetchNextPage();
+		requestAnimationFrame(() => {
+			if (el) el.scrollTop = el.scrollHeight - prevHeight;
+		});
 	};
 
 	const handleMessagesScroll = () => {

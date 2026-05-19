@@ -11,8 +11,7 @@ import {
 	flexRender,
 } from '@tanstack/react-table';
 import { useTranslation } from 'react-i18next';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { usePages, type Page, deletePage } from '@/hooks/api/usePagesApi';
+import { usePages, useDeletePage, type Page } from '@/hooks/api/usePagesApi';
 import {
 	Table,
 	TableHeader,
@@ -34,32 +33,24 @@ export function PagesTable({ faceId }: PagesTableProps) {
 	const { t } = useTranslation('common');
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
-	const queryClient = useQueryClient();
 	const [sorting, setSorting] = useState<SortingState>([]);
 
-	// React Query hook
 	const { data: pages = [], isLoading, error, refetch } = usePages({ faceId });
-
-	// Delete mutation
-	const deletePageMutation = useMutation({
-		mutationFn: deletePage,
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['pages', { faceId }] });
-			queryClient.invalidateQueries({ queryKey: ['face', faceId] });
-			toast.success(t('pages.pagesTable.deleteSuccess'));
-		},
-		onError: (error: Error) => {
-			toast.error(error.message || t('pages.pagesTable.deleteError'));
-		},
-	});
+	const deletePageMutation = useDeletePage();
 
 	const handleDelete = useCallback(
 		(id: number) => {
 			if (window.confirm(t('pages.pagesTable.confirmDelete'))) {
-				deletePageMutation.mutate(id);
+				deletePageMutation.mutate(
+					{ id, faceId },
+					{
+						onSuccess: () => toast.success(t('pages.pagesTable.deleteSuccess')),
+						onError: (err: Error) => toast.error(err.message || t('pages.pagesTable.deleteError')),
+					}
+				);
 			}
 		},
-		[t, deletePageMutation]
+		[t, deletePageMutation, faceId]
 	);
 
 	// Define columns

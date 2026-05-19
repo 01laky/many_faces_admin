@@ -138,7 +138,7 @@ export interface BulkModerationResult {
 	aiReviewStatus?: string | null;
 }
 
-const moderationKeys = {
+export const moderationKeys = {
 	all: ['contentModeration'] as const,
 	list: (filters: ModerationFilters) => [...moderationKeys.all, 'list', filters] as const,
 	events: (contentType: ModeratedContentType, contentId: number) =>

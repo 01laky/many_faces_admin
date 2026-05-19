@@ -22,10 +22,31 @@ export const authKeys = {
 	token: () => [...authKeys.all, 'token'] as const,
 };
 
-/** Same as many_faces_portal: avoid stale React Query cache after refresh failure (security hardening §13). */
+/** Domain cache roots cleared on logout / session expiry (REQ-SECURITY-CACHE). */
+const DOMAIN_QUERY_ROOTS = [
+	['users'],
+	['faces'],
+	['face'],
+	['pages'],
+	['page'],
+	['stats'],
+	['contentModeration'],
+	['operatorAi'],
+	['operatorUserChat'],
+	['wallTickets'],
+	['registrationInvites'],
+	['pageRouteTranslations'],
+	['pageTypes'],
+	['publicStats'],
+] as const;
+
+/** Clears auth, capabilities, and operator domain React Query cache (admin + portal parity on auth keys). */
 export function clearAuthAndCapabilitiesQueries(queryClient: QueryClient): void {
 	queryClient.removeQueries({ queryKey: authKeys.all });
 	queryClient.removeQueries({ queryKey: meCapabilitiesKeys.all });
+	for (const key of DOMAIN_QUERY_ROOTS) {
+		queryClient.removeQueries({ queryKey: key });
+	}
 }
 
 /**

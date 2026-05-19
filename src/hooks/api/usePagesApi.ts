@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { OpenAPI } from '../../api/core/OpenAPI';
 import { request as __request } from '../../api/core/request';
 import { logger } from '../../utils/logger';
@@ -62,12 +62,18 @@ const fetchPage = async (id: number): Promise<Page> => {
 	}
 };
 
+export const pagesKeys = {
+	all: ['pages'] as const,
+	list: (params: UsePagesParams) => [...pagesKeys.all, params] as const,
+	detail: (id: number) => ['page', id] as const,
+};
+
 export function usePages(params: UsePagesParams = {}) {
 	return useQuery({
-		queryKey: ['pages', params],
+		queryKey: pagesKeys.list(params),
 		queryFn: () => fetchPages(params),
-		staleTime: 5 * 60 * 1000, // 5 minutes
-		keepPreviousData: true,
+		staleTime: 5 * 60 * 1000,
+		placeholderData: keepPreviousData,
 	});
 }
 
@@ -160,4 +166,40 @@ const deletePageRequest = async (id: number): Promise<void> => {
 
 export function deletePage(id: number): Promise<void> {
 	return deletePageRequest(id);
+}
+
+export function useCreatePage() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: createPage,
+		onSuccess: () => void queryClient.invalidateQueries({ queryKey: pagesKeys.all }),
+	});
+}
+
+export function useUpdatePage() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, data }: { id: number; data: UpdatePageData }) => updatePage(id, data),
+		onSuccess: (page, { id }) => {
+			void queryClient.invalidateQueries({ queryKey: pagesKeys.all });
+			void queryClient.invalidateQueries({ queryKey: pagesKeys.detail(id) });
+			if (page.faceId) {
+				void queryClient.invalidateQueries({ queryKey: ['face', page.faceId] });
+			}
+		},
+	});
+}
+
+export function useDeletePage() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id }: { id: number; faceId?: number }) => deletePage(id),
+		onSuccess: (_void, { faceId }) => {
+			void queryClient.invalidateQueries({ queryKey: pagesKeys.all });
+			if (faceId != null) {
+				void queryClient.invalidateQueries({ queryKey: pagesKeys.list({ faceId }) });
+				void queryClient.invalidateQueries({ queryKey: ['face', faceId] });
+			}
+		},
+	});
 }

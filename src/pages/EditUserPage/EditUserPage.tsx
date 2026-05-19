@@ -4,13 +4,12 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useTranslation } from 'react-i18next';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Container, Row, Col } from 'react-bootstrap';
 import { Button } from '@/components/radix/Button';
 import { FormField } from '@/components/radix/FormField';
 import { Input } from '@/components/radix/Input';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
-import { useUser, updateUser } from '@/hooks/api/useUsersApi';
+import { useUser, useUpdateUser } from '@/hooks/api/useUsersApi';
 import { toast } from 'react-toastify';
 import '../../styles/forms/UserFormPage.scss';
 
@@ -27,9 +26,8 @@ export function EditUserPage() {
 	const { t } = useTranslation('common');
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
-	const queryClient = useQueryClient();
-
 	const { data: user, isLoading, error } = useUser(id || '');
+	const updateUserMutation = useUpdateUser();
 
 	// Validation schema
 	const validationSchema = yup.object({
@@ -55,7 +53,7 @@ export function EditUserPage() {
 		register,
 		handleSubmit,
 		reset,
-		formState: { errors, isSubmitting },
+		formState: { errors },
 	} = useForm<EditUserFormData>({
 		resolver: yupResolver(validationSchema),
 		defaultValues: {
@@ -80,27 +78,24 @@ export function EditUserPage() {
 		}
 	}, [user, reset]);
 
-	const updateUserMutation = useMutation({
-		mutationFn: ({ id, data }: { id: string; data: Omit<EditUserFormData, 'confirmPassword'> }) =>
-			updateUser(id, data),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['users'] });
-			queryClient.invalidateQueries({ queryKey: ['user', id] });
-			toast.success(t('pages.editUser.success'));
-			navigate(getLocalizedPath('/users'));
-		},
-		onError: (error: Error) => {
-			toast.error(error.message || t('pages.editUser.error'));
-		},
-	});
-
 	const onSubmit = async (data: EditUserFormData) => {
 		if (!id) return;
 
 		const { confirmPassword: _confirmPassword, password, ...updateData } = data;
 		const finalData = password ? { ...updateData, password } : updateData;
 
-		updateUserMutation.mutate({ id, data: finalData });
+		updateUserMutation.mutate(
+			{ id, data: finalData },
+			{
+				onSuccess: () => {
+					toast.success(t('pages.editUser.success'));
+					navigate(getLocalizedPath('/users'));
+				},
+				onError: (error: Error) => {
+					toast.error(error.message || t('pages.editUser.error'));
+				},
+			}
+		);
 	};
 
 	if (isLoading) {
@@ -171,7 +166,7 @@ export function EditUserPage() {
 											type="email"
 											{...register('email')}
 											placeholder={t('pages.editUser.emailPlaceholder')}
-											disabled={isSubmitting}
+											disabled={updateUserMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -184,7 +179,7 @@ export function EditUserPage() {
 											type="text"
 											{...register('firstName')}
 											placeholder={t('pages.editUser.firstNamePlaceholder')}
-											disabled={isSubmitting}
+											disabled={updateUserMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -194,7 +189,7 @@ export function EditUserPage() {
 											type="text"
 											{...register('lastName')}
 											placeholder={t('pages.editUser.lastNamePlaceholder')}
-											disabled={isSubmitting}
+											disabled={updateUserMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -208,7 +203,7 @@ export function EditUserPage() {
 											type="password"
 											{...register('password')}
 											placeholder={t('pages.editUser.passwordPlaceholder')}
-											disabled={isSubmitting}
+											disabled={updateUserMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -221,7 +216,7 @@ export function EditUserPage() {
 											type="password"
 											{...register('confirmPassword')}
 											placeholder={t('pages.editUser.confirmPasswordPlaceholder')}
-											disabled={isSubmitting}
+											disabled={updateUserMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -232,12 +227,14 @@ export function EditUserPage() {
 									type="button"
 									variant="outline"
 									onClick={() => navigate(getLocalizedPath('/users'))}
-									disabled={isSubmitting}
+									disabled={updateUserMutation.isPending}
 								>
 									{t('common.cancel')}
 								</Button>
-								<Button type="submit" disabled={isSubmitting}>
-									{isSubmitting ? t('pages.editUser.submitting') : t('pages.editUser.submit')}
+								<Button type="submit" disabled={updateUserMutation.isPending}>
+									{updateUserMutation.isPending
+										? t('pages.editUser.submitting')
+										: t('pages.editUser.submit')}
 								</Button>
 							</div>
 						</form>

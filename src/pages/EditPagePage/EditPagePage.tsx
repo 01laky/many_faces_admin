@@ -4,7 +4,6 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useTranslation } from 'react-i18next';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Container, Row, Col } from 'react-bootstrap';
 import { Button } from '@/components/radix/Button';
 import { FormField } from '@/components/radix/FormField';
@@ -12,12 +11,11 @@ import { Input } from '@/components/radix/Input';
 import { GridLayoutEditor } from '@/components/page-editor/GridLayoutEditor';
 import type { GridSchema } from '@/components/page-editor/GridLayoutEditor';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
-import { usePage } from '@/hooks/api/usePagesApi';
-import { updatePage } from '@/hooks/api/usePagesApi';
+import { usePage, useUpdatePage } from '@/hooks/api/usePagesApi';
 import { usePageTypes } from '@/hooks/api/usePageTypesApi';
 import {
 	usePageRouteTranslations,
-	updatePageRouteTranslations,
+	useUpdatePageRouteTranslations,
 	type PageRouteTranslationData,
 } from '@/hooks/api/usePageRouteTranslationsApi';
 import { toast } from 'react-toastify';
@@ -36,9 +34,10 @@ export function EditPagePage() {
 	const { t } = useTranslation('common');
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
-	const queryClient = useQueryClient();
 
 	const pageId = id ? parseInt(id, 10) : 0;
+	const updatePageMutation = useUpdatePage();
+	const updateTranslationsMutation = useUpdatePageRouteTranslations();
 	const { data: page, isLoading, error } = usePage(pageId);
 	const { data: pageTypes = [], isLoading: pageTypesLoading } = usePageTypes();
 	const { data: routeTranslations = [] } = usePageRouteTranslations(pageId);
@@ -104,7 +103,7 @@ export function EditPagePage() {
 		register,
 		handleSubmit,
 		reset,
-		formState: { errors, isSubmitting },
+		formState: { errors },
 	} = useForm<EditPageFormData>({
 		resolver: yupResolver(validationSchema),
 		defaultValues: {
@@ -141,31 +140,9 @@ export function EditPagePage() {
 		}
 	}, [page, pageId, pageTypes, reset, gridSchemaLoaded]);
 
-	const updatePageMutation = useMutation({
-		mutationFn: ({ id, data }: { id: number; data: Partial<EditPageFormData> }) =>
-			updatePage(id, data),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['pages'] });
-			queryClient.invalidateQueries({ queryKey: ['page', pageId] });
-			if (page) {
-				queryClient.invalidateQueries({ queryKey: ['face', page.faceId] });
-			}
-			toast.success(t('pages.editPage.success'));
-			if (page) {
-				navigate(getLocalizedPath(`/faces/${page.faceId}`));
-			} else {
-				navigate(getLocalizedPath('/faces'));
-			}
-		},
-		onError: (error: Error) => {
-			toast.error(error.message || t('pages.editPage.error'));
-		},
-	});
-
 	const onSubmit = async (data: EditPageFormData) => {
 		if (!pageId) return;
 
-		// Save route translations
 		const translationData: PageRouteTranslationData[] = Object.entries(translations)
 			.filter(([, value]) => value.trim() !== '')
 			.map(([languageCode, translatedRoute]) => ({
@@ -174,19 +151,33 @@ export function EditPagePage() {
 			}));
 
 		try {
-			await updatePageRouteTranslations(pageId, translationData);
-			queryClient.invalidateQueries({ queryKey: ['pageRouteTranslations', pageId] });
+			await updateTranslationsMutation.mutateAsync({ pageId, data: translationData });
 		} catch {
 			toast.error(t('pages.editPage.translationsError'));
 		}
 
-		updatePageMutation.mutate({
-			id: pageId,
-			data: {
-				...data,
-				gridSchema: gridSchema ? JSON.stringify(gridSchema) : null,
+		updatePageMutation.mutate(
+			{
+				id: pageId,
+				data: {
+					...data,
+					gridSchema: gridSchema ? JSON.stringify(gridSchema) : null,
+				},
 			},
-		});
+			{
+				onSuccess: () => {
+					toast.success(t('pages.editPage.success'));
+					if (page) {
+						navigate(getLocalizedPath(`/faces/${page.faceId}`));
+					} else {
+						navigate(getLocalizedPath('/faces'));
+					}
+				},
+				onError: (error: Error) => {
+					toast.error(error.message || t('pages.editPage.error'));
+				},
+			}
+		);
 	};
 
 	if (isLoading) {
@@ -256,7 +247,7 @@ export function EditPagePage() {
 										<select
 											{...register('pageTypeId', { valueAsNumber: true })}
 											className="form-select"
-											disabled={isSubmitting || pageTypesLoading}
+											disabled={updatePageMutation.isPending || pageTypesLoading}
 											style={{
 												width: '100%',
 												padding: '0.5rem',
@@ -283,7 +274,7 @@ export function EditPagePage() {
 											type="text"
 											{...register('name')}
 											placeholder={t('pages.editPage.namePlaceholder')}
-											disabled={isSubmitting}
+											disabled={updatePageMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -293,7 +284,7 @@ export function EditPagePage() {
 											type="text"
 											{...register('path')}
 											placeholder={t('pages.editPage.pathPlaceholder')}
-											disabled={isSubmitting}
+											disabled={updatePageMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -307,7 +298,7 @@ export function EditPagePage() {
 											type="number"
 											{...register('index', { valueAsNumber: true })}
 											placeholder={t('pages.editPage.indexPlaceholder')}
-											disabled={isSubmitting}
+											disabled={updatePageMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -320,7 +311,7 @@ export function EditPagePage() {
 											type="text"
 											{...register('description')}
 											placeholder={t('pages.editPage.descriptionPlaceholder')}
-											disabled={isSubmitting}
+											disabled={updatePageMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -344,7 +335,7 @@ export function EditPagePage() {
 														}))
 													}
 													placeholder={t('pages.editPage.routeTranslationPlaceholder')}
-													disabled={isSubmitting}
+													disabled={updatePageMutation.isPending}
 												/>
 											</FormField>
 										</Col>
@@ -364,12 +355,14 @@ export function EditPagePage() {
 									type="button"
 									variant="outline"
 									onClick={() => navigate(getLocalizedPath(`/faces/${page.faceId}`))}
-									disabled={isSubmitting}
+									disabled={updatePageMutation.isPending}
 								>
 									{t('common.cancel')}
 								</Button>
-								<Button type="submit" disabled={isSubmitting}>
-									{isSubmitting ? t('pages.editPage.submitting') : t('pages.editPage.submit')}
+								<Button type="submit" disabled={updatePageMutation.isPending}>
+									{updatePageMutation.isPending
+										? t('pages.editPage.submitting')
+										: t('pages.editPage.submit')}
 								</Button>
 							</div>
 						</form>

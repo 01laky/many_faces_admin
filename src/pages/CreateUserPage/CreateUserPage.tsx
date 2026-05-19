@@ -3,13 +3,12 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useTranslation } from 'react-i18next';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Container, Row, Col } from 'react-bootstrap';
 import { Button } from '@/components/radix/Button';
 import { FormField } from '@/components/radix/FormField';
 import { Input } from '@/components/radix/Input';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
-import { createUser } from '@/hooks/api/useUsersApi';
+import { useCreateUser, type CreateUserData } from '@/hooks/api/useUsersApi';
 import { toast } from 'react-toastify';
 import '../../styles/forms/UserFormPage.scss';
 
@@ -25,8 +24,6 @@ export function CreateUserPage() {
 	const { t } = useTranslation('common');
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
-	const queryClient = useQueryClient();
-
 	// Validation schema
 	const validationSchema = yup.object({
 		email: yup
@@ -48,7 +45,7 @@ export function CreateUserPage() {
 	const {
 		register,
 		handleSubmit,
-		formState: { errors, isSubmitting },
+		formState: { errors },
 	} = useForm<CreateUserFormData>({
 		resolver: yupResolver(validationSchema),
 		defaultValues: {
@@ -60,21 +57,19 @@ export function CreateUserPage() {
 		},
 	});
 
-	const createUserMutation = useMutation({
-		mutationFn: createUser,
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['users'] });
-			toast.success(t('pages.createUser.success'));
-			navigate(getLocalizedPath('/users'));
-		},
-		onError: (error: Error) => {
-			toast.error(error.message || t('pages.createUser.error'));
-		},
-	});
+	const createUserMutation = useCreateUser();
 
 	const onSubmit = async (data: CreateUserFormData) => {
 		const { confirmPassword: _confirmPassword, ...userData } = data;
-		createUserMutation.mutate(userData as CreateUserData);
+		createUserMutation.mutate(userData as CreateUserData, {
+			onSuccess: () => {
+				toast.success(t('pages.createUser.success'));
+				navigate(getLocalizedPath('/users'));
+			},
+			onError: (error: Error) => {
+				toast.error(error.message || t('pages.createUser.error'));
+			},
+		});
 	};
 
 	return (
@@ -110,7 +105,7 @@ export function CreateUserPage() {
 											type="email"
 											{...register('email')}
 											placeholder={t('pages.createUser.emailPlaceholder')}
-											disabled={isSubmitting}
+											disabled={createUserMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -123,7 +118,7 @@ export function CreateUserPage() {
 											type="text"
 											{...register('firstName')}
 											placeholder={t('pages.createUser.firstNamePlaceholder')}
-											disabled={isSubmitting}
+											disabled={createUserMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -136,7 +131,7 @@ export function CreateUserPage() {
 											type="text"
 											{...register('lastName')}
 											placeholder={t('pages.createUser.lastNamePlaceholder')}
-											disabled={isSubmitting}
+											disabled={createUserMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -150,7 +145,7 @@ export function CreateUserPage() {
 											type="password"
 											{...register('password')}
 											placeholder={t('pages.createUser.passwordPlaceholder')}
-											disabled={isSubmitting}
+											disabled={createUserMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -164,7 +159,7 @@ export function CreateUserPage() {
 											type="password"
 											{...register('confirmPassword')}
 											placeholder={t('pages.createUser.confirmPasswordPlaceholder')}
-											disabled={isSubmitting}
+											disabled={createUserMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -175,12 +170,14 @@ export function CreateUserPage() {
 									type="button"
 									variant="outline"
 									onClick={() => navigate(getLocalizedPath('/users'))}
-									disabled={isSubmitting}
+									disabled={createUserMutation.isPending}
 								>
 									{t('common.cancel')}
 								</Button>
-								<Button type="submit" disabled={isSubmitting}>
-									{isSubmitting ? t('pages.createUser.submitting') : t('pages.createUser.submit')}
+								<Button type="submit" disabled={createUserMutation.isPending}>
+									{createUserMutation.isPending
+										? t('pages.createUser.submitting')
+										: t('pages.createUser.submit')}
 								</Button>
 							</div>
 						</form>

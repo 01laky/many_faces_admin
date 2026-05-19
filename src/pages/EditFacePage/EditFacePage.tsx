@@ -4,15 +4,13 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useTranslation } from 'react-i18next';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Container, Row, Col } from 'react-bootstrap';
 import { Button } from '@/components/radix/Button';
 import { FormField } from '@/components/radix/FormField';
 import { Input } from '@/components/radix/Input';
 import { GradientPicker } from '@/components/page-editor/GradientPicker';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
-import { useFace } from '@/hooks/api/useFacesApi';
-import { updateFace, type FaceVisibility } from '@/hooks/api/useFacesApi';
+import { useFace, useUpdateFace, type FaceVisibility } from '@/hooks/api/useFacesApi';
 import { PagesTable } from '@/components/tables/PagesTable';
 import { toast } from 'react-toastify';
 import { isAdminScopeFace } from '@/utils/adminScopeFace';
@@ -33,7 +31,6 @@ export function EditFacePage() {
 	const { t } = useTranslation('common');
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
-	const queryClient = useQueryClient();
 
 	const faceId = id ? parseInt(id, 10) : 0;
 	const { data: face, isLoading, error } = useFace(faceId);
@@ -67,7 +64,7 @@ export function EditFacePage() {
 		reset,
 		setValue,
 		watch,
-		formState: { errors, isSubmitting },
+		formState: { errors },
 	} = useForm<EditFaceFormData>({
 		resolver: yupResolver(validationSchema),
 		defaultValues: {
@@ -127,23 +124,22 @@ export function EditFacePage() {
 		[setValue]
 	);
 
-	const updateFaceMutation = useMutation({
-		mutationFn: ({ id, data }: { id: number; data: Partial<EditFaceFormData> }) =>
-			updateFace(id, data),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['faces'] });
-			queryClient.invalidateQueries({ queryKey: ['face', faceId] });
-			toast.success(t('pages.editFace.success'));
-			navigate(getLocalizedPath('/faces'));
-		},
-		onError: (error: Error) => {
-			toast.error(error.message || t('pages.editFace.error'));
-		},
-	});
+	const updateFaceMutation = useUpdateFace();
 
 	const onSubmit = async (data: EditFaceFormData) => {
 		if (!faceId) return;
-		updateFaceMutation.mutate({ id: faceId, data });
+		updateFaceMutation.mutate(
+			{ id: faceId, data },
+			{
+				onSuccess: () => {
+					toast.success(t('pages.editFace.success'));
+					navigate(getLocalizedPath('/faces'));
+				},
+				onError: (error: Error) => {
+					toast.error(error.message || t('pages.editFace.error'));
+				},
+			}
+		);
 	};
 
 	if (isLoading) {
@@ -218,7 +214,7 @@ export function EditFacePage() {
 											type="text"
 											{...register('index')}
 											placeholder={t('pages.editFace.indexPlaceholder')}
-											disabled={isSubmitting}
+											disabled={updateFaceMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -232,7 +228,7 @@ export function EditFacePage() {
 											type="text"
 											{...register('title')}
 											placeholder={t('pages.editFace.titlePlaceholder')}
-											disabled={isSubmitting}
+											disabled={updateFaceMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -245,7 +241,7 @@ export function EditFacePage() {
 											type="text"
 											{...register('description')}
 											placeholder={t('pages.editFace.descriptionPlaceholder')}
-											disabled={isSubmitting}
+											disabled={updateFaceMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -254,7 +250,7 @@ export function EditFacePage() {
 										<GradientPicker
 											value={gradientValue}
 											onChange={handleGradientChange}
-											disabled={isSubmitting}
+											disabled={updateFaceMutation.isPending}
 										/>
 									</FormField>
 								</Col>
@@ -266,7 +262,7 @@ export function EditFacePage() {
 												className="form-check-input"
 												id="isPublic"
 												{...register('isPublic')}
-												disabled={isSubmitting}
+												disabled={updateFaceMutation.isPending}
 											/>
 											<label className="form-check-label" htmlFor="isPublic">
 												{t('pages.editFace.isPublicHelp')}
@@ -279,7 +275,7 @@ export function EditFacePage() {
 										<select
 											className="form-select"
 											{...register('visibility')}
-											disabled={isSubmitting}
+											disabled={updateFaceMutation.isPending}
 										>
 											<option value="Public">Public</option>
 											<option value="Private">Private</option>
@@ -296,7 +292,7 @@ export function EditFacePage() {
 												className="form-check-input"
 												id="allowRecensions"
 												{...register('allowRecensions')}
-												disabled={isSubmitting}
+												disabled={updateFaceMutation.isPending}
 											/>
 											<label className="form-check-label" htmlFor="allowRecensions">
 												{t('pages.editFace.allowRecensionsHelp', 'Users can write star reviews')}
@@ -311,12 +307,14 @@ export function EditFacePage() {
 									type="button"
 									variant="outline"
 									onClick={() => navigate(getLocalizedPath('/faces'))}
-									disabled={isSubmitting}
+									disabled={updateFaceMutation.isPending}
 								>
 									{t('common.cancel')}
 								</Button>
-								<Button type="submit" disabled={isSubmitting}>
-									{isSubmitting ? t('pages.editFace.submitting') : t('pages.editFace.submit')}
+								<Button type="submit" disabled={updateFaceMutation.isPending}>
+									{updateFaceMutation.isPending
+										? t('pages.editFace.submitting')
+										: t('pages.editFace.submit')}
 								</Button>
 							</div>
 						</form>
