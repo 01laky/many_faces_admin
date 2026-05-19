@@ -46,12 +46,23 @@ export function ContentMediaGrid({
 							<Button
 								type="button"
 								variant="danger"
-								size="sm"
 								className="content-media-grid__delete"
 								aria-label={t('pages.albumDetail.deleteMedia')}
 								onClick={(e) => handleGridDeleteClick(e, () => onDeleteItem(item.id))}
 							>
-								×
+								<svg
+									className="content-media-grid__delete-icon"
+									viewBox="0 0 12 12"
+									aria-hidden="true"
+									focusable="false"
+								>
+									<path
+										d="M2 2 L10 10 M10 2 L2 10"
+										stroke="currentColor"
+										strokeWidth="2"
+										strokeLinecap="round"
+									/>
+								</svg>
 							</Button>
 						)}
 					</div>

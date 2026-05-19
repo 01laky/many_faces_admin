@@ -10,6 +10,11 @@ import {
 	type ModerationDecision,
 } from './useContentModerationApi';
 
+export interface AlbumFaceRef {
+	faceId: number;
+	title: string;
+}
+
 export interface AlbumListItem {
 	id: number;
 	title: string;
@@ -18,6 +23,7 @@ export interface AlbumListItem {
 	mediaType: number;
 	creatorId: string;
 	creatorName: string;
+	faces?: AlbumFaceRef[];
 	approvalStatus?: string;
 	aiReviewStatus?: string;
 	creatorStatusLabel?: string;
@@ -43,7 +49,8 @@ export interface OperatorAlbumDeletePayload {
 }
 
 export interface UseAlbumsParams {
-	faceId: number;
+	faceId?: number;
+	creatorId?: string;
 	page?: number;
 	pageSize?: number;
 	search?: string;
@@ -106,7 +113,7 @@ export function useAlbums(params: UseAlbumsParams) {
 	return useQuery({
 		queryKey: albumsKeys.list(params),
 		queryFn: () => fetchAlbums(params),
-		enabled: params.faceId > 0,
+		enabled: (params.faceId ?? 0) > 0 || Boolean(params.creatorId?.trim()),
 		staleTime: 5 * 60 * 1000,
 		placeholderData: keepPreviousData,
 	});

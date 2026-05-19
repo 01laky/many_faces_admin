@@ -17,6 +17,7 @@ import { buildLocalizedUserChatPath } from '@/utils/userChatPaths';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
 import { canSubmitFaceBan, canSubmitGlobalBan } from '@/utils/operatorUserDetailUi';
 import { UserDetailFacesTable } from './UserDetailFacesTable';
+import { UserDetailAlbumsTable } from './UserDetailAlbumsTable';
 import './UserDetailPage.scss';
 
 function mutationErrorMessage(error: unknown): string {
@@ -291,6 +292,13 @@ export function UserDetailPage() {
 							roleChangePending={setFaceRole.isPending}
 							faceBanPending={faceBan.isPending}
 							faceUnbanPending={faceUnban.isPending}
+						/>
+					</div>
+
+					<div className="user-detail-card">
+						<UserDetailAlbumsTable
+							creatorId={userId}
+							userFaceIds={user.faces.map((f) => f.faceId)}
 						/>
 					</div>
 
