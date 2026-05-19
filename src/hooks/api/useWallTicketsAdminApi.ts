@@ -21,8 +21,10 @@ const WALL_TICKETS_STALE_MS = 45_000;
 
 export const wallTicketsKeys = {
 	all: ['wallTickets'] as const,
-	list: (faceId: number, page: number, pageSize: number, status?: string) =>
-		[...wallTicketsKeys.all, 'list', faceId, page, pageSize, status ?? ''] as const,
+	list: (
+		faceId: number,
+		params: import('@/api/services/wallTicketsAdminApi').AdminWallTicketListParams
+	) => [...wallTicketsKeys.all, 'list', faceId, params] as const,
 	detail: (faceId: number, ticketId: number) =>
 		[...wallTicketsKeys.all, 'detail', faceId, ticketId] as const,
 };
@@ -33,14 +35,12 @@ function invalidateWallTicketStats(queryClient: ReturnType<typeof useQueryClient
 
 export function useAdminWallTicketsList(
 	faceId: number,
-	page: number,
-	pageSize: number,
-	status?: string
+	params: import('@/api/services/wallTicketsAdminApi').AdminWallTicketListParams
 ) {
 	const { token } = useAuth();
 	return useQuery({
-		queryKey: wallTicketsKeys.list(faceId, page, pageSize, status),
-		queryFn: () => adminListWallTickets(token!, faceId, page, pageSize, status),
+		queryKey: wallTicketsKeys.list(faceId, params),
+		queryFn: () => adminListWallTickets(token!, faceId, params),
 		enabled: Boolean(token) && faceId > 0,
 		staleTime: WALL_TICKETS_STALE_MS,
 	});

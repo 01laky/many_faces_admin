@@ -1,4 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ADMIN_TABLE_PAGE_SIZE } from '../../utils/adminTableUtils';
+import { parsePaginatedEnvelope, type ApiSortDir } from '../../utils/adminListQuery';
 import { OpenAPI } from '../../api/core/OpenAPI';
 import { request as __request } from '../../api/core/request';
 import type {
@@ -116,6 +118,21 @@ export interface ModerationFilters {
 	minQueueAgeHours?: number;
 }
 
+export interface ModerationListParams extends ModerationFilters {
+	page?: number;
+	pageSize?: number;
+	sortBy?: string;
+	sortDir?: ApiSortDir;
+}
+
+export interface ModerationListResponse {
+	items: ModerationItem[];
+	page: number;
+	pageSize: number;
+	totalCount: number;
+	totalPages: number;
+}
+
 export interface ModerationDecision {
 	reason?: string;
 	userMessage?: string;
@@ -140,18 +157,29 @@ export interface BulkModerationResult {
 
 export const moderationKeys = {
 	all: ['contentModeration'] as const,
-	list: (filters: ModerationFilters) => [...moderationKeys.all, 'list', filters] as const,
+	list: (params: ModerationListParams) => [...moderationKeys.all, 'list', params] as const,
 	events: (contentType: ModeratedContentType, contentId: number) =>
 		[...moderationKeys.all, 'events', contentType, contentId] as const,
 	metrics: () => [...moderationKeys.all, 'metrics'] as const,
 };
 
-export async function fetchModerationItems(filters: ModerationFilters = {}) {
-	return __request(OpenAPI, {
+export async function fetchModerationItems(
+	params: ModerationListParams = {}
+): Promise<ModerationListResponse> {
+	const page = params.page ?? 1;
+	const pageSize = params.pageSize ?? ADMIN_TABLE_PAGE_SIZE;
+	const { page: _p, pageSize: _ps, sortBy, sortDir, ...filters } = params;
+	const response = await __request(OpenAPI, {
 		method: 'GET',
 		url: '/api/contentmoderation',
-		query: filters,
-	}) as Promise<ModerationItem[]>;
+		query: {
+			...filters,
+			page,
+			pageSize,
+			...(sortBy ? { sortBy, sortDir: sortDir ?? 'asc' } : {}),
+		},
+	});
+	return parsePaginatedEnvelope<ModerationItem>(response, page, pageSize);
 }
 
 export async function applyModerationDecision(
@@ -235,12 +263,13 @@ export async function applyBulkModeration(payload: BulkModerationPayload) {
 	}) as Promise<{ results: BulkModerationResult[] }>;
 }
 
-export function useModerationItems(filters: ModerationFilters = {}, enabled = true) {
+export function useModerationItems(params: ModerationListParams = {}, enabled = true) {
 	return useQuery({
-		queryKey: moderationKeys.list(filters),
-		queryFn: () => fetchModerationItems(filters),
+		queryKey: moderationKeys.list(params),
+		queryFn: () => fetchModerationItems(params),
 		enabled,
 		staleTime: 30_000,
+		placeholderData: keepPreviousData,
 	});
 }
 

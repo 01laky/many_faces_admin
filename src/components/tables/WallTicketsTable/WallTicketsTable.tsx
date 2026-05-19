@@ -17,8 +17,8 @@ import {
 	TableHeaderCell,
 	TableCell,
 } from '@/components/radix/Table';
-import { Button } from '@/components/radix/Button';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
+import { AdminTablePagination } from '@/components/tables/AdminTablePagination';
 import {
 	ADMIN_TABLE_PAGE_SIZE,
 	isWallTicketRowSelected,
@@ -54,6 +54,7 @@ export interface WallTicketsTableProps {
 	onSelectRow: (row: AdminWallTicketRow) => void;
 	/** API list query uses 1-based page numbers. */
 	page: number;
+	totalCount: number;
 	totalPages: number;
 	onPageChange: (page: number) => void;
 	disabled?: boolean;
@@ -68,6 +69,7 @@ export function WallTicketsTable({
 	selectedId,
 	onSelectRow,
 	page,
+	totalCount,
 	totalPages,
 	onPageChange,
 	disabled = false,
@@ -133,6 +135,11 @@ export function WallTicketsTable({
 		manualPagination: true,
 		pageCount: totalPages,
 		state: { pagination },
+		onPaginationChange: (updater) => {
+			const next = typeof updater === 'function' ? updater(pagination) : updater;
+			const apiPage = next.pageIndex + 1;
+			if (apiPage !== page) onPageChange(apiPage);
+		},
 	});
 
 	const handleRowActivate = (row: AdminWallTicketRow) => {
@@ -186,27 +193,12 @@ export function WallTicketsTable({
 				</Table>
 			</div>
 
-			{totalPages > 1 && (
-				<div className="face-wall-tickets-page__pager">
-					<Button
-						variant="outline"
-						disabled={page <= 1 || disabled}
-						onClick={() => onPageChange(page - 1)}
-					>
-						{t('pages.faceWallTickets.prev')}
-					</Button>
-					<span>
-						{page} / {totalPages}
-					</span>
-					<Button
-						variant="outline"
-						disabled={page >= totalPages || disabled}
-						onClick={() => onPageChange(page + 1)}
-					>
-						{t('pages.faceWallTickets.next')}
-					</Button>
-				</div>
-			)}
+			<AdminTablePagination
+				table={table}
+				totalItems={totalCount}
+				itemLabel={t('pages.faceWallTickets.ticketsLabel')}
+				className="face-wall-tickets-page__pager admin-table-pagination"
+			/>
 		</>
 	);
 }

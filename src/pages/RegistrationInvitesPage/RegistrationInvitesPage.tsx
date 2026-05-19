@@ -3,6 +3,7 @@
  * API status values are lowercase (`pending`, `completed`, …) from the backend.
  */
 import { useState } from 'react';
+import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
 import { Container, Button, Form, Row, Col } from 'react-bootstrap';
 import { RegistrationInvitesTable } from '@/components/tables/RegistrationInvitesTable';
 import { useTranslation } from 'react-i18next';
@@ -20,7 +21,19 @@ export function RegistrationInvitesPage() {
 	const [firstName, setFirstName] = useState('');
 	const [lastName, setLastName] = useState('');
 
-	const { data: rows = [], isLoading: loading, isError, error } = useRegistrationInvitesList();
+	const [pageIndex, setPageIndex] = useState(0);
+	const {
+		data,
+		isLoading: loading,
+		isError,
+		error,
+	} = useRegistrationInvitesList({
+		page: pageIndex + 1,
+		pageSize: ADMIN_TABLE_PAGE_SIZE,
+		sortBy: 'createdAtUtc',
+		sortDir: 'desc',
+	});
+	const rows = data?.items ?? [];
 	const createInvite = useCreateRegistrationInvite();
 	const resendInvite = useResendRegistrationInviteEmail();
 	const revokeInvite = useRevokeRegistrationInvite();
@@ -111,6 +124,10 @@ export function RegistrationInvitesPage() {
 				) : (
 					<RegistrationInvitesTable
 						rows={rows}
+						totalCount={data?.totalCount ?? 0}
+						totalPages={data?.totalPages ?? 1}
+						pageIndex={pageIndex}
+						onPageIndexChange={setPageIndex}
 						actionBusy={actionBusy}
 						onResend={(rowEmail) => void onResend(rowEmail)}
 						onRevoke={(id) => void onRevoke(id)}

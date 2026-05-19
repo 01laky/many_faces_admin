@@ -1,12 +1,9 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { PaginationState } from '@tanstack/react-table';
 import { useNavigate } from 'react-router-dom';
 import {
 	useReactTable,
 	getCoreRowModel,
-	getSortedRowModel,
-	getFilteredRowModel,
-	getPaginationRowModel,
 	type ColumnDef,
 	type SortingState,
 	flexRender,
@@ -25,6 +22,8 @@ import { Button } from '@/components/radix/Button';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { toast } from 'react-toastify';
 import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
+import { clampPageIndex, sortingStateToApi } from '@/utils/adminListQuery';
+import { useAdminListSortValidationFeedback } from '@/hooks/useAdminListSortValidationFeedback';
 import { AdminTablePagination } from '@/components/tables/AdminTablePagination';
 import './PagesTable.scss';
 
@@ -36,13 +35,30 @@ export function PagesTable({ faceId }: PagesTableProps) {
 	const { t } = useTranslation('common');
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
-	const [sorting, setSorting] = useState<SortingState>([]);
+	const [sorting, setSorting] = useState<SortingState>([{ id: 'index', desc: false }]);
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: ADMIN_TABLE_PAGE_SIZE,
 	});
 
-	const { data: pages = [], isLoading, error, refetch } = usePages({ faceId });
+	const apiSort = sortingStateToApi(sorting);
+	const { data, isLoading, error, isError, refetch } = usePages({
+		faceId,
+		page: pagination.pageIndex + 1,
+		pageSize: pagination.pageSize,
+		...apiSort,
+	});
+
+	useEffect(() => {
+		if (!data?.totalPages) return;
+		const next = clampPageIndex(pagination.pageIndex, data.totalPages);
+		if (next !== pagination.pageIndex) {
+			setPagination((p) => ({ ...p, pageIndex: next }));
+		}
+	}, [data?.totalPages, pagination.pageIndex]);
+
+	useAdminListSortValidationFeedback(error, isError, setSorting);
+
 	const deletePageMutation = useDeletePage();
 
 	const handleDelete = useCallback(
@@ -134,7 +150,7 @@ export function PagesTable({ faceId }: PagesTableProps) {
 	);
 
 	// Get pages data
-	const pagesData = pages || [];
+	const pagesData = data?.items ?? [];
 
 	/*
 	 * TanStack Table's `useReactTable` returns function-heavy instances that React Compiler cannot safely
@@ -147,18 +163,19 @@ export function PagesTable({ faceId }: PagesTableProps) {
 		data: pagesData,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
+		enableMultiSort: false,
 		state: {
 			sorting,
 			pagination,
 		},
-		onSortingChange: setSorting,
+		onSortingChange: (updater) => {
+			setSorting(updater);
+			setPagination((p) => ({ ...p, pageIndex: 0 }));
+		},
 		onPaginationChange: setPagination,
-		manualPagination: false,
-		manualSorting: false,
-		manualFiltering: false,
+		manualPagination: true,
+		manualSorting: true,
+		pageCount: data?.totalPages ?? 0,
 	});
 
 	if (isLoading) {
@@ -252,7 +269,7 @@ export function PagesTable({ faceId }: PagesTableProps) {
 			</div>
 			<AdminTablePagination
 				table={table}
-				totalItems={pagesData.length}
+				totalItems={data?.totalCount ?? 0}
 				itemLabel={t('pages.pagesTable.title')}
 				className="pages-table-pagination"
 			/>

@@ -2,8 +2,12 @@ import { describe, it, expect } from 'vitest';
 import { isPendingInviteStatus, registrationInvitesKeys } from '../useRegistrationInvitesAdminApi';
 
 describe('useRegistrationInvitesAdminApi', () => {
-	it('registrationInvitesKeys.list uses skip/take', () => {
-		expect(registrationInvitesKeys.list(0, 50)).toEqual(['registrationInvites', 'list', 0, 50]);
+	it('registrationInvitesKeys.list uses page params', () => {
+		expect(registrationInvitesKeys.list({ page: 1, pageSize: 10 })).toEqual([
+			'registrationInvites',
+			'list',
+			{ page: 1, pageSize: 10 },
+		]);
 	});
 
 	it('isPendingInviteStatus is case-insensitive', () => {

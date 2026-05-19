@@ -1,12 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Alert, Button, Card, Col, Form, Row, Spinner } from 'react-bootstrap';
 import {
 	useReactTable,
 	getCoreRowModel,
-	getPaginationRowModel,
 	flexRender,
 	type ColumnDef,
 	type PaginationState,
+	type SortingState,
 } from '@tanstack/react-table';
 import type { ModerationItem } from '@/hooks/api/useContentModerationApi';
 import {
@@ -24,11 +24,16 @@ import {
 	parseModerationFlags,
 	type BulkModerationAction,
 } from '@/utils/contentModeration';
-import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
 import { AdminTablePagination } from '@/components/tables/AdminTablePagination';
 
 interface ModerationQueueTableProps {
-	data: ModerationItem[] | undefined;
+	items: ModerationItem[];
+	totalCount: number;
+	totalPages: number;
+	pagination: PaginationState;
+	onPaginationChange: React.Dispatch<React.SetStateAction<PaginationState>>;
+	sorting: SortingState;
+	onSortingChange: React.Dispatch<React.SetStateAction<SortingState>>;
 	isLoading: boolean;
 	error: unknown;
 	selectedKeys: string[];
@@ -46,14 +51,20 @@ interface ModerationQueueTableProps {
 	onRunBulkAction: () => void;
 }
 
-const COLUMN_COUNT = 9;
+const COLUMN_COUNT = 10;
 
 /**
  * SUPER_ADMIN moderation queue: bulk toolbar + TanStack Table over server-filtered items.
  * Selection and mutations stay in the parent page; this component owns presentation only.
  */
 export function ModerationQueueTable({
-	data,
+	items,
+	totalCount,
+	totalPages,
+	pagination,
+	onPaginationChange,
+	sorting,
+	onSortingChange,
 	isLoading,
 	error,
 	selectedKeys,
@@ -70,11 +81,7 @@ export function ModerationQueueTable({
 	onBulkReasonChange,
 	onRunBulkAction,
 }: ModerationQueueTableProps) {
-	const rows = data ?? [];
-	const [pagination, setPagination] = useState<PaginationState>({
-		pageIndex: 0,
-		pageSize: ADMIN_TABLE_PAGE_SIZE,
-	});
+	const rows = items;
 
 	const columns = useMemo<ColumnDef<ModerationItem>[]>(
 		() => [
@@ -97,11 +104,13 @@ export function ModerationQueueTable({
 			{
 				accessorKey: 'contentType',
 				header: 'Type',
+				enableSorting: true,
 				cell: (info) => String(info.getValue()),
 			},
 			{
 				accessorKey: 'title',
 				header: 'Title',
+				enableSorting: true,
 				// PI-8: plain text only — never render queue fields as HTML.
 				cell: (info) => String(info.getValue() ?? ''),
 			},
@@ -188,10 +197,14 @@ export function ModerationQueueTable({
 		data: rows,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
 		getRowId: (row) => buildModerationRowKey(row),
-		state: { pagination },
-		onPaginationChange: setPagination,
+		enableMultiSort: false,
+		state: { pagination, sorting },
+		onPaginationChange,
+		onSortingChange,
+		manualPagination: true,
+		manualSorting: true,
+		pageCount: totalPages,
 	});
 
 	const bulkEnabled = canRunBulkModeration(selectedKeys.length, bulkActionPending);
@@ -264,10 +277,20 @@ export function ModerationQueueTable({
 							{table.getHeaderGroups().map((headerGroup) => (
 								<TableRow key={headerGroup.id}>
 									{headerGroup.headers.map((header) => (
-										<TableHeaderCell key={header.id}>
+										<TableHeaderCell
+											key={header.id}
+											data-sortable={header.column.getCanSort() ? '' : undefined}
+											onClick={header.column.getToggleSortingHandler()}
+											style={{
+												cursor: header.column.getCanSort() ? 'pointer' : 'default',
+											}}
+										>
 											{header.isPlaceholder
 												? null
 												: flexRender(header.column.columnDef.header, header.getContext())}
+											{header.column.getIsSorted() && (
+												<span>{header.column.getIsSorted() === 'desc' ? ' ↓' : ' ↑'}</span>
+											)}
 										</TableHeaderCell>
 									))}
 								</TableRow>
@@ -298,7 +321,7 @@ export function ModerationQueueTable({
 					</Table>
 					<AdminTablePagination
 						table={table}
-						totalItems={rows.length}
+						totalItems={totalCount}
 						itemLabel="items"
 						className="content-moderation-page__pagination"
 					/>

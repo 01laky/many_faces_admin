@@ -35,7 +35,7 @@ describe('wallTicketsAdminApi', () => {
 			json: async () => payload,
 		});
 
-		const result = await adminListWallTickets('tok', 5, 2, 10);
+		const result = await adminListWallTickets('tok', 5, { page: 2, pageSize: 10 });
 
 		expect(result).toBe(payload);
 		expect(fetchMock).toHaveBeenCalledWith(
@@ -69,7 +69,7 @@ describe('wallTicketsAdminApi', () => {
 			}),
 		});
 
-		await adminListWallTickets('tok', 5, 1, 20, 'active');
+		await adminListWallTickets('tok', 5, { page: 1, pageSize: 20, status: 'active' });
 
 		expect(fetchMock).toHaveBeenCalledWith(
 			expect.stringContaining('status=active'),

@@ -1,29 +1,37 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
+import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
 import {
 	createRegistrationInvite,
 	listRegistrationInvites,
 	resendRegistrationInviteEmail,
 	revokeRegistrationInvite,
+	type RegistrationInviteListParams,
 	type RegistrationInviteRow,
 } from '@/api/services/registrationInvitesAdminApi';
 
 export const registrationInvitesKeys = {
 	all: ['registrationInvites'] as const,
-	list: (skip: number, take: number) =>
-		[...registrationInvitesKeys.all, 'list', skip, take] as const,
+	list: (params: RegistrationInviteListParams) =>
+		[...registrationInvitesKeys.all, 'list', params] as const,
 };
 
-const DEFAULT_SKIP = 0;
-const DEFAULT_TAKE = 50;
-
-export function useRegistrationInvitesList(skip = DEFAULT_SKIP, take = DEFAULT_TAKE) {
+export function useRegistrationInvitesList(params: RegistrationInviteListParams = {}) {
 	const { token } = useAuth();
+	const queryParams = {
+		page: params.page ?? 1,
+		pageSize: params.pageSize ?? ADMIN_TABLE_PAGE_SIZE,
+		sortBy: params.sortBy,
+		sortDir: params.sortDir,
+		status: params.status,
+		emailContains: params.emailContains,
+	};
 	return useQuery({
-		queryKey: registrationInvitesKeys.list(skip, take),
-		queryFn: () => listRegistrationInvites(token!, skip, take),
+		queryKey: registrationInvitesKeys.list(queryParams),
+		queryFn: () => listRegistrationInvites(token!, queryParams),
 		enabled: Boolean(token),
 		staleTime: 60_000,
+		placeholderData: keepPreviousData,
 	});
 }
 

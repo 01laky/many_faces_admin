@@ -3,6 +3,8 @@ import { OpenAPI } from '../../api/core/OpenAPI';
 import { request as __request } from '../../api/core/request';
 import { logger } from '../../utils/logger';
 import { ADMIN_TABLE_PAGE_SIZE } from '../../utils/adminTableUtils';
+import { parsePaginatedEnvelope } from '../../utils/adminListQuery';
+import type { ApiSortDir } from '../../utils/adminListQuery';
 
 export type FaceVisibility = 'Public' | 'Private' | 'Face' | 'Hidden';
 
@@ -24,6 +26,8 @@ interface UseFacesParams {
 	page?: number;
 	pageSize?: number;
 	search?: string;
+	sortBy?: string;
+	sortDir?: ApiSortDir;
 }
 
 interface UseFacesResponse {
@@ -31,44 +35,33 @@ interface UseFacesResponse {
 	total: number;
 	page: number;
 	pageSize: number;
+	totalPages: number;
 }
 
-// Fetch all faces from API
 const fetchFaces = async (params: UseFacesParams): Promise<UseFacesResponse> => {
+	const page = params.page || 1;
+	const pageSize = params.pageSize || ADMIN_TABLE_PAGE_SIZE;
 	logger.info('Fetching faces from API', params);
 
 	try {
 		const response = await __request(OpenAPI, {
 			method: 'GET',
 			url: '/api/faces',
+			query: {
+				page,
+				pageSize,
+				...(params.search?.trim() ? { search: params.search.trim() } : {}),
+				...(params.sortBy ? { sortBy: params.sortBy, sortDir: params.sortDir ?? 'asc' } : {}),
+			},
 		});
 
-		let faces: Face[] = Array.isArray(response) ? response : [];
-
-		// Client-side filtering if search is provided
-		if (params.search) {
-			const searchLower = params.search.toLowerCase();
-			faces = faces.filter(
-				(face) =>
-					face.index?.toLowerCase().includes(searchLower) ||
-					face.title?.toLowerCase().includes(searchLower) ||
-					face.description?.toLowerCase().includes(searchLower) ||
-					face.gradientSettings?.toLowerCase().includes(searchLower)
-			);
-		}
-
-		// Client-side pagination
-		const page = params.page || 1;
-		const pageSize = params.pageSize || ADMIN_TABLE_PAGE_SIZE;
-		const start = (page - 1) * pageSize;
-		const end = start + pageSize;
-		const paginatedFaces = faces.slice(start, end);
-
+		const envelope = parsePaginatedEnvelope<Face>(response, page, pageSize);
 		return {
-			faces: paginatedFaces,
-			total: faces.length,
-			page,
-			pageSize,
+			faces: envelope.items,
+			total: envelope.totalCount,
+			page: envelope.page,
+			pageSize: envelope.pageSize,
+			totalPages: envelope.totalPages,
 		};
 	} catch (error) {
 		logger.error('Error fetching faces', error);

@@ -1,10 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Badge, Button } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import {
 	useReactTable,
 	getCoreRowModel,
-	getPaginationRowModel,
 	flexRender,
 	type ColumnDef,
 	type PaginationState,
@@ -26,6 +25,10 @@ import { AdminTablePagination } from '@/components/tables/AdminTablePagination';
 
 export interface RegistrationInvitesTableProps {
 	rows: RegistrationInviteRow[];
+	totalCount: number;
+	totalPages: number;
+	pageIndex: number;
+	onPageIndexChange: (pageIndex: number) => void;
 	actionBusy: boolean;
 	onResend: (email: string) => void;
 	onRevoke: (id: string) => void;
@@ -37,15 +40,19 @@ export interface RegistrationInvitesTableProps {
  */
 export function RegistrationInvitesTable({
 	rows,
+	totalCount,
+	totalPages,
+	pageIndex,
+	onPageIndexChange,
 	actionBusy,
 	onResend,
 	onRevoke,
 }: RegistrationInvitesTableProps) {
 	const { t } = useTranslation('common');
-	const [pagination, setPagination] = useState<PaginationState>({
-		pageIndex: 0,
+	const pagination: PaginationState = {
+		pageIndex,
 		pageSize: ADMIN_TABLE_PAGE_SIZE,
-	});
+	};
 
 	const columns = useMemo<ColumnDef<RegistrationInviteRow>[]>(
 		() => [
@@ -106,10 +113,14 @@ export function RegistrationInvitesTable({
 		data: rows,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
 		getRowId: (row) => row.id,
 		state: { pagination },
-		onPaginationChange: setPagination,
+		onPaginationChange: (updater) => {
+			const next = typeof updater === 'function' ? updater(pagination) : updater;
+			onPageIndexChange(next.pageIndex);
+		},
+		manualPagination: true,
+		pageCount: totalPages,
 	});
 
 	return (
@@ -150,7 +161,7 @@ export function RegistrationInvitesTable({
 			</Table>
 			<AdminTablePagination
 				table={table}
-				totalItems={rows.length}
+				totalItems={totalCount}
 				itemLabel={t('pages.registrationInvites.title')}
 				className="registration-invites-table__pagination"
 			/>

@@ -3,9 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import {
 	useReactTable,
 	getCoreRowModel,
-	getSortedRowModel,
-	getFilteredRowModel,
 	type ColumnDef,
+	type PaginationState,
 	type SortingState,
 	type ColumnFiltersState,
 	flexRender,
@@ -26,6 +25,8 @@ import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { gradientPreviewStyle } from '@/utils/gradientPreview';
 import { isAdminScopeFace } from '@/utils/adminScopeFace';
 import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
+import { clampPageIndex, sortingStateToApi } from '@/utils/adminListQuery';
+import { useAdminListSortValidationFeedback } from '@/hooks/useAdminListSortValidationFeedback';
 import { AdminTablePagination } from '@/components/tables/AdminTablePagination';
 import './FacesTable.scss';
 
@@ -36,20 +37,38 @@ export function FacesTable() {
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [search, setSearch] = useState('');
+	const [debouncedSearch, setDebouncedSearch] = useState('');
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: ADMIN_TABLE_PAGE_SIZE,
 	});
 
 	useEffect(() => {
+		const t = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
+		return () => window.clearTimeout(t);
+	}, [search]);
+
+	useEffect(() => {
 		setPagination((prev) => ({ ...prev, pageIndex: 0 }));
 	}, [search]);
 
-	const { data, isLoading, error, refetch } = useFaces({
+	const apiSort = sortingStateToApi(sorting);
+	const { data, isLoading, error, isError, refetch } = useFaces({
 		page: pagination.pageIndex + 1,
 		pageSize: pagination.pageSize,
-		search: search || undefined,
+		search: debouncedSearch || undefined,
+		...apiSort,
 	});
+
+	useEffect(() => {
+		if (!data?.totalPages) return;
+		const next = clampPageIndex(pagination.pageIndex, data.totalPages);
+		if (next !== pagination.pageIndex) {
+			setPagination((p) => ({ ...p, pageIndex: next }));
+		}
+	}, [data?.totalPages, pagination.pageIndex]);
+
+	useAdminListSortValidationFeedback(error, isError, setSorting);
 
 	// Define columns
 	const columns = useMemo<ColumnDef<Face>[]>(
@@ -171,22 +190,21 @@ export function FacesTable() {
 		data: faces,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
+		enableMultiSort: false,
 		state: {
 			sorting,
 			columnFilters,
 			pagination,
 		},
-		onSortingChange: setSorting,
+		onSortingChange: (updater) => {
+			setSorting(updater);
+			setPagination((p) => ({ ...p, pageIndex: 0 }));
+		},
 		onColumnFiltersChange: setColumnFilters,
 		onPaginationChange: setPagination,
 		manualPagination: true,
-		manualSorting: false,
-		manualFiltering: false,
-		pageCount: data
-			? Math.max(1, Math.ceil(data.total / (data.pageSize || ADMIN_TABLE_PAGE_SIZE)))
-			: 1,
+		manualSorting: true,
+		pageCount: data?.totalPages ?? 0,
 	});
 
 	if (isLoading) {

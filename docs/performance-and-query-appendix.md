@@ -14,9 +14,10 @@ Companion to [`docs/prompts/admin-performance-and-refactor-agent-prompt.md`](../
 | **Global defaults** (`QueryProvider.tsx`)                             | `5 * 60 * 1000` (5 min)          | `10 * 60 * 1000` — inactive cache cleared after 10 min |
 | **`useMeCapabilities`** (via `createMeCapabilitiesQueryOptions`)      | `60_000` (1 min)                 | inherits default `gcTime`                              |
 | **`useAuthToken`** (`useAuthApi.ts`)                                  | `60_000`                         | session-scoped                                         |
-| **`useUsersApi` / `useFacesApi` / `usePagesApi` / `usePageTypesApi`** | `5 * 60 * 1000` on list + detail | list uses `placeholderData: keepPreviousData` (v5)   |
+| **`useUsersApi` / `useFacesApi` / `usePagesApi` / `usePageTypesApi`** | `5 * 60 * 1000` on list + detail | server `page`/`pageSize`/`sortBy`/`sortDir`; `placeholderData: keepPreviousData` (v5) |
+| **`useContentModerationApi` / `useRegistrationInvitesAdminApi`**      | list `staleTime` per hook        | paginated envelope; moderation keys include page + sort |
 | **`useWallTicketsAdminApi`**                                            | `45_000`                         | invalidates `['stats']` on ticket mutations            |
-| **`useRegistrationInvitesAdminApi`**                                    | `60_000`                         | list defaults skip=0, take=50                          |
+| **`useRegistrationInvitesAdminApi`**                                    | `60_000`                         | server `page`/`pageSize` (default 10); legacy `skip`/`take` optional on BE |
 | **`useOperatorAiMessagesInfinite` / `useOperatorUserChatMessagesInfinite`** | `0`                          | `fetchNextPage` for older messages; hub patches first page |
 
 **Query hook modules (2026-05):** `useWallTicketsAdminApi`, `useRegistrationInvitesAdminApi`; key factories `usersKeys`, `facesKeys`, `pagesKeys`, `wallTicketsKeys`, `registrationInvitesKeys`, exported `moderationKeys`.

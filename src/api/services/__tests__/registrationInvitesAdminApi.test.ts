@@ -24,10 +24,10 @@ describe('registrationInvitesAdminApi', () => {
 			json: async () => [],
 		});
 
-		await listRegistrationInvites('tok', 10, 25);
+		await listRegistrationInvites('tok', { page: 2, pageSize: 25 });
 
 		expect(fetchMock).toHaveBeenCalledWith(
-			'https://api.test/admin/api/admin/registration-invites?skip=10&take=25',
+			'https://api.test/admin/api/admin/registration-invites?page=2&pageSize=25',
 			expect.objectContaining({
 				headers: expect.objectContaining({ Authorization: 'Bearer tok' }),
 			})
@@ -65,13 +65,13 @@ describe('registrationInvitesAdminApi', () => {
 	it('POSTs resend on public register path', async () => {
 		fetchMock.mockResolvedValueOnce({ ok: true });
 
-		await resendRegistrationInviteEmail('tok', 'a@b.c', 'en');
+		await resendRegistrationInviteEmail('tok', 'a@b.c');
 
 		expect(fetchMock).toHaveBeenCalledWith(
-			'https://api.test/admin/api/oauth2/register/resend',
+			'https://api.test/admin/api/auth/register/resend',
 			expect.objectContaining({
 				method: 'POST',
-				body: JSON.stringify({ email: 'a@b.c', locale: 'en' }),
+				body: JSON.stringify({ email: 'a@b.c' }),
 			})
 		);
 	});

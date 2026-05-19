@@ -1,4 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type { PaginationState, SortingState } from '@tanstack/react-table';
+import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
+import { clampPageIndex, sortingStateToApi } from '@/utils/adminListQuery';
+import { useAdminListSortValidationFeedback } from '@/hooks/useAdminListSortValidationFeedback';
 import { Alert } from 'react-bootstrap';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -69,6 +73,11 @@ export function ContentModerationPage() {
 	const [bulkActionName, setBulkActionName] = useState<BulkModerationAction>('Approve');
 	const [bulkReason, setBulkReason] = useState('');
 	const [bulkResultSummary, setBulkResultSummary] = useState<string | null>(null);
+	const [pagination, setPagination] = useState<PaginationState>({
+		pageIndex: 0,
+		pageSize: ADMIN_TABLE_PAGE_SIZE,
+	});
+	const [sorting, setSorting] = useState<SortingState>([{ id: 'submittedAtUtc', desc: true }]);
 
 	const filters = {
 		contentType: contentType || undefined,
@@ -86,7 +95,51 @@ export function ContentModerationPage() {
 		reviewedByUserId: reviewedByUserId.trim() || undefined,
 		minQueueAgeHours: parseOptionalDouble(minQueueAgeHoursText),
 	};
-	const { data, isLoading, error } = useModerationItems(filters, isSuperAdmin);
+	const listParams = {
+		...filters,
+		...sortingStateToApi(sorting),
+		page: pagination.pageIndex + 1,
+		pageSize: pagination.pageSize,
+	};
+	const { data, isLoading, error, isError } = useModerationItems(listParams, isSuperAdmin);
+
+	useAdminListSortValidationFeedback(error, isError, setSorting);
+
+	useEffect(() => {
+		if (!data?.totalPages) return;
+		const next = clampPageIndex(pagination.pageIndex, data.totalPages);
+		if (next !== pagination.pageIndex) {
+			// eslint-disable-next-line react-hooks/set-state-in-effect -- clamp page when server totalPages shrinks (§1.9)
+			setPagination((p) => ({ ...p, pageIndex: next }));
+		}
+	}, [data?.totalPages, pagination.pageIndex]);
+
+	useEffect(() => {
+		// eslint-disable-next-line react-hooks/set-state-in-effect -- clear bulk selection when filters change
+		setSelectedKeys([]);
+		setPagination((p) => ({ ...p, pageIndex: 0 }));
+	}, [
+		contentType,
+		approvalStatus,
+		aiReviewStatus,
+		riskLevel,
+		authorId,
+		faceIdText,
+		moderationVersionText,
+		flagContains,
+		minConfidenceText,
+		maxConfidenceText,
+		submittedFromUtc,
+		submittedToUtc,
+		reviewedByUserId,
+		minQueueAgeHoursText,
+	]);
+
+	useEffect(() => {
+		// eslint-disable-next-line react-hooks/set-state-in-effect -- clear cross-page bulk selection
+		setSelectedKeys([]);
+	}, [pagination.pageIndex, sorting]);
+
 	const { data: metrics } = useModerationMetrics(isSuperAdmin);
 	const { data: events, isLoading: eventsLoading } = useModerationEvents(selectedItem);
 	const action = useModerationAction();
@@ -179,7 +232,16 @@ export function ContentModerationPage() {
 			<ModerationMetricsPanel metrics={metrics} />
 
 			<ModerationQueueTable
-				data={data}
+				items={data?.items ?? []}
+				totalCount={data?.totalCount ?? 0}
+				totalPages={data?.totalPages ?? 0}
+				pagination={pagination}
+				onPaginationChange={setPagination}
+				sorting={sorting}
+				onSortingChange={(updater) => {
+					setSorting(updater);
+					setPagination((p) => ({ ...p, pageIndex: 0 }));
+				}}
 				isLoading={isLoading}
 				error={error}
 				selectedKeys={selectedKeys}

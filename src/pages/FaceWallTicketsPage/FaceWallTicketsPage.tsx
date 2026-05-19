@@ -55,7 +55,13 @@ export function FaceWallTicketsPage() {
 		isLoading: listLoading,
 		isError: listIsError,
 		error: listError,
-	} = useAdminWallTicketsList(faceId, page, ADMIN_TABLE_PAGE_SIZE, statusQuery);
+	} = useAdminWallTicketsList(faceId, {
+		page,
+		pageSize: ADMIN_TABLE_PAGE_SIZE,
+		status: statusQuery,
+		sortBy: 'createdAt',
+		sortDir: 'desc',
+	});
 
 	const {
 		data: selected,
@@ -209,6 +215,7 @@ export function FaceWallTicketsPage() {
 							selectedId={selected?.id}
 							onSelectRow={selectRow}
 							page={page}
+							totalCount={listData?.totalCount ?? 0}
 							totalPages={totalPages}
 							onPageChange={setPage}
 							disabled={actionBusy}

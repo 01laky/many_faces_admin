@@ -16,6 +16,8 @@ interface UseUsersParams {
 	page?: number;
 	pageSize?: number;
 	search?: string;
+	sortBy?: string;
+	sortDir?: 'asc' | 'desc';
 }
 
 interface UseUsersResponse {
@@ -83,6 +85,7 @@ const fetchUsers = async (params: UseUsersParams): Promise<UseUsersResponse> => 
 				page,
 				pageSize,
 				...(params.search?.trim() ? { search: params.search.trim() } : {}),
+				...(params.sortBy ? { sortBy: params.sortBy, sortDir: params.sortDir ?? 'asc' } : {}),
 			},
 		});
 

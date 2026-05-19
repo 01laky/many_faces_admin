@@ -2,6 +2,8 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { OpenAPI } from '../../api/core/OpenAPI';
 import { request as __request } from '../../api/core/request';
 import { logger } from '../../utils/logger';
+import { ADMIN_TABLE_PAGE_SIZE } from '../../utils/adminTableUtils';
+import { parsePaginatedEnvelope, type ApiSortDir } from '../../utils/adminListQuery';
 
 export interface Page {
 	id: number;
@@ -16,29 +18,42 @@ export interface Page {
 	updatedAt?: string | null;
 }
 
-interface UsePagesParams {
+export interface UsePagesParams {
 	faceId?: number;
+	page?: number;
+	pageSize?: number;
+	search?: string;
+	sortBy?: string;
+	sortDir?: ApiSortDir;
 }
 
-// Fetch pages from API
-const fetchPages = async (params: UsePagesParams): Promise<Page[]> => {
+export interface UsePagesListResponse {
+	items: Page[];
+	page: number;
+	pageSize: number;
+	totalCount: number;
+	totalPages: number;
+}
+
+const fetchPages = async (params: UsePagesParams): Promise<UsePagesListResponse> => {
+	const page = params.page || 1;
+	const pageSize = params.pageSize || ADMIN_TABLE_PAGE_SIZE;
 	logger.info('Fetching pages from API', params);
 
 	try {
-		const queryParams: Record<string, string> = {};
-		if (params.faceId) {
-			queryParams.faceId = params.faceId.toString();
-		}
-
-		const queryString = new URLSearchParams(queryParams).toString();
-		const url = `/api/pages${queryString ? `?${queryString}` : ''}`;
-
 		const response = await __request(OpenAPI, {
 			method: 'GET',
-			url,
+			url: '/api/pages',
+			query: {
+				...(params.faceId ? { faceId: params.faceId } : {}),
+				page,
+				pageSize,
+				...(params.search?.trim() ? { search: params.search.trim() } : {}),
+				...(params.sortBy ? { sortBy: params.sortBy, sortDir: params.sortDir ?? 'asc' } : {}),
+			},
 		});
 
-		return Array.isArray(response) ? response : [];
+		return parsePaginatedEnvelope<Page>(response, page, pageSize);
 	} catch (error) {
 		logger.error('Error fetching pages', error);
 		throw error;

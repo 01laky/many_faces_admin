@@ -1,9 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
 	useReactTable,
 	getCoreRowModel,
-	getSortedRowModel,
 	type ColumnDef,
 	type SortingState,
 	type ColumnFiltersState,
@@ -22,13 +21,15 @@ import { Button } from '@/components/radix/Button';
 import { Input } from '@/components/radix/Input';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
+import { clampPageIndex, sortingStateToApi } from '@/utils/adminListQuery';
+import { useAdminListSortValidationFeedback } from '@/hooks/useAdminListSortValidationFeedback';
 import { AdminTablePagination } from '@/components/tables/AdminTablePagination';
 import './UsersTable.scss';
 
 export function UsersTable() {
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
-	const [sorting, setSorting] = useState<SortingState>([]);
+	const [sorting, setSorting] = useState<SortingState>([{ id: 'createdAt', desc: true }]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [search, setSearch] = useState('');
 	const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: ADMIN_TABLE_PAGE_SIZE });
@@ -36,11 +37,24 @@ export function UsersTable() {
 	const page = pagination.pageIndex + 1;
 	const pageSize = pagination.pageSize;
 
-	const { data, isLoading, error, refetch } = useUsers({
+	const apiSort = sortingStateToApi(sorting);
+
+	const { data, isLoading, error, isError, refetch } = useUsers({
 		page,
 		pageSize,
 		search: search || undefined,
+		...apiSort,
 	});
+
+	useEffect(() => {
+		if (!data?.totalPages) return;
+		const next = clampPageIndex(pagination.pageIndex, data.totalPages);
+		if (next !== pagination.pageIndex) {
+			setPagination((p) => ({ ...p, pageIndex: next }));
+		}
+	}, [data?.totalPages, pagination.pageIndex]);
+
+	useAdminListSortValidationFeedback(error, isError, setSorting);
 
 	// Define columns
 	const columns = useMemo<ColumnDef<User>[]>(
@@ -104,13 +118,16 @@ export function UsersTable() {
 		data: users,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
+		enableMultiSort: false,
 		state: {
 			sorting,
 			columnFilters,
 			pagination,
 		},
-		onSortingChange: setSorting,
+		onSortingChange: (updater) => {
+			setSorting(updater);
+			setPagination((p) => ({ ...p, pageIndex: 0 }));
+		},
 		onColumnFiltersChange: setColumnFilters,
 		onPaginationChange: setPagination,
 		manualPagination: true,

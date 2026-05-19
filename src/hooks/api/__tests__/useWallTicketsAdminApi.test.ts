@@ -3,13 +3,11 @@ import { isWallTicketsForbiddenError, wallTicketsKeys } from '../useWallTicketsA
 
 describe('useWallTicketsAdminApi', () => {
 	it('wallTicketsKeys.list includes face and pagination', () => {
-		expect(wallTicketsKeys.list(5, 2, 20, 'active')).toEqual([
+		expect(wallTicketsKeys.list(5, { page: 2, pageSize: 20, status: 'active' })).toEqual([
 			'wallTickets',
 			'list',
 			5,
-			2,
-			20,
-			'active',
+			{ page: 2, pageSize: 20, status: 'active' },
 		]);
 	});
 

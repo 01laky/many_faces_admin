@@ -70,16 +70,33 @@ export interface AdminWallTicketCreateResult {
   createdAt: string;
 }
 
+export interface AdminWallTicketListParams {
+  page?: number;
+  pageSize?: number;
+  status?: string;
+  search?: string;
+  sortBy?: string;
+  sortDir?: 'asc' | 'desc';
+}
+
 export async function adminListWallTickets(
   token: string,
   faceId: number,
-  page = 1,
-  pageSize = 10,
-  status?: string
+  params: AdminWallTicketListParams = {}
 ): Promise<AdminWallTicketListResponse> {
-  const statusQ = status ? `&status=${encodeURIComponent(status)}` : '';
+  const page = params.page ?? 1;
+  const pageSize = params.pageSize ?? 10;
+  const q = new URLSearchParams();
+  q.set('page', String(page));
+  q.set('pageSize', String(pageSize));
+  if (params.status) q.set('status', params.status);
+  if (params.search?.trim()) q.set('search', params.search.trim());
+  if (params.sortBy) {
+    q.set('sortBy', params.sortBy);
+    q.set('sortDir', params.sortDir ?? 'asc');
+  }
   const res = await authFetch(
-    `/api/admin/faces/${faceId}/wall-tickets?page=${page}&pageSize=${pageSize}${statusQ}`,
+    `/api/admin/faces/${faceId}/wall-tickets?${q.toString()}`,
     token
   );
   if (!res.ok) throw new Error(await getApiErrorMessage(res, REQ_FAILED));

@@ -27,7 +27,13 @@ describe('useContentModerationApi requests', () => {
 	});
 
 	it('fetches moderation items with filters', async () => {
-		mockRequest.mockResolvedValue([]);
+		mockRequest.mockResolvedValue({
+			items: [],
+			page: 1,
+			pageSize: 10,
+			totalCount: 0,
+			totalPages: 1,
+		});
 
 		await fetchModerationItems({
 			contentType: 'Album',
@@ -35,6 +41,8 @@ describe('useContentModerationApi requests', () => {
 			flagContains: 'spam',
 			minConfidence: 0.5,
 			minQueueAgeHours: 12,
+			page: 1,
+			pageSize: 10,
 		});
 
 		expect(mockRequest).toHaveBeenCalledWith(
@@ -48,6 +56,8 @@ describe('useContentModerationApi requests', () => {
 					flagContains: 'spam',
 					minConfidence: 0.5,
 					minQueueAgeHours: 12,
+					page: 1,
+					pageSize: 10,
 				},
 			})
 		);
