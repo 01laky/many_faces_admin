@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table';
 import { useTranslation } from 'react-i18next';
 import { useBlogs, type BlogListItem } from '@/hooks/api/useBlogsApi';
@@ -7,14 +7,13 @@ import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
 import { sortingStateToApi } from '@/utils/adminListQuery';
 import { getModerationQueueLabel } from '@/utils/contentModeration';
-import { stopAdminTableRowNavigation } from '@/utils/adminTableRowClick';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
 
-interface BlogsTableProps {
-	faceId: number;
+export interface UserDetailBlogsTableProps {
+	creatorId: string;
 }
 
-export function BlogsTable({ faceId }: BlogsTableProps) {
+export function UserDetailBlogsTable({ creatorId }: UserDetailBlogsTableProps) {
 	const { t } = useTranslation('common');
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
@@ -23,56 +22,44 @@ export function BlogsTable({ faceId }: BlogsTableProps) {
 		pageIndex: 0,
 		pageSize: ADMIN_TABLE_PAGE_SIZE,
 	});
+
 	const { data, isLoading, isError, error, refetch } = useBlogs({
-		faceId,
+		creatorId,
 		page: pagination.pageIndex + 1,
 		pageSize: pagination.pageSize,
 		...sortingStateToApi(sorting),
 	});
 
 	const openDetail = (row: BlogListItem) => {
-		navigate(getLocalizedPath(`/blogs/${row.id}?faceId=${faceId}`));
+		const fid = row.faceId ?? 0;
+		if (fid <= 0) return;
+		navigate(getLocalizedPath(`/blogs/${row.id}?faceId=${fid}`));
 	};
 
 	const columns = useMemo<ColumnDef<BlogListItem>[]>(
 		() => [
-			{
-				accessorKey: 'id',
-				header: 'ID',
-				enableSorting: true,
-				cell: ({ getValue }) => getValue(),
-			},
+			{ accessorKey: 'id', header: 'ID', enableSorting: true },
 			{ accessorKey: 'title', header: t('pages.blogsTable.colTitle'), enableSorting: true },
+			{
+				id: 'face',
+				header: t('pages.userDetail.blogsColFace'),
+				cell: ({ row }) => row.original.faceTitle ?? row.original.faceId ?? '—',
+			},
 			{
 				accessorKey: 'imageCount',
 				header: t('pages.blogsTable.colImages'),
-				enableSorting: false,
 				cell: ({ getValue }) => getValue() ?? 0,
 			},
 			{
 				id: 'approval',
 				header: t('pages.blogsTable.colApproval'),
-				cell: ({ row }) => (
-					<span className="badge text-bg-secondary">
-						{getModerationQueueLabel(row.original.approvalStatus, row.original.aiReviewStatus)}
-					</span>
-				),
-			},
-			{
-				id: 'creator',
-				header: t('pages.blogsTable.colCreator'),
-				cell: ({ row }) =>
-					row.original.creatorId ? (
-						<Link
-							to={getLocalizedPath(`/users/${row.original.creatorId}`)}
-							className="link-primary"
-							onClick={stopAdminTableRowNavigation}
-						>
-							{row.original.creatorName || row.original.creatorId}
-						</Link>
-					) : (
-						'—'
-					),
+				cell: ({ row }) => {
+					const label = getModerationQueueLabel(
+						row.original.approvalStatus,
+						row.original.aiReviewStatus
+					);
+					return <span className="badge text-bg-secondary">{label}</span>;
+				},
 			},
 			{
 				accessorKey: 'createdAt',
@@ -84,16 +71,16 @@ export function BlogsTable({ faceId }: BlogsTableProps) {
 				},
 			},
 		],
-		[getLocalizedPath, t]
+		[t]
 	);
 
 	return (
 		<FaceDetailEntityTableShell
-			sectionTitle={t('pages.blogsTable.title')}
-			emptyMessage={t('pages.blogsTable.noItems')}
+			sectionTitle={t('pages.userDetail.blogsTitle')}
+			emptyMessage={t('pages.userDetail.blogsEmpty')}
 			loadingMessage={t('pages.blogsTable.loading')}
 			errorMessagePrefix={t('pages.blogsTable.error')}
-			itemLabel={t('pages.blogsTable.title')}
+			itemLabel={t('pages.userDetail.blogsTitle')}
 			columns={columns}
 			data={data?.items ?? []}
 			totalCount={data?.totalCount ?? 0}

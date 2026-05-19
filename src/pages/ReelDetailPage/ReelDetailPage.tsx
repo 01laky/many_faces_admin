@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import type { To } from 'react-router-dom';
 import { Container, Row, Col } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
@@ -376,10 +375,13 @@ export function ReelDetailPage() {
 							</h2>
 							<div className="user-detail-action-buttons">
 								{data.creatorId && (
-									<Button variant="outline" asChild>
-										<Link to={buildLocalizedUserChatPath(getLocalizedPath, data.creatorId) as To}>
-											{t('pages.reelDetail.openChat')}
-										</Link>
+									<Button
+										variant="outline"
+										onClick={() =>
+											navigate(buildLocalizedUserChatPath(getLocalizedPath, data.creatorId!))
+										}
+									>
+										{t('pages.reelDetail.openChat')}
 									</Button>
 								)}
 								<Button

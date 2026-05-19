@@ -234,11 +234,13 @@ export function UserChatPage() {
 		});
 
 		const startHub = async () => {
-			if (hubStartInFlightRef.current) return;
+			if (!isActiveSession() || hubStartInFlightRef.current) return;
 			hubStartInFlightRef.current = true;
-			setConnectionState('Connecting');
+			if (isActiveSession()) setConnectionState('Connecting');
 			try {
-				await connection.start();
+				if (connection.state === HubConnectionState.Disconnected) {
+					await connection.start();
+				}
 				if (isActiveSession()) setConnectionState('Connected');
 			} catch (err) {
 				console.error('Messenger hub connect failed:', err);
@@ -248,7 +250,10 @@ export function UserChatPage() {
 			}
 		};
 
-		void startHub();
+		// Defer negotiate so Strict Mode cleanup (detail → user-chat deep link) does not abort in-flight start.
+		const startTimerId = window.setTimeout(() => {
+			void startHub();
+		}, 0);
 
 		const onVisible = () => {
 			if (document.visibilityState !== 'visible') return;
@@ -264,16 +269,27 @@ export function UserChatPage() {
 		return () => {
 			cancelled = true;
 			hubStartInFlightRef.current = false;
+			window.clearTimeout(startTimerId);
 			document.removeEventListener('visibilitychange', onVisible);
-			void connection.stop();
-			if (connectionRef.current === connection) {
-				connectionRef.current = null;
-			}
-			if (hubSessionRef.current === sessionId) {
-				setConnectionState('Disconnected');
-			}
+			const conn = connection;
+			void (async () => {
+				try {
+					if (conn.state !== HubConnectionState.Disconnected) {
+						await conn.stop();
+					}
+				} catch (err) {
+					console.warn('Messenger hub stop during teardown:', err);
+				} finally {
+					if (connectionRef.current === conn) {
+						connectionRef.current = null;
+					}
+					if (hubSessionRef.current === sessionId) {
+						setConnectionState('Disconnected');
+					}
+				}
+			})();
 		};
-		// token via tokenRef — omit from deps to avoid hub stop during negotiation (e.g. deep link from reel detail)
+		// token via tokenRef — omit from deps to avoid hub stop during negotiation (e.g. deep link from content detail)
 		// eslint-disable-next-line react-hooks/exhaustive-deps -- hub lifetime tied to auth gate only
 	}, [isAuthenticated]);
 

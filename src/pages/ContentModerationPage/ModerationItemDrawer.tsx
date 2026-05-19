@@ -37,6 +37,10 @@ export function ModerationItemDrawer({
 		}
 		if (item.contentType === 'Album') {
 			navigate(getLocalizedPath(`/albums/${item.contentId}?faceId=${item.faceId}`));
+			return;
+		}
+		if (item.contentType === 'Blog') {
+			navigate(getLocalizedPath(`/blogs/${item.contentId}?faceId=${item.faceId}`));
 		}
 	};
 
@@ -51,7 +55,9 @@ export function ModerationItemDrawer({
 						Submitted {formatOptionalDate(item.submittedAtUtc)} by{' '}
 						{item.creatorName.trim() || item.creatorId}
 					</p>
-					{(item.contentType === 'Reel' || item.contentType === 'Album') && (
+					{(item.contentType === 'Reel' ||
+						item.contentType === 'Album' ||
+						item.contentType === 'Blog') && (
 						<Button
 							variant="outline-primary"
 							size="sm"
@@ -60,7 +66,9 @@ export function ModerationItemDrawer({
 						>
 							{item.contentType === 'Reel'
 								? t('pages.moderation.openReelDetail')
-								: t('pages.moderation.openAlbumDetail')}
+								: item.contentType === 'Album'
+									? t('pages.moderation.openAlbumDetail')
+									: t('pages.moderation.openBlogDetail')}
 						</Button>
 					)}
 				</div>

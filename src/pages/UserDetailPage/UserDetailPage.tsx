@@ -18,6 +18,7 @@ import { useConfirmModal } from '@/hooks/useConfirmModal';
 import { canSubmitFaceBan, canSubmitGlobalBan } from '@/utils/operatorUserDetailUi';
 import { UserDetailFacesTable } from './UserDetailFacesTable';
 import { UserDetailAlbumsTable } from './UserDetailAlbumsTable';
+import { UserDetailBlogsTable } from './UserDetailBlogsTable';
 import { UserDetailReelsTable } from './UserDetailReelsTable';
 import './UserDetailPage.scss';
 
@@ -301,6 +302,10 @@ export function UserDetailPage() {
 							creatorId={userId}
 							userFaceIds={user.faces.map((f) => f.faceId)}
 						/>
+					</div>
+
+					<div className="user-detail-card">
+						<UserDetailBlogsTable creatorId={userId} />
 					</div>
 
 					<div className="user-detail-card">
