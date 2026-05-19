@@ -81,6 +81,8 @@ for (const absPath of tableFiles) {
 	}
 
 	if (SERVER_LIST_HOOKS.test(content) && !/manualPagination:\s*true/.test(content)) {
+		// Server manual* flags live in FaceDetailEntityTableShell (shared chrome).
+		if (/FaceDetailEntityTableShell/.test(content)) continue;
 		violations.push(
 			`${rel}: list hook (useUsers/useFaces/usePages) without manualPagination:true`
 		);

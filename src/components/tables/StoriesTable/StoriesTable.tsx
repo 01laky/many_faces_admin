@@ -27,32 +27,32 @@ export function StoriesTable({ faceId }: StoriesTableProps) {
 		pageSize: pagination.pageSize,
 		...sortingStateToApi(sorting),
 	});
+
+	const openDetail = (row: StoryListItem) => {
+		navigate(getLocalizedPath(`/stories/${row.id}?faceId=${faceId}`));
+	};
+
 	const columns = useMemo<ColumnDef<StoryListItem>[]>(
 		() => [
 			{
 				accessorKey: 'id',
 				header: 'ID',
 				enableSorting: true,
-				cell: ({ row }) => (
-					<button
-						type="button"
-						className="table-link-button"
-						onClick={() =>
-							navigate(getLocalizedPath(`/stories/${row.original.id}?faceId=${faceId}`))
-						}
-					>
-						{row.original.id}
-					</button>
-				),
+				cell: ({ getValue }) => getValue(),
 			},
 			{ accessorKey: 'title', header: t('pages.storiesTable.colTitle'), enableSorting: true },
 			{
 				id: 'published',
 				header: t('pages.storiesTable.colPublished'),
-				cell: ({ row }) =>
-					row.original.isPublished
-						? t('pages.storiesTable.published')
-						: t('pages.storiesTable.draft'),
+				cell: ({ row }) => (
+					<span
+						className={`badge ${row.original.isPublished ? 'text-bg-success' : 'text-bg-secondary'}`}
+					>
+						{row.original.isPublished
+							? t('pages.storiesTable.published')
+							: t('pages.storiesTable.draft')}
+					</span>
+				),
 			},
 			{
 				accessorKey: 'createdAt',
@@ -64,8 +64,9 @@ export function StoriesTable({ faceId }: StoriesTableProps) {
 				},
 			},
 		],
-		[faceId, getLocalizedPath, navigate, t]
+		[t]
 	);
+
 	return (
 		<FaceDetailEntityTableShell
 			sectionTitle={t('pages.storiesTable.title')}
@@ -85,6 +86,7 @@ export function StoriesTable({ faceId }: StoriesTableProps) {
 			onSortingChange={setSorting}
 			pagination={pagination}
 			onPaginationChange={setPagination}
+			onRowClick={openDetail}
 		/>
 	);
 }

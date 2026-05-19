@@ -1,6 +1,7 @@
 import { useEffect, type ReactNode } from 'react';
 import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table';
 import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { Card } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import {
 	Table,
@@ -14,6 +15,7 @@ import { Button } from '@/components/radix/Button';
 import { AdminTablePagination } from '@/components/tables/AdminTablePagination';
 import { clampPageIndex } from '@/utils/adminListQuery';
 import { useAdminListSortValidationFeedback } from '@/hooks/useAdminListSortValidationFeedback';
+import { handleAdminTableRowKeyDown } from '@/utils/adminTableRowClick';
 import './FaceDetailEntityTableShell.scss';
 
 export interface FaceDetailListEnvelope<T> {
@@ -41,9 +43,13 @@ export interface FaceDetailEntityTableShellProps<T> {
 	pagination: PaginationState;
 	onPaginationChange: (next: PaginationState) => void;
 	extraFilters?: ReactNode;
+	/** Navigate to read-only detail (whole row is clickable). */
+	onRowClick?: (row: T) => void;
+	/** e.g. Create button in section header (Pages table). */
+	headerActions?: ReactNode;
 }
 
-/** Shared server-driven table chrome for Face detail entity sections (§2.8). */
+/** Shared Bootstrap-styled server-driven table for Face detail sections. */
 export function FaceDetailEntityTableShell<T>({
 	sectionTitle,
 	emptyMessage,
@@ -63,6 +69,8 @@ export function FaceDetailEntityTableShell<T>({
 	pagination,
 	onPaginationChange,
 	extraFilters,
+	onRowClick,
+	headerActions,
 }: FaceDetailEntityTableShellProps<T>) {
 	const { t } = useTranslation('common');
 
@@ -99,9 +107,11 @@ export function FaceDetailEntityTableShell<T>({
 
 	if (isLoading) {
 		return (
-			<section className="face-detail-entity-section">
-				<h2>{sectionTitle}</h2>
-				<p>{loadingMessage}</p>
+			<section className="admin-data-table-section admin-data-table-section--loading">
+				<div className="admin-data-table-section__header">
+					<h2>{sectionTitle}</h2>
+				</div>
+				<p className="mb-0">{loadingMessage}</p>
 			</section>
 		);
 	}
@@ -110,9 +120,11 @@ export function FaceDetailEntityTableShell<T>({
 		const msg = error instanceof Error ? error.message : String(error);
 		if (!msg.includes('404')) {
 			return (
-				<section className="face-detail-entity-section">
-					<h2>{sectionTitle}</h2>
-					<p>
+				<section className="admin-data-table-section admin-data-table-section--error">
+					<div className="admin-data-table-section__header">
+						<h2>{sectionTitle}</h2>
+					</div>
+					<p className="mb-2">
 						{errorMessagePrefix}: {msg}
 					</p>
 					<Button onClick={() => refetch()}>{t('common.retry')}</Button>
@@ -122,48 +134,87 @@ export function FaceDetailEntityTableShell<T>({
 	}
 
 	return (
-		<section className="face-detail-entity-section">
-			<h2>{sectionTitle}</h2>
-			{extraFilters}
-			<div className="face-detail-entity-table-wrapper">
-				<Table variant="surface" size="2">
-					<TableHeader>
-						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id}>
-								{headerGroup.headers.map((header) => (
-									<TableHeaderCell
-										key={header.id}
-										onClick={header.column.getToggleSortingHandler()}
-										style={{ cursor: header.column.getCanSort() ? 'pointer' : 'default' }}
-									>
-										{flexRender(header.column.columnDef.header, header.getContext())}
-									</TableHeaderCell>
-								))}
-							</TableRow>
-						))}
-					</TableHeader>
-					<TableBody>
-						{table.getRowModel().rows.length === 0 ? (
-							<TableRow>
-								<TableCell colSpan={columns.length} style={{ textAlign: 'center' }}>
-									{emptyMessage}
-								</TableCell>
-							</TableRow>
-						) : (
-							table.getRowModel().rows.map((row) => (
-								<TableRow key={row.id}>
-									{row.getVisibleCells().map((cell) => (
-										<TableCell key={cell.id}>
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
-										</TableCell>
-									))}
-								</TableRow>
-							))
-						)}
-					</TableBody>
-				</Table>
+		<section className="admin-data-table-section">
+			<div className="admin-data-table-section__header">
+				<h2>{sectionTitle}</h2>
+				{headerActions}
 			</div>
-			<AdminTablePagination table={table} totalItems={totalCount} itemLabel={itemLabel} />
+			{extraFilters}
+			<Card className="admin-data-table-card">
+				<Card.Body className="p-0">
+					<div className="admin-data-table-wrapper">
+						<Table
+							variant="ghost"
+							size="2"
+							className="admin-data-table table table-hover align-middle mb-0"
+						>
+							<TableHeader>
+								{table.getHeaderGroups().map((headerGroup) => (
+									<TableRow key={headerGroup.id}>
+										{headerGroup.headers.map((header) => (
+											<TableHeaderCell
+												key={header.id}
+												data-sortable={header.column.getCanSort() ? '' : undefined}
+												onClick={header.column.getToggleSortingHandler()}
+												style={{
+													cursor: header.column.getCanSort() ? 'pointer' : 'default',
+												}}
+											>
+												<span className="admin-data-table__header-content">
+													{flexRender(header.column.columnDef.header, header.getContext())}
+													{header.column.getIsSorted() ? (
+														<span className="admin-data-table__sort-icon" aria-hidden>
+															{header.column.getIsSorted() === 'desc' ? '↓' : '↑'}
+														</span>
+													) : null}
+												</span>
+											</TableHeaderCell>
+										))}
+									</TableRow>
+								))}
+							</TableHeader>
+							<TableBody>
+								{table.getRowModel().rows.length === 0 ? (
+									<TableRow>
+										<TableCell colSpan={columns.length} className="admin-data-table__empty">
+											{emptyMessage}
+										</TableCell>
+									</TableRow>
+								) : (
+									table.getRowModel().rows.map((row) => {
+										const activateRow = onRowClick ? () => onRowClick(row.original) : undefined;
+										return (
+											<TableRow
+												key={row.id}
+												className={onRowClick ? 'admin-data-table__row--clickable' : undefined}
+												onClick={activateRow}
+												onKeyDown={
+													activateRow
+														? (event) => handleAdminTableRowKeyDown(event, activateRow)
+														: undefined
+												}
+												tabIndex={onRowClick ? 0 : undefined}
+												role={onRowClick ? 'button' : undefined}
+											>
+												{row.getVisibleCells().map((cell) => (
+													<TableCell key={cell.id}>
+														{flexRender(cell.column.columnDef.cell, cell.getContext())}
+													</TableCell>
+												))}
+											</TableRow>
+										);
+									})
+								)}
+							</TableBody>
+						</Table>
+					</div>
+				</Card.Body>
+				{totalCount > 0 ? (
+					<div className="admin-data-table-card__footer">
+						<AdminTablePagination table={table} totalItems={totalCount} itemLabel={itemLabel} />
+					</div>
+				) : null}
+			</Card>
 		</section>
 	);
 }

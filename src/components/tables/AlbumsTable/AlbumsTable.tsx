@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
 import { useAlbums, type AlbumListItem } from '@/hooks/api/useAlbumsApi';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
 import { sortingStateToApi } from '@/utils/adminListQuery';
 import { getModerationQueueLabel } from '@/utils/contentModeration';
+import { stopAdminTableRowNavigation } from '@/utils/adminTableRowClick';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
 
 interface AlbumsTableProps {
@@ -31,23 +31,17 @@ export function AlbumsTable({ faceId }: AlbumsTableProps) {
 		...sortingStateToApi(sorting),
 	});
 
+	const openDetail = (row: AlbumListItem) => {
+		navigate(getLocalizedPath(`/albums/${row.id}?faceId=${faceId}`));
+	};
+
 	const columns = useMemo<ColumnDef<AlbumListItem>[]>(
 		() => [
 			{
 				accessorKey: 'id',
 				header: 'ID',
 				enableSorting: true,
-				cell: ({ row }) => (
-					<button
-						type="button"
-						className="table-link-button"
-						onClick={() =>
-							navigate(getLocalizedPath(`/albums/${row.original.id}?faceId=${faceId}`))
-						}
-					>
-						{row.original.id}
-					</button>
-				),
+				cell: ({ getValue }) => getValue(),
 			},
 			{ accessorKey: 'title', header: t('pages.albumsTable.colTitle'), enableSorting: true },
 			{
@@ -58,7 +52,7 @@ export function AlbumsTable({ faceId }: AlbumsTableProps) {
 						row.original.approvalStatus,
 						row.original.aiReviewStatus
 					);
-					return <span className="badge bg-secondary">{label}</span>;
+					return <span className="badge text-bg-secondary">{label}</span>;
 				},
 			},
 			{
@@ -66,7 +60,11 @@ export function AlbumsTable({ faceId }: AlbumsTableProps) {
 				header: t('pages.albumsTable.colCreator'),
 				cell: ({ row }) =>
 					row.original.creatorId ? (
-						<Link to={getLocalizedPath(`/users/${row.original.creatorId}`)}>
+						<Link
+							to={getLocalizedPath(`/users/${row.original.creatorId}`)}
+							className="link-primary"
+							onClick={stopAdminTableRowNavigation}
+						>
 							{row.original.creatorName || row.original.creatorId}
 						</Link>
 					) : (
@@ -83,7 +81,7 @@ export function AlbumsTable({ faceId }: AlbumsTableProps) {
 				},
 			},
 		],
-		[faceId, getLocalizedPath, navigate, t]
+		[getLocalizedPath, t]
 	);
 
 	return (
@@ -105,6 +103,7 @@ export function AlbumsTable({ faceId }: AlbumsTableProps) {
 			onSortingChange={setSorting}
 			pagination={pagination}
 			onPaginationChange={setPagination}
+			onRowClick={openDetail}
 		/>
 	);
 }

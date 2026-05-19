@@ -27,27 +27,22 @@ export function FaceProfilesTable({ faceId }: FaceProfilesTableProps) {
 		pageSize: pagination.pageSize,
 		...sortingStateToApi(sorting),
 	});
+
+	const openDetail = (row: FaceProfileListItem) => {
+		navigate(
+			getLocalizedPath(
+				`/faces/${faceId}/profiles/${encodeURIComponent(row.userId)}?faceId=${faceId}`
+			)
+		);
+	};
+
 	const columns = useMemo<ColumnDef<FaceProfileListItem>[]>(
 		() => [
 			{
 				accessorKey: 'userId',
 				header: t('pages.profilesTable.colUserId'),
 				enableSorting: true,
-				cell: ({ row }) => (
-					<button
-						type="button"
-						className="table-link-button"
-						onClick={() =>
-							navigate(
-								getLocalizedPath(
-									`/faces/${faceId}/profiles/${encodeURIComponent(row.original.userId)}?faceId=${faceId}`
-								)
-							)
-						}
-					>
-						{row.original.userId}
-					</button>
-				),
+				cell: ({ getValue }) => <span className="font-monospace small">{String(getValue())}</span>,
 			},
 			{
 				accessorKey: 'displayName',
@@ -55,8 +50,9 @@ export function FaceProfilesTable({ faceId }: FaceProfilesTableProps) {
 				enableSorting: true,
 			},
 		],
-		[faceId, getLocalizedPath, navigate, t]
+		[t]
 	);
+
 	return (
 		<FaceDetailEntityTableShell
 			sectionTitle={t('pages.profilesTable.title')}
@@ -76,6 +72,7 @@ export function FaceProfilesTable({ faceId }: FaceProfilesTableProps) {
 			onSortingChange={setSorting}
 			pagination={pagination}
 			onPaginationChange={setPagination}
+			onRowClick={openDetail}
 		/>
 	);
 }

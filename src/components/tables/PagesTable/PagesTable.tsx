@@ -1,31 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { PaginationState } from '@tanstack/react-table';
+import { useCallback, useMemo, useState } from 'react';
+import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table';
 import { useNavigate } from 'react-router-dom';
-import {
-	useReactTable,
-	getCoreRowModel,
-	type ColumnDef,
-	type SortingState,
-	flexRender,
-} from '@tanstack/react-table';
 import { useTranslation } from 'react-i18next';
 import { usePages, useDeletePage, type Page } from '@/hooks/api/usePagesApi';
-import {
-	Table,
-	TableHeader,
-	TableBody,
-	TableRow,
-	TableHeaderCell,
-	TableCell,
-} from '@/components/radix/Table';
 import { Button } from '@/components/radix/Button';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { toast } from 'react-toastify';
 import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
-import { clampPageIndex, sortingStateToApi } from '@/utils/adminListQuery';
-import { useAdminListSortValidationFeedback } from '@/hooks/useAdminListSortValidationFeedback';
-import { AdminTablePagination } from '@/components/tables/AdminTablePagination';
-import './PagesTable.scss';
+import { sortingStateToApi } from '@/utils/adminListQuery';
+import { stopAdminTableRowNavigation } from '@/utils/adminTableRowClick';
+import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
 
 interface PagesTableProps {
 	faceId: number;
@@ -49,16 +33,6 @@ export function PagesTable({ faceId }: PagesTableProps) {
 		...apiSort,
 	});
 
-	useEffect(() => {
-		if (!data?.totalPages) return;
-		const next = clampPageIndex(pagination.pageIndex, data.totalPages);
-		if (next !== pagination.pageIndex) {
-			setPagination((p) => ({ ...p, pageIndex: next }));
-		}
-	}, [data?.totalPages, pagination.pageIndex]);
-
-	useAdminListSortValidationFeedback(error, isError, setSorting);
-
 	const deletePageMutation = useDeletePage();
 
 	const handleDelete = useCallback(
@@ -76,22 +50,20 @@ export function PagesTable({ faceId }: PagesTableProps) {
 		[t, deletePageMutation, faceId]
 	);
 
-	// Define columns
+	const openDetail = useCallback(
+		(page: Page) => {
+			navigate(getLocalizedPath(`/pages/${page.id}`));
+		},
+		[navigate, getLocalizedPath]
+	);
+
 	const columns = useMemo<ColumnDef<Page>[]>(
 		() => [
 			{
 				accessorKey: 'id',
 				header: 'ID',
 				enableSorting: true,
-				cell: (info) => (
-					<button
-						type="button"
-						className="table-link-button"
-						onClick={() => navigate(getLocalizedPath(`/pages/${info.getValue()}`))}
-					>
-						{info.getValue() as number}
-					</button>
-				),
+				cell: (info) => info.getValue(),
 			},
 			{
 				accessorKey: 'name',
@@ -103,7 +75,7 @@ export function PagesTable({ faceId }: PagesTableProps) {
 				accessorKey: 'path',
 				header: t('pages.pageDetail.path'),
 				enableSorting: true,
-				cell: (info) => info.getValue(),
+				cell: (info) => <span className="font-monospace small">{String(info.getValue())}</span>,
 			},
 			{
 				accessorKey: 'index',
@@ -117,7 +89,7 @@ export function PagesTable({ faceId }: PagesTableProps) {
 				enableSorting: false,
 				cell: (info) => {
 					const desc = info.getValue() as string | undefined;
-					return desc ? (desc.length > 50 ? `${desc.substring(0, 50)}...` : desc) : '-';
+					return desc ? (desc.length > 50 ? `${desc.substring(0, 50)}...` : desc) : '—';
 				},
 			},
 			{
@@ -127,7 +99,12 @@ export function PagesTable({ faceId }: PagesTableProps) {
 				cell: (info) => {
 					const pageId = info.row.original.id;
 					return (
-						<div className="table-actions">
+						<div
+							className="admin-data-table__cell-interactive"
+							onClick={stopAdminTableRowNavigation}
+							onKeyDown={stopAdminTableRowNavigation}
+							role="presentation"
+						>
 							<Button
 								variant="outline"
 								onClick={() => navigate(getLocalizedPath(`/pages/${pageId}/edit`))}
@@ -149,130 +126,39 @@ export function PagesTable({ faceId }: PagesTableProps) {
 		[t, navigate, getLocalizedPath, deletePageMutation.isPending, handleDelete]
 	);
 
-	// Get pages data
-	const pagesData = data?.items ?? [];
-
-	/*
-	 * TanStack Table's `useReactTable` returns function-heavy instances that React Compiler cannot safely
-	 * memoize (`react-hooks/incompatible-library`). We consume `table` only inside this component's
-	 * render tree for sorting/pagination UI — no cross-component memoization depends on referential
-	 * stability of those functions, so the library's pattern is acceptable here.
-	 */
-	// eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table; rationale in block comment above
-	const table = useReactTable({
-		data: pagesData,
-		columns,
-		getCoreRowModel: getCoreRowModel(),
-		enableMultiSort: false,
-		state: {
-			sorting,
-			pagination,
-		},
-		onSortingChange: (updater) => {
-			setSorting(updater);
-			setPagination((p) => ({ ...p, pageIndex: 0 }));
-		},
-		onPaginationChange: setPagination,
-		manualPagination: true,
-		manualSorting: true,
-		pageCount: data?.totalPages ?? 0,
-	});
-
-	if (isLoading) {
-		return (
-			<div className="pages-table-loading">
-				<p>{t('pages.pagesTable.loading')}</p>
-			</div>
-		);
-	}
-
-	// Don't show error for empty results - just show empty table
-	// Only show error if it's a real error (not just 404 for empty results)
-	if (error && !isLoading) {
-		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-		// If it's a 404 and we have no data, treat it as empty result
-		if (errorMessage.includes('Not Found') || errorMessage.includes('404')) {
-			// Show empty table instead of error
-		} else {
-			return (
-				<div className="pages-table-error">
-					<p>
-						{t('pages.pagesTable.error')}: {errorMessage}
-					</p>
-					<Button onClick={() => refetch()}>{t('common.retry')}</Button>
-				</div>
-			);
-		}
-	}
-
 	const handleCreateClick = () => {
 		navigate(getLocalizedPath(`/faces/${faceId}/pages/create`));
 	};
 
-	return (
-		<div className="pages-table-container">
-			<div className="pages-table-header">
-				<h3>{t('pages.pagesTable.title')}</h3>
-				<Button onClick={handleCreateClick}>{t('pages.pagesTable.create')}</Button>
-			</div>
+	const showError =
+		error &&
+		!isLoading &&
+		!(
+			error instanceof Error &&
+			(error.message.includes('Not Found') || error.message.includes('404'))
+		);
 
-			<div className="pages-table-wrapper">
-				<Table variant="surface" size="2" className="pages-table">
-					<TableHeader>
-						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id}>
-								{headerGroup.headers.map((header) => (
-									<TableHeaderCell
-										key={header.id}
-										data-sortable={header.column.getCanSort() ? '' : undefined}
-										onClick={header.column.getToggleSortingHandler()}
-										style={{
-											cursor: header.column.getCanSort() ? 'pointer' : 'default',
-										}}
-									>
-										<div className="table-header-content">
-											{flexRender(header.column.columnDef.header, header.getContext())}
-											{header.column.getIsSorted() && (
-												<span className="table-sort-icon">
-													{header.column.getIsSorted() === 'desc' ? ' ↓' : ' ↑'}
-												</span>
-											)}
-										</div>
-									</TableHeaderCell>
-								))}
-							</TableRow>
-						))}
-					</TableHeader>
-					<TableBody>
-						{table.getRowModel().rows.length === 0 ? (
-							<TableRow>
-								<TableCell
-									colSpan={columns.length}
-									style={{ textAlign: 'center', padding: '2rem' }}
-								>
-									{t('pages.pagesTable.noPages')}
-								</TableCell>
-							</TableRow>
-						) : (
-							table.getRowModel().rows.map((row) => (
-								<TableRow key={row.id}>
-									{row.getVisibleCells().map((cell) => (
-										<TableCell key={cell.id}>
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
-										</TableCell>
-									))}
-								</TableRow>
-							))
-						)}
-					</TableBody>
-				</Table>
-			</div>
-			<AdminTablePagination
-				table={table}
-				totalItems={data?.totalCount ?? 0}
-				itemLabel={t('pages.pagesTable.title')}
-				className="pages-table-pagination"
-			/>
-		</div>
+	return (
+		<FaceDetailEntityTableShell
+			sectionTitle={t('pages.pagesTable.title')}
+			emptyMessage={t('pages.pagesTable.noPages')}
+			loadingMessage={t('pages.pagesTable.loading')}
+			errorMessagePrefix={t('pages.pagesTable.error')}
+			itemLabel={t('pages.pagesTable.title')}
+			columns={columns}
+			data={data?.items ?? []}
+			totalCount={data?.totalCount ?? 0}
+			totalPages={data?.totalPages ?? 0}
+			isLoading={isLoading}
+			isError={showError ? isError : false}
+			error={showError ? error : undefined}
+			refetch={() => void refetch()}
+			sorting={sorting}
+			onSortingChange={setSorting}
+			pagination={pagination}
+			onPaginationChange={setPagination}
+			onRowClick={openDetail}
+			headerActions={<Button onClick={handleCreateClick}>{t('pages.pagesTable.create')}</Button>}
+		/>
 	);
 }

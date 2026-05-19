@@ -1,12 +1,128 @@
-.face-detail-entity-section {
-	margin-top: 2rem;
+@import '../../../styles/main.scss';
 
-	h2 {
+.admin-data-table-section {
+	margin-top: 2rem;
+}
+
+.admin-data-table-section__header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 1rem;
+	margin-bottom: 0.75rem;
+
+	h2,
+	h3 {
+		margin: 0;
 		font-size: 1.25rem;
-		margin-bottom: 1rem;
+		font-weight: 600;
+		color: var(--bs-emphasis-color);
 	}
 }
 
-.face-detail-entity-table-wrapper {
+.admin-data-table-card {
+	border: var(--bs-border-width) solid var(--bs-border-color);
+	box-shadow: none;
+
+	.card-body {
+		padding: 0;
+	}
+}
+
+.admin-data-table-card__footer {
+	padding: 0.75rem 1rem;
+	border-top: var(--bs-border-width) solid var(--bs-border-color);
+	background-color: var(--bs-tertiary-bg);
+}
+
+.admin-data-table-wrapper {
 	overflow-x: auto;
+}
+
+.admin-data-table.radix-table {
+	margin-bottom: 0;
+	border: 0;
+	border-radius: 0;
+	font-size: $font-size-base;
+
+	.radix-table-header {
+		background-color: var(--bs-tertiary-bg);
+		border-bottom: calc(2 * var(--bs-border-width)) solid var(--bs-border-color);
+	}
+
+	.radix-table-header-cell {
+		font-size: $font-size-sm;
+		font-weight: 600;
+		text-transform: none;
+		letter-spacing: normal;
+		color: var(--bs-secondary-color);
+		vertical-align: middle;
+		white-space: nowrap;
+
+		&[data-sortable] {
+			user-select: none;
+		}
+	}
+
+	.radix-table-cell {
+		vertical-align: middle;
+		color: var(--bs-body-color);
+	}
+
+	.radix-table-body .radix-table-row:nth-child(even) {
+		background-color: var(--bs-table-striped-bg);
+	}
+
+	.admin-data-table__row--clickable {
+		cursor: pointer;
+
+		&:hover {
+			background-color: var(--bs-table-hover-bg) !important;
+		}
+
+		&:focus-visible {
+			outline: 2px solid var(--bs-primary);
+			outline-offset: -2px;
+		}
+	}
+}
+
+.admin-data-table__header-content {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+}
+
+.admin-data-table__sort-icon {
+	font-size: 0.75rem;
+	color: var(--bs-primary);
+}
+
+.admin-data-table__cell-interactive {
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem;
+
+	.radix-button {
+		padding: 0.25rem 0.65rem;
+		font-size: $font-size-sm;
+	}
+}
+
+.admin-data-table__empty {
+	text-align: center;
+	padding: 2rem !important;
+	color: var(--bs-secondary-color);
+}
+
+.admin-data-table-section--loading,
+.admin-data-table-section--error {
+	padding: 1.5rem;
+	text-align: center;
+	color: var(--bs-secondary-color);
+}
+
+.admin-data-table-section--error {
+	color: var(--bs-danger);
 }

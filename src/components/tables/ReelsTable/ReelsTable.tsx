@@ -7,6 +7,7 @@ import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
 import { sortingStateToApi } from '@/utils/adminListQuery';
 import { getModerationQueueLabel } from '@/utils/contentModeration';
+import { stopAdminTableRowNavigation } from '@/utils/adminTableRowClick';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
 
 interface ReelsTableProps {
@@ -28,28 +29,25 @@ export function ReelsTable({ faceId }: ReelsTableProps) {
 		pageSize: pagination.pageSize,
 		...sortingStateToApi(sorting),
 	});
+
+	const openDetail = (row: ReelsListItem) => {
+		navigate(getLocalizedPath(`/reels/${row.id}?faceId=${faceId}`));
+	};
+
 	const columns = useMemo<ColumnDef<ReelsListItem>[]>(
 		() => [
 			{
 				accessorKey: 'id',
 				header: 'ID',
 				enableSorting: true,
-				cell: ({ row }) => (
-					<button
-						type="button"
-						className="table-link-button"
-						onClick={() => navigate(getLocalizedPath(`/reels/${row.original.id}?faceId=${faceId}`))}
-					>
-						{row.original.id}
-					</button>
-				),
+				cell: ({ getValue }) => getValue(),
 			},
 			{ accessorKey: 'title', header: t('pages.reelsTable.colTitle'), enableSorting: true },
 			{
 				id: 'approval',
 				header: t('pages.reelsTable.colApproval'),
 				cell: ({ row }) => (
-					<span className="badge bg-secondary">
+					<span className="badge text-bg-secondary">
 						{getModerationQueueLabel(row.original.approvalStatus, row.original.aiReviewStatus)}
 					</span>
 				),
@@ -59,7 +57,11 @@ export function ReelsTable({ faceId }: ReelsTableProps) {
 				header: t('pages.reelsTable.colCreator'),
 				cell: ({ row }) =>
 					row.original.creatorId ? (
-						<Link to={getLocalizedPath(`/users/${row.original.creatorId}`)}>
+						<Link
+							to={getLocalizedPath(`/users/${row.original.creatorId}`)}
+							className="link-primary"
+							onClick={stopAdminTableRowNavigation}
+						>
 							{row.original.creatorName || row.original.creatorId}
 						</Link>
 					) : (
@@ -76,8 +78,9 @@ export function ReelsTable({ faceId }: ReelsTableProps) {
 				},
 			},
 		],
-		[faceId, getLocalizedPath, navigate, t]
+		[getLocalizedPath, t]
 	);
+
 	return (
 		<FaceDetailEntityTableShell
 			sectionTitle={t('pages.reelsTable.title')}
@@ -97,6 +100,7 @@ export function ReelsTable({ faceId }: ReelsTableProps) {
 			onSortingChange={setSorting}
 			pagination={pagination}
 			onPaginationChange={setPagination}
+			onRowClick={openDetail}
 		/>
 	);
 }

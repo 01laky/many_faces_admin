@@ -27,39 +27,42 @@ export function FaceChatRoomsTable({ faceId }: FaceChatRoomsTableProps) {
 		pageSize: pagination.pageSize,
 		...sortingStateToApi(sorting),
 	});
+
+	const openDetail = (row: FaceChatRoomListItem) => {
+		navigate(getLocalizedPath(`/faces/${faceId}/chat-rooms/${row.id}?faceId=${faceId}`));
+	};
+
 	const columns = useMemo<ColumnDef<FaceChatRoomListItem>[]>(
 		() => [
 			{
 				accessorKey: 'id',
 				header: 'ID',
 				enableSorting: true,
-				cell: ({ row }) => (
-					<button
-						type="button"
-						className="table-link-button"
-						onClick={() =>
-							navigate(
-								getLocalizedPath(`/faces/${faceId}/chat-rooms/${row.original.id}?faceId=${faceId}`)
-							)
-						}
-					>
-						{row.original.id}
-					</button>
-				),
+				cell: ({ getValue }) => getValue(),
 			},
 			{ accessorKey: 'title', header: t('pages.chatRoomsTable.colTitle'), enableSorting: true },
 			{
 				id: 'public',
 				header: t('pages.chatRoomsTable.colPublic'),
-				cell: ({ row }) =>
-					row.original.isPublic
-						? t('pages.chatRoomsTable.public')
-						: t('pages.chatRoomsTable.private'),
+				cell: ({ row }) => (
+					<span
+						className={`badge ${row.original.isPublic ? 'text-bg-primary' : 'text-bg-secondary'}`}
+					>
+						{row.original.isPublic
+							? t('pages.chatRoomsTable.public')
+							: t('pages.chatRoomsTable.private')}
+					</span>
+				),
 			},
 			{
 				id: 'system',
 				header: t('pages.chatRoomsTable.colSystem'),
-				cell: ({ row }) => (row.original.isSystemManaged ? t('pages.chatRoomsTable.system') : '—'),
+				cell: ({ row }) =>
+					row.original.isSystemManaged ? (
+						<span className="badge text-bg-info">{t('pages.chatRoomsTable.system')}</span>
+					) : (
+						'—'
+					),
 			},
 			{
 				accessorKey: 'createdAt',
@@ -71,8 +74,9 @@ export function FaceChatRoomsTable({ faceId }: FaceChatRoomsTableProps) {
 				},
 			},
 		],
-		[faceId, getLocalizedPath, navigate, t]
+		[t]
 	);
+
 	return (
 		<FaceDetailEntityTableShell
 			sectionTitle={t('pages.chatRoomsTable.title')}
@@ -92,6 +96,7 @@ export function FaceChatRoomsTable({ faceId }: FaceChatRoomsTableProps) {
 			onSortingChange={setSorting}
 			pagination={pagination}
 			onPaginationChange={setPagination}
+			onRowClick={openDetail}
 		/>
 	);
 }
