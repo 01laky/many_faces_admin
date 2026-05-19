@@ -33,7 +33,6 @@ const NAV_ITEMS: NavItem[] = [
 	{ path: '/users', labelKey: 'pages.users.title', icon: '👥' },
 	{ path: '/faces', labelKey: 'pages.faces.title', icon: '😀' },
 	{ path: '/chat', labelKey: 'pages.chat.title', icon: '💬' },
-	{ path: '/registration-invites', labelKey: 'pages.registrationInvites.title', icon: '✉️' },
 ];
 
 const SUPER_ADMIN_NAV_ITEMS: NavItem[] = [

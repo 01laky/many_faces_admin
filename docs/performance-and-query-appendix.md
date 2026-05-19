@@ -15,12 +15,11 @@ Companion to [`docs/prompts/admin-performance-and-refactor-agent-prompt.md`](../
 | **`useMeCapabilities`** (via `createMeCapabilitiesQueryOptions`)      | `60_000` (1 min)                 | inherits default `gcTime`                              |
 | **`useAuthToken`** (`useAuthApi.ts`)                                  | `60_000`                         | session-scoped                                         |
 | **`useUsersApi` / `useFacesApi` / `usePagesApi` / `usePageTypesApi`** | `5 * 60 * 1000` on list + detail | server `page`/`pageSize`/`sortBy`/`sortDir`; `placeholderData: keepPreviousData` (v5) |
-| **`useContentModerationApi` / `useRegistrationInvitesAdminApi`**      | list `staleTime` per hook        | paginated envelope; moderation keys include page + sort |
+| **`useContentModerationApi`**                                         | list `staleTime` per hook        | paginated envelope; moderation keys include page + sort |
 | **`useWallTicketsAdminApi`**                                            | `45_000`                         | invalidates `['stats']` on ticket mutations            |
-| **`useRegistrationInvitesAdminApi`**                                    | `60_000`                         | server `page`/`pageSize` (default 10); legacy `skip`/`take` optional on BE |
 | **`useOperatorAiMessagesInfinite` / `useOperatorUserChatMessagesInfinite`** | `0`                          | `fetchNextPage` for older messages; hub patches first page |
 
-**Query hook modules (2026-05):** `useWallTicketsAdminApi`, `useRegistrationInvitesAdminApi`; key factories `usersKeys`, `facesKeys`, `pagesKeys`, `wallTicketsKeys`, `registrationInvitesKeys`, exported `moderationKeys`.
+**Query hook modules (2026-05):** `useWallTicketsAdminApi`; key factories `usersKeys`, `facesKeys`, `pagesKeys`, `wallTicketsKeys`, exported `moderationKeys`.
 
 **`enabled` audit:** list hooks require auth context token where applicable; detail hooks use `enabled: !!id` so no fetch without an entity id. Capabilities query uses `enabled: Boolean(token)`.
 

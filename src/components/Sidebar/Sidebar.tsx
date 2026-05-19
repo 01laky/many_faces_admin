@@ -51,11 +51,6 @@ export function Sidebar() {
 			icon: '💬',
 		},
 		{
-			path: '/registration-invites',
-			labelKey: 'pages.registrationInvites.title',
-			icon: '✉️',
-		},
-		{
 			path: '/settings',
 			labelKey: 'pages.settings.title',
 			icon: '⚙️',

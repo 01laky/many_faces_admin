@@ -77,6 +77,3 @@ export const UserChatPage = lazy(() =>
 export const SettingsPage = lazy(() =>
 	import('../pages/SettingsPage').then((m) => ({ default: m.SettingsPage }))
 );
-export const RegistrationInvitesPage = lazy(() =>
-	import('../pages/RegistrationInvitesPage').then((m) => ({ default: m.RegistrationInvitesPage }))
-);

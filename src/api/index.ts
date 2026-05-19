@@ -7,7 +7,6 @@ export { CancelablePromise, CancelError } from './core/CancelablePromise';
 export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
-export type { AdminCreateRegistrationInviteDto } from './models/AdminCreateRegistrationInviteDto';
 export type { AdminDashboardSummaryDto } from './models/AdminDashboardSummaryDto';
 export type { AiReviewRiskLevel } from './models/AiReviewRiskLevel';
 export type { AiReviewStatus } from './models/AiReviewStatus';
@@ -81,7 +80,6 @@ export type { WallTicketWriteDto } from './models/WallTicketWriteDto';
 export { AdminFaceWallTicketsService } from './services/AdminFaceWallTicketsService';
 export { AdminMailerTestService } from './services/AdminMailerTestService';
 export { AdminPushTestService } from './services/AdminPushTestService';
-export { AdminRegistrationInvitesService } from './services/AdminRegistrationInvitesService';
 export { AlbumCommentsService } from './services/AlbumCommentsService';
 export { AlbumLikesService } from './services/AlbumLikesService';
 export { AlbumsService } from './services/AlbumsService';

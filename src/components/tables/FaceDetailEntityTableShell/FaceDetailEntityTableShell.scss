@@ -2,6 +2,24 @@
 
 .admin-data-table-section {
 	margin-top: 2rem;
+
+	&--page-root {
+		margin-top: 0;
+	}
+}
+
+.admin-data-table-section__toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	align-items: center;
+	justify-content: flex-end;
+
+	.admin-data-table-section__search {
+		min-width: 12rem;
+		flex: 1 1 12rem;
+		max-width: 20rem;
+	}
 }
 
 .admin-data-table-section__header {

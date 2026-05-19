@@ -1,33 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-	useReactTable,
-	getCoreRowModel,
-	type ColumnDef,
-	type PaginationState,
-	type SortingState,
-	type ColumnFiltersState,
-	flexRender,
-} from '@tanstack/react-table';
+import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table';
 import { useTranslation } from 'react-i18next';
 import { useFaces, type Face } from '@/hooks/api/useFacesApi';
-import {
-	Table,
-	TableHeader,
-	TableBody,
-	TableRow,
-	TableHeaderCell,
-	TableCell,
-} from '@/components/radix/Table';
 import { Button } from '@/components/radix/Button';
 import { Input } from '@/components/radix/Input';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { gradientPreviewStyle } from '@/utils/gradientPreview';
 import { isAdminScopeFace } from '@/utils/adminScopeFace';
 import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
-import { clampPageIndex, sortingStateToApi } from '@/utils/adminListQuery';
-import { useAdminListSortValidationFeedback } from '@/hooks/useAdminListSortValidationFeedback';
-import { AdminTablePagination } from '@/components/tables/AdminTablePagination';
+import { sortingStateToApi } from '@/utils/adminListQuery';
+import { stopAdminTableRowNavigation } from '@/utils/adminTableRowClick';
+import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
 import './FacesTable.scss';
 
 export function FacesTable() {
@@ -35,7 +19,6 @@ export function FacesTable() {
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
 	const [sorting, setSorting] = useState<SortingState>([]);
-	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [search, setSearch] = useState('');
 	const [debouncedSearch, setDebouncedSearch] = useState('');
 	const [pagination, setPagination] = useState<PaginationState>({
@@ -44,67 +27,34 @@ export function FacesTable() {
 	});
 
 	useEffect(() => {
-		const t = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
-		return () => window.clearTimeout(t);
+		const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
+		return () => window.clearTimeout(timer);
 	}, [search]);
 
-	useEffect(() => {
-		setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-	}, [search]);
-
-	const apiSort = sortingStateToApi(sorting);
-	const { data, isLoading, error, isError, refetch } = useFaces({
+	const { data, isLoading, isError, error, refetch } = useFaces({
 		page: pagination.pageIndex + 1,
 		pageSize: pagination.pageSize,
 		search: debouncedSearch || undefined,
-		...apiSort,
+		...sortingStateToApi(sorting),
 	});
 
-	useEffect(() => {
-		if (!data?.totalPages) return;
-		const next = clampPageIndex(pagination.pageIndex, data.totalPages);
-		if (next !== pagination.pageIndex) {
-			setPagination((p) => ({ ...p, pageIndex: next }));
-		}
-	}, [data?.totalPages, pagination.pageIndex]);
-
-	useAdminListSortValidationFeedback(error, isError, setSorting);
-
-	// Define columns
 	const columns = useMemo<ColumnDef<Face>[]>(
 		() => [
 			{
 				accessorKey: 'id',
 				header: 'ID',
 				enableSorting: true,
-				cell: (info) => {
-					const face = info.row.original;
-					const id = info.getValue() as number;
-					if (isAdminScopeFace(face)) {
-						return <span>{id}</span>;
-					}
-					return (
-						<button
-							type="button"
-							className="table-link-button"
-							onClick={() => navigate(getLocalizedPath(`/faces/${id}`))}
-						>
-							{id}
-						</button>
-					);
-				},
+				cell: (info) => info.getValue(),
 			},
 			{
 				accessorKey: 'index',
 				header: t('pages.faceDetail.index'),
 				enableSorting: true,
-				cell: (info) => info.getValue(),
 			},
 			{
 				accessorKey: 'title',
 				header: t('pages.faceDetail.faceTitle'),
 				enableSorting: true,
-				cell: (info) => info.getValue(),
 			},
 			{
 				accessorKey: 'description',
@@ -112,7 +62,7 @@ export function FacesTable() {
 				enableSorting: false,
 				cell: (info) => {
 					const desc = info.getValue() as string | undefined;
-					return desc ? (desc.length > 50 ? `${desc.substring(0, 50)}...` : desc) : '-';
+					return desc ? (desc.length > 50 ? `${desc.substring(0, 50)}...` : desc) : '—';
 				},
 			},
 			{
@@ -121,10 +71,10 @@ export function FacesTable() {
 				enableSorting: false,
 				cell: (info) => {
 					const raw = info.getValue() as string | null | undefined;
-					if (!raw) return '-';
+					if (!raw) return '—';
 					return (
 						<span
-							className="gradient-preview-swatch"
+							className="faces-table__gradient-swatch"
 							style={gradientPreviewStyle(raw)}
 							title={raw.length > 120 ? `${raw.slice(0, 120)}…` : raw}
 						/>
@@ -138,7 +88,7 @@ export function FacesTable() {
 				cell: (info) => {
 					const isPublic = info.getValue() as boolean | undefined;
 					return (
-						<span className={`badge ${isPublic ? 'bg-success' : 'bg-warning text-dark'}`}>
+						<span className={`badge ${isPublic ? 'text-bg-success' : 'text-bg-warning'}`}>
 							{isPublic ? t('pages.faceDetail.public') : t('pages.faceDetail.private')}
 						</span>
 					);
@@ -158,7 +108,12 @@ export function FacesTable() {
 						);
 					}
 					return (
-						<div className="table-actions">
+						<div
+							className="admin-data-table__cell-interactive"
+							onClick={stopAdminTableRowNavigation}
+							onKeyDown={stopAdminTableRowNavigation}
+							role="presentation"
+						>
 							<Button
 								variant="outline"
 								onClick={() => navigate(getLocalizedPath(`/faces/${face.id}/edit`))}
@@ -173,138 +128,48 @@ export function FacesTable() {
 		[t, navigate, getLocalizedPath]
 	);
 
-	// Get faces data - handle empty state gracefully
-	const faces = data?.faces || [];
-
-	/*
-	 * TanStack Table's `useReactTable` returns an object full of functions whose identities change
-	 * across renders. React Compiler's `react-hooks/incompatible-library` rule flags that: if this
-	 * hook were memoized like a "pure" hook, downstream memoized children could capture stale row APIs.
-	 *
-	 * In this component we only feed `table` into local JSX (row models, headers, pagination). We do
-	 * not pass unstable table methods across a memo boundary into other components, so skipping compiler
-	 * memoization for this call site is the intended trade-off documented upstream for TanStack Table.
-	 */
-	// eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table; rationale in block comment above
-	const table = useReactTable({
-		data: faces,
-		columns,
-		getCoreRowModel: getCoreRowModel(),
-		enableMultiSort: false,
-		state: {
-			sorting,
-			columnFilters,
-			pagination,
-		},
-		onSortingChange: (updater) => {
-			setSorting(updater);
-			setPagination((p) => ({ ...p, pageIndex: 0 }));
-		},
-		onColumnFiltersChange: setColumnFilters,
-		onPaginationChange: setPagination,
-		manualPagination: true,
-		manualSorting: true,
-		pageCount: data?.totalPages ?? 0,
-	});
-
-	if (isLoading) {
-		return (
-			<div className="faces-table-loading">
-				<p>{t('pages.faces.loading')}</p>
-			</div>
-		);
-	}
-
-	if (error) {
-		return (
-			<div className="faces-table-error">
-				<p>
-					{t('pages.faces.error')}: {error instanceof Error ? error.message : 'Unknown error'}
-				</p>
-				<Button onClick={() => refetch()}>{t('common.retry')}</Button>
-			</div>
-		);
-	}
-
-	const handleCreateClick = () => {
-		navigate(getLocalizedPath('/faces/create'));
-	};
+	const headerToolbar = (
+		<div className="admin-data-table-section__toolbar">
+			<Input
+				type="text"
+				placeholder={t('pages.faces.searchPlaceholder')}
+				value={search}
+				onChange={(e) => {
+					setSearch(e.target.value);
+					setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+				}}
+				className="admin-data-table-section__search"
+			/>
+			<Button onClick={() => void refetch()}>{t('common.refresh')}</Button>
+			<Button onClick={() => navigate(getLocalizedPath('/faces/create'))}>
+				{t('pages.faces.create')}
+			</Button>
+		</div>
+	);
 
 	return (
-		<div className="faces-table-container">
-			<div className="faces-table-header">
-				<h2>{t('pages.faces.title')}</h2>
-				<div className="faces-table-actions">
-					<Input
-						type="text"
-						placeholder={t('pages.faces.searchPlaceholder')}
-						value={search}
-						onChange={(e) => setSearch(e.target.value)}
-						className="faces-table-search"
-					/>
-					<Button onClick={() => refetch()}>{t('common.refresh')}</Button>
-					<Button onClick={handleCreateClick}>{t('pages.faces.create')}</Button>
-				</div>
-			</div>
-
-			<div className="faces-table-wrapper">
-				<Table variant="surface" size="2" className="faces-table">
-					<TableHeader>
-						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id}>
-								{headerGroup.headers.map((header) => (
-									<TableHeaderCell
-										key={header.id}
-										data-sortable={header.column.getCanSort() ? '' : undefined}
-										onClick={header.column.getToggleSortingHandler()}
-										style={{
-											cursor: header.column.getCanSort() ? 'pointer' : 'default',
-										}}
-									>
-										<div className="table-header-content">
-											{flexRender(header.column.columnDef.header, header.getContext())}
-											{header.column.getIsSorted() && (
-												<span className="table-sort-icon">
-													{header.column.getIsSorted() === 'desc' ? ' ↓' : ' ↑'}
-												</span>
-											)}
-										</div>
-									</TableHeaderCell>
-								))}
-							</TableRow>
-						))}
-					</TableHeader>
-					<TableBody>
-						{table.getRowModel().rows.length === 0 ? (
-							<TableRow>
-								<TableCell
-									colSpan={columns.length}
-									style={{ textAlign: 'center', padding: '2rem' }}
-								>
-									{t('pages.faces.noFaces')}
-								</TableCell>
-							</TableRow>
-						) : (
-							table.getRowModel().rows.map((row) => (
-								<TableRow key={row.id}>
-									{row.getVisibleCells().map((cell) => (
-										<TableCell key={cell.id}>
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
-										</TableCell>
-									))}
-								</TableRow>
-							))
-						)}
-					</TableBody>
-				</Table>
-			</div>
-
-			<AdminTablePagination
-				table={table}
-				totalItems={data?.total ?? 0}
-				itemLabel={t('pages.faces.faces')}
-				className="faces-table-pagination"
-			/>
-		</div>
+		<FaceDetailEntityTableShell
+			sectionClassName="admin-data-table-section--page-root"
+			sectionTitle={t('pages.faces.title')}
+			emptyMessage={t('pages.faces.noFaces')}
+			loadingMessage={t('pages.faces.loading')}
+			errorMessagePrefix={t('pages.faces.error')}
+			itemLabel={t('pages.faces.faces')}
+			columns={columns}
+			data={data?.faces ?? []}
+			totalCount={data?.total ?? 0}
+			totalPages={data?.totalPages ?? 0}
+			isLoading={isLoading}
+			isError={isError}
+			error={error}
+			refetch={() => void refetch()}
+			sorting={sorting}
+			onSortingChange={setSorting}
+			pagination={pagination}
+			onPaginationChange={setPagination}
+			headerActions={headerToolbar}
+			onRowClick={(face) => navigate(getLocalizedPath(`/faces/${face.id}`))}
+			isRowClickable={(face) => !isAdminScopeFace(face)}
+		/>
 	);
 }

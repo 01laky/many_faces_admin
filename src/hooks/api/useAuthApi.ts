@@ -34,7 +34,6 @@ const DOMAIN_QUERY_ROOTS = [
 	['operatorAi'],
 	['operatorUserChat'],
 	['wallTickets'],
-	['registrationInvites'],
 	['pageRouteTranslations'],
 	['pageTypes'],
 	['publicStats'],

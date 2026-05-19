@@ -45,8 +45,12 @@ export interface FaceDetailEntityTableShellProps<T> {
 	extraFilters?: ReactNode;
 	/** Navigate to read-only detail (whole row is clickable). */
 	onRowClick?: (row: T) => void;
+	/** When set with onRowClick, only matching rows are clickable (e.g. admin-scope faces). */
+	isRowClickable?: (row: T) => boolean;
 	/** e.g. Create button in section header (Pages table). */
 	headerActions?: ReactNode;
+	/** Extra class on outer section (e.g. list pages without top margin). */
+	sectionClassName?: string;
 }
 
 /** Shared Bootstrap-styled server-driven table for Face detail sections. */
@@ -70,7 +74,9 @@ export function FaceDetailEntityTableShell<T>({
 	onPaginationChange,
 	extraFilters,
 	onRowClick,
+	isRowClickable,
 	headerActions,
+	sectionClassName,
 }: FaceDetailEntityTableShellProps<T>) {
 	const { t } = useTranslation('common');
 
@@ -105,9 +111,11 @@ export function FaceDetailEntityTableShell<T>({
 		pageCount: totalPages,
 	});
 
+	const sectionClass = ['admin-data-table-section', sectionClassName].filter(Boolean).join(' ');
+
 	if (isLoading) {
 		return (
-			<section className="admin-data-table-section admin-data-table-section--loading">
+			<section className={`${sectionClass} admin-data-table-section--loading`}>
 				<div className="admin-data-table-section__header">
 					<h2>{sectionTitle}</h2>
 				</div>
@@ -120,7 +128,7 @@ export function FaceDetailEntityTableShell<T>({
 		const msg = error instanceof Error ? error.message : String(error);
 		if (!msg.includes('404')) {
 			return (
-				<section className="admin-data-table-section admin-data-table-section--error">
+				<section className={`${sectionClass} admin-data-table-section--error`}>
 					<div className="admin-data-table-section__header">
 						<h2>{sectionTitle}</h2>
 					</div>
@@ -134,7 +142,7 @@ export function FaceDetailEntityTableShell<T>({
 	}
 
 	return (
-		<section className="admin-data-table-section">
+		<section className={sectionClass}>
 			<div className="admin-data-table-section__header">
 				<h2>{sectionTitle}</h2>
 				{headerActions}
@@ -182,19 +190,21 @@ export function FaceDetailEntityTableShell<T>({
 									</TableRow>
 								) : (
 									table.getRowModel().rows.map((row) => {
-										const activateRow = onRowClick ? () => onRowClick(row.original) : undefined;
+										const rowClickable =
+											onRowClick && (isRowClickable ? isRowClickable(row.original) : true);
+										const activateRow = rowClickable ? () => onRowClick(row.original) : undefined;
 										return (
 											<TableRow
 												key={row.id}
-												className={onRowClick ? 'admin-data-table__row--clickable' : undefined}
+												className={rowClickable ? 'admin-data-table__row--clickable' : undefined}
 												onClick={activateRow}
 												onKeyDown={
 													activateRow
 														? (event) => handleAdminTableRowKeyDown(event, activateRow)
 														: undefined
 												}
-												tabIndex={onRowClick ? 0 : undefined}
-												role={onRowClick ? 'button' : undefined}
+												tabIndex={rowClickable ? 0 : undefined}
+												role={rowClickable ? 'button' : undefined}
 											>
 												{row.getVisibleCells().map((cell) => (
 													<TableCell key={cell.id}>

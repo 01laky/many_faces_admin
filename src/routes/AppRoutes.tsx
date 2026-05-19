@@ -29,7 +29,6 @@ import {
 	ChatPage,
 	UserChatPage,
 	SettingsPage,
-	RegistrationInvitesPage,
 } from './lazyAdminPages';
 import { RouteLoadingFallback } from './RouteLoadingFallback';
 import { UserEditRedirect } from './UserEditRedirect';
@@ -49,7 +48,6 @@ export function AppRoutes() {
 		chat: chatPaths,
 		userChat: userChatPaths,
 		settings: settingsPaths,
-		registrationInvites: registrationInvitesPaths,
 	} = useAdminRoutePaths();
 
 	useEffect(() => {
@@ -307,18 +305,6 @@ export function AppRoutes() {
 							path={path}
 							element={
 								<ProtectedRoute redirectTo="login">{withLayout(<UserChatPage />)}</ProtectedRoute>
-							}
-						/>
-					))}
-
-					{registrationInvitesPaths.map((path) => (
-						<Route
-							key={path}
-							path={path}
-							element={
-								<ProtectedRoute redirectTo="login">
-									{withLayout(<RegistrationInvitesPage />)}
-								</ProtectedRoute>
 							}
 						/>
 					))}

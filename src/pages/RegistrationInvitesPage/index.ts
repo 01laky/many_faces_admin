@@ -1,1 +1,0 @@
-export { RegistrationInvitesPage } from './RegistrationInvitesPage';

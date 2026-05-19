@@ -6,7 +6,6 @@ import type { SupportedLanguage } from '../i18n/config';
  */
 const ROUTE_ID_TO_SLUG: Record<string, string> = {
 	userChat: 'user-chat',
-	registrationInvites: 'registration-invites',
 };
 
 function resolveRouteSlug(routeIdOrSlug: string): string {
@@ -25,8 +24,6 @@ const routeKeys: Record<string, string> = {
 	userChat: 'routes.userChat',
 	'user-chat': 'routes.userChat',
 	settings: 'routes.settings',
-	registrationInvites: 'routes.registrationInvites',
-	'registration-invites': 'routes.registrationInvites',
 };
 
 // Map of route keys to English route names (reverse lookup)
@@ -40,7 +37,6 @@ const routeKeyToEnglish: Record<string, string> = {
 	'routes.chat': 'chat',
 	'routes.userChat': 'user-chat',
 	'routes.settings': 'settings',
-	'routes.registrationInvites': 'registration-invites',
 };
 
 /**

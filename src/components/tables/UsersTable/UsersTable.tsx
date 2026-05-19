@@ -1,239 +1,112 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-	useReactTable,
-	getCoreRowModel,
-	type ColumnDef,
-	type SortingState,
-	type ColumnFiltersState,
-	flexRender,
-} from '@tanstack/react-table';
+import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table';
+import { useTranslation } from 'react-i18next';
 import { useUsers, type User } from '@/hooks/api/useUsersApi';
-import {
-	Table,
-	TableHeader,
-	TableBody,
-	TableRow,
-	TableHeaderCell,
-	TableCell,
-} from '@/components/radix/Table';
 import { Button } from '@/components/radix/Button';
 import { Input } from '@/components/radix/Input';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
-import { clampPageIndex, sortingStateToApi } from '@/utils/adminListQuery';
-import { useAdminListSortValidationFeedback } from '@/hooks/useAdminListSortValidationFeedback';
-import { AdminTablePagination } from '@/components/tables/AdminTablePagination';
-import './UsersTable.scss';
+import { sortingStateToApi } from '@/utils/adminListQuery';
+import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
 
 export function UsersTable() {
+	const { t } = useTranslation('common');
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
 	const [sorting, setSorting] = useState<SortingState>([{ id: 'createdAt', desc: true }]);
-	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [search, setSearch] = useState('');
-	const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: ADMIN_TABLE_PAGE_SIZE });
-
-	const page = pagination.pageIndex + 1;
-	const pageSize = pagination.pageSize;
-
-	const apiSort = sortingStateToApi(sorting);
-
-	const { data, isLoading, error, isError, refetch } = useUsers({
-		page,
-		pageSize,
-		search: search || undefined,
-		...apiSort,
+	const [pagination, setPagination] = useState<PaginationState>({
+		pageIndex: 0,
+		pageSize: ADMIN_TABLE_PAGE_SIZE,
 	});
 
-	useEffect(() => {
-		if (!data?.totalPages) return;
-		const next = clampPageIndex(pagination.pageIndex, data.totalPages);
-		if (next !== pagination.pageIndex) {
-			setPagination((p) => ({ ...p, pageIndex: next }));
-		}
-	}, [data?.totalPages, pagination.pageIndex]);
+	const { data, isLoading, isError, error, refetch } = useUsers({
+		page: pagination.pageIndex + 1,
+		pageSize: pagination.pageSize,
+		search: search.trim() || undefined,
+		...sortingStateToApi(sorting),
+	});
 
-	useAdminListSortValidationFeedback(error, isError, setSorting);
-
-	// Define columns
 	const columns = useMemo<ColumnDef<User>[]>(
 		() => [
 			{
 				accessorKey: 'id',
 				header: 'ID',
 				enableSorting: true,
-				cell: (info) => (
-					<button
-						type="button"
-						className="table-link-button"
-						onClick={() => navigate(getLocalizedPath(`/users/${info.getValue()}`))}
-					>
-						{info.getValue() as string}
-					</button>
-				),
+				cell: (info) => <span className="font-monospace small">{String(info.getValue())}</span>,
 			},
 			{
 				accessorKey: 'email',
-				header: 'Email',
+				header: t('pages.users.colEmail'),
 				enableSorting: true,
-				cell: (info) => info.getValue(),
 			},
 			{
 				accessorKey: 'firstName',
-				header: 'First Name',
+				header: t('pages.users.colFirstName'),
 				enableSorting: true,
-				cell: (info) => info.getValue() || '-',
+				cell: (info) => info.getValue() || '—',
 			},
 			{
 				accessorKey: 'lastName',
-				header: 'Last Name',
+				header: t('pages.users.colLastName'),
 				enableSorting: true,
-				cell: (info) => info.getValue() || '-',
+				cell: (info) => info.getValue() || '—',
 			},
 			{
 				accessorKey: 'createdAt',
-				header: 'Created At',
+				header: t('pages.users.colCreatedAt'),
 				enableSorting: true,
 				cell: (info) => {
 					const date = info.getValue() as string | undefined;
-					if (!date) return '-';
-					return new Date(date).toLocaleDateString();
+					return date ? new Date(date).toLocaleString() : '—';
 				},
 			},
 		],
-		[navigate, getLocalizedPath]
+		[t]
 	);
 
-	// Get users data - handle empty state gracefully
-	const users = data?.users || [];
-
-	/*
-	 * Same TanStack Table + React Compiler interaction as other admin tables: `useReactTable` is flagged
-	 * as incompatible with automatic memoization because it returns unstable function identities. Usage
-	 * here is local-only (table markup), which matches TanStack's recommended integration pattern.
-	 */
-	// eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table; rationale in block comment above
-	const table = useReactTable({
-		data: users,
-		columns,
-		getCoreRowModel: getCoreRowModel(),
-		enableMultiSort: false,
-		state: {
-			sorting,
-			columnFilters,
-			pagination,
-		},
-		onSortingChange: (updater) => {
-			setSorting(updater);
-			setPagination((p) => ({ ...p, pageIndex: 0 }));
-		},
-		onColumnFiltersChange: setColumnFilters,
-		onPaginationChange: setPagination,
-		manualPagination: true,
-		manualSorting: true,
-		pageCount: data?.totalPages ?? 0,
-	});
-
-	if (isLoading) {
-		return (
-			<div className="users-table-loading">
-				<p>Loading users...</p>
-			</div>
-		);
-	}
-
-	if (error) {
-		return (
-			<div className="users-table-error">
-				<p>Error loading users: {error instanceof Error ? error.message : 'Unknown error'}</p>
-				<Button onClick={() => refetch()}>Retry</Button>
-			</div>
-		);
-	}
-
-	const handleCreateClick = () => {
-		navigate(getLocalizedPath('/users/create'));
-	};
+	const headerToolbar = (
+		<div className="admin-data-table-section__toolbar">
+			<Input
+				type="text"
+				placeholder={t('pages.users.searchPlaceholder')}
+				value={search}
+				onChange={(e) => {
+					setSearch(e.target.value);
+					setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+				}}
+				className="admin-data-table-section__search"
+			/>
+			<Button onClick={() => void refetch()}>{t('common.refresh')}</Button>
+			<Button onClick={() => navigate(getLocalizedPath('/users/create'))}>
+				{t('pages.users.create')}
+			</Button>
+		</div>
+	);
 
 	return (
-		<div className="users-table-container">
-			<div className="users-table-header">
-				<h2>Users</h2>
-				<div className="users-table-actions">
-					<Input
-						type="text"
-						placeholder="Search users..."
-						value={search}
-						onChange={(e) => {
-							setSearch(e.target.value);
-							setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-						}}
-						className="users-table-search"
-					/>
-					<Button onClick={() => refetch()}>Refresh</Button>
-					<Button onClick={handleCreateClick}>Create User</Button>
-				</div>
-			</div>
-
-			<div className="users-table-wrapper">
-				<Table variant="surface" size="2" className="users-table">
-					<TableHeader>
-						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id}>
-								{headerGroup.headers.map((header) => (
-									<TableHeaderCell
-										key={header.id}
-										data-sortable={header.column.getCanSort() ? '' : undefined}
-										onClick={header.column.getToggleSortingHandler()}
-										style={{
-											cursor: header.column.getCanSort() ? 'pointer' : 'default',
-										}}
-									>
-										<div className="table-header-content">
-											{flexRender(header.column.columnDef.header, header.getContext())}
-											{header.column.getIsSorted() && (
-												<span className="table-sort-icon">
-													{header.column.getIsSorted() === 'desc' ? ' ↓' : ' ↑'}
-												</span>
-											)}
-										</div>
-									</TableHeaderCell>
-								))}
-							</TableRow>
-						))}
-					</TableHeader>
-					<TableBody>
-						{table.getRowModel().rows.length === 0 ? (
-							<TableRow>
-								<TableCell
-									colSpan={columns.length}
-									style={{ textAlign: 'center', padding: '2rem' }}
-								>
-									No users found
-								</TableCell>
-							</TableRow>
-						) : (
-							table.getRowModel().rows.map((row) => (
-								<TableRow key={row.id}>
-									{row.getVisibleCells().map((cell) => (
-										<TableCell key={cell.id}>
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
-										</TableCell>
-									))}
-								</TableRow>
-							))
-						)}
-					</TableBody>
-				</Table>
-			</div>
-
-			<AdminTablePagination
-				table={table}
-				totalItems={data?.total ?? 0}
-				itemLabel="users"
-				className="users-table-pagination"
-			/>
-		</div>
+		<FaceDetailEntityTableShell
+			sectionClassName="admin-data-table-section--page-root"
+			sectionTitle={t('pages.users.title')}
+			emptyMessage={t('pages.users.noUsers')}
+			loadingMessage={t('pages.users.loading')}
+			errorMessagePrefix={t('pages.users.error')}
+			itemLabel={t('pages.users.users')}
+			columns={columns}
+			data={data?.users ?? []}
+			totalCount={data?.total ?? 0}
+			totalPages={data?.totalPages ?? 0}
+			isLoading={isLoading}
+			isError={isError}
+			error={error}
+			refetch={() => void refetch()}
+			sorting={sorting}
+			onSortingChange={setSorting}
+			pagination={pagination}
+			onPaginationChange={setPagination}
+			headerActions={headerToolbar}
+			onRowClick={(user) => navigate(getLocalizedPath(`/users/${user.id}`))}
+		/>
 	);
 }
