@@ -1,11 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
 	useReactTable,
 	getCoreRowModel,
 	getSortedRowModel,
 	getFilteredRowModel,
-	getPaginationRowModel,
 	type ColumnDef,
 	type SortingState,
 	type ColumnFiltersState,
@@ -26,6 +25,8 @@ import { Input } from '@/components/radix/Input';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { gradientPreviewStyle } from '@/utils/gradientPreview';
 import { isAdminScopeFace } from '@/utils/adminScopeFace';
+import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
+import { AdminTablePagination } from '@/components/tables/AdminTablePagination';
 import './FacesTable.scss';
 
 export function FacesTable() {
@@ -35,11 +36,18 @@ export function FacesTable() {
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [search, setSearch] = useState('');
+	const [pagination, setPagination] = useState<PaginationState>({
+		pageIndex: 0,
+		pageSize: ADMIN_TABLE_PAGE_SIZE,
+	});
 
-	// React Query hook
+	useEffect(() => {
+		setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+	}, [search]);
+
 	const { data, isLoading, error, refetch } = useFaces({
-		page: 1,
-		pageSize: 10,
+		page: pagination.pageIndex + 1,
+		pageSize: pagination.pageSize,
 		search: search || undefined,
 	});
 
@@ -165,17 +173,20 @@ export function FacesTable() {
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
 		state: {
 			sorting,
 			columnFilters,
+			pagination,
 		},
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
-		manualPagination: false, // Client-side pagination for demo
-		manualSorting: false, // Client-side sorting for demo
-		manualFiltering: false, // Client-side filtering for demo
-		pageCount: data ? Math.ceil(data.total / (data.pageSize || 10)) : undefined,
+		onPaginationChange: setPagination,
+		manualPagination: true,
+		manualSorting: false,
+		manualFiltering: false,
+		pageCount: data
+			? Math.max(1, Math.ceil(data.total / (data.pageSize || ADMIN_TABLE_PAGE_SIZE)))
+			: 1,
 	});
 
 	if (isLoading) {
@@ -270,52 +281,12 @@ export function FacesTable() {
 				</Table>
 			</div>
 
-			<div className="faces-table-pagination">
-				<div className="pagination-info">
-					{t('common.showing')}{' '}
-					{table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}{' '}
-					{t('common.to')}{' '}
-					{Math.min(
-						(table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
-						data?.total || 0
-					)}{' '}
-					{t('common.of')} {data?.total || 0} {t('pages.faces.faces')}
-				</div>
-				<div className="pagination-controls">
-					<Button
-						onClick={() => table.setPageIndex(0)}
-						disabled={!table.getCanPreviousPage()}
-						variant="outline"
-					>
-						{t('common.first')}
-					</Button>
-					<Button
-						onClick={() => table.previousPage()}
-						disabled={!table.getCanPreviousPage()}
-						variant="outline"
-					>
-						{t('common.previous')}
-					</Button>
-					<span className="pagination-page-info">
-						{t('common.page')} {table.getState().pagination.pageIndex + 1} {t('common.of')}{' '}
-						{table.getPageCount()}
-					</span>
-					<Button
-						onClick={() => table.nextPage()}
-						disabled={!table.getCanNextPage()}
-						variant="outline"
-					>
-						{t('common.next')}
-					</Button>
-					<Button
-						onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-						disabled={!table.getCanNextPage()}
-						variant="outline"
-					>
-						{t('common.last')}
-					</Button>
-				</div>
-			</div>
+			<AdminTablePagination
+				table={table}
+				totalItems={data?.total ?? 0}
+				itemLabel={t('pages.faces.faces')}
+				className="faces-table-pagination"
+			/>
 		</div>
 	);
 }

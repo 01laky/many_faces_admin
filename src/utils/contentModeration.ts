@@ -84,6 +84,34 @@ export function formatOptionalDate(value: string | null | undefined) {
 	return Number.isNaN(date.getTime()) ? 'Invalid date' : date.toLocaleString();
 }
 
+/** Stable row id for moderation queue selection maps and bulk payloads (`Album:42`). */
+export function buildModerationRowKey(item: { contentType: string; contentId: number }): string {
+	return `${item.contentType}:${item.contentId}`;
+}
+
+/**
+ * Parses a moderation row key produced by {@link buildModerationRowKey}.
+ * Returns null when the key is malformed (e.g. missing colon or non-numeric id).
+ */
+export function parseModerationRowKey(
+	key: string
+): { contentType: ModeratedContentType; contentId: number } | null {
+	const colonIndex = key.indexOf(':');
+	if (colonIndex <= 0) return null;
+	const contentType = key.slice(0, colonIndex);
+	const contentId = Number(key.slice(colonIndex + 1));
+	if (!Number.isFinite(contentId)) return null;
+	return {
+		contentType: contentType as ModeratedContentType,
+		contentId: Math.trunc(contentId),
+	};
+}
+
+/** True when the bulk action button should stay disabled (nothing selected or mutation in flight). */
+export function canRunBulkModeration(selectedCount: number, bulkActionPending: boolean): boolean {
+	return selectedCount > 0 && !bulkActionPending;
+}
+
 /** Converts `ContentType:contentId` row keys into the bulk moderation POST body expected by the API. */
 export function buildBulkModerationPayload(
 	action: BulkModerationAction,
@@ -93,13 +121,9 @@ export function buildBulkModerationPayload(
 ) {
 	return {
 		action,
-		items: selectedKeys.map((key) => {
-			const [contentType, contentId] = key.split(':');
-			return {
-				contentType: contentType as ModeratedContentType,
-				contentId: Number(contentId),
-			};
-		}),
+		items: selectedKeys
+			.map((key) => parseModerationRowKey(key))
+			.filter((item): item is NonNullable<typeof item> => item != null),
 		reason: reason.trim(),
 		userMessage: userMessage?.trim() || undefined,
 	};

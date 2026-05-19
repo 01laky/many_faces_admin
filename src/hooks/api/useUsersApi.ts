@@ -2,6 +2,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { OpenAPI } from '../../api/core/OpenAPI';
 import { request as __request } from '../../api/core/request';
 import { logger } from '../../utils/logger';
+import { ADMIN_TABLE_PAGE_SIZE } from '../../utils/adminTableUtils';
 
 export interface User {
 	id: string;
@@ -70,7 +71,7 @@ export function parseUsersListResponse(
 
 const fetchUsers = async (params: UseUsersParams): Promise<UseUsersResponse> => {
 	const page = params.page || 1;
-	const pageSize = params.pageSize || 10;
+	const pageSize = params.pageSize || ADMIN_TABLE_PAGE_SIZE;
 
 	logger.info('Fetching users from API', params);
 

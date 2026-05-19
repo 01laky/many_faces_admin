@@ -11,6 +11,7 @@ import {
 } from '@/hooks/api/useContentModerationApi';
 import {
 	buildBulkModerationPayload,
+	buildModerationRowKey,
 	isSuperAdminFromToken,
 	type AiReviewRiskLevel,
 	type AiReviewStatus,
@@ -102,7 +103,7 @@ export function ContentModerationPage() {
 	}
 
 	const runAction = (item: ModerationItem, actionName: 'approve' | 'reject' | 'remove') => {
-		const key = `${item.contentType}:${item.contentId}`;
+		const key = buildModerationRowKey(item);
 		action.mutate({
 			item,
 			action: actionName,
@@ -111,7 +112,7 @@ export function ContentModerationPage() {
 	};
 
 	const toggleSelected = (item: ModerationItem) => {
-		const key = `${item.contentType}:${item.contentId}`;
+		const key = buildModerationRowKey(item);
 		setSelectedKeys((prev) =>
 			prev.includes(key) ? prev.filter((value) => value !== key) : [...prev, key]
 		);

@@ -13,7 +13,7 @@ export class AdminFaceWallTicketsService {
     public static getApiAdminFacesWallTickets({
         faceId,
         page = 1,
-        pageSize = 20,
+        pageSize = 10,
     }: {
         faceId: number,
         page?: number,

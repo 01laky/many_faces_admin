@@ -74,7 +74,7 @@ export async function adminListWallTickets(
   token: string,
   faceId: number,
   page = 1,
-  pageSize = 20,
+  pageSize = 10,
   status?: string
 ): Promise<AdminWallTicketListResponse> {
   const statusQ = status ? `&status=${encodeURIComponent(status)}` : '';

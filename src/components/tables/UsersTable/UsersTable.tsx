@@ -21,6 +21,8 @@ import {
 import { Button } from '@/components/radix/Button';
 import { Input } from '@/components/radix/Input';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
+import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
+import { AdminTablePagination } from '@/components/tables/AdminTablePagination';
 import './UsersTable.scss';
 
 export function UsersTable() {
@@ -29,7 +31,7 @@ export function UsersTable() {
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 	const [search, setSearch] = useState('');
-	const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+	const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: ADMIN_TABLE_PAGE_SIZE });
 
 	const page = pagination.pageIndex + 1;
 	const pageSize = pagination.pageSize;
@@ -209,50 +211,12 @@ export function UsersTable() {
 				</Table>
 			</div>
 
-			<div className="users-table-pagination">
-				<div className="pagination-info">
-					Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}{' '}
-					to{' '}
-					{Math.min(
-						(table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
-						data?.total || 0
-					)}{' '}
-					of {data?.total || 0} users
-				</div>
-				<div className="pagination-controls">
-					<Button
-						onClick={() => table.setPageIndex(0)}
-						disabled={!table.getCanPreviousPage()}
-						variant="outline"
-					>
-						First
-					</Button>
-					<Button
-						onClick={() => table.previousPage()}
-						disabled={!table.getCanPreviousPage()}
-						variant="outline"
-					>
-						Previous
-					</Button>
-					<span className="pagination-page-info">
-						Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-					</span>
-					<Button
-						onClick={() => table.nextPage()}
-						disabled={!table.getCanNextPage()}
-						variant="outline"
-					>
-						Next
-					</Button>
-					<Button
-						onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-						disabled={!table.getCanNextPage()}
-						variant="outline"
-					>
-						Last
-					</Button>
-				</div>
-			</div>
+			<AdminTablePagination
+				table={table}
+				totalItems={data?.total ?? 0}
+				itemLabel="users"
+				className="users-table-pagination"
+			/>
 		</div>
 	);
 }

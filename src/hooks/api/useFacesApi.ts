@@ -2,6 +2,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { OpenAPI } from '../../api/core/OpenAPI';
 import { request as __request } from '../../api/core/request';
 import { logger } from '../../utils/logger';
+import { ADMIN_TABLE_PAGE_SIZE } from '../../utils/adminTableUtils';
 
 export type FaceVisibility = 'Public' | 'Private' | 'Face' | 'Hidden';
 
@@ -58,7 +59,7 @@ const fetchFaces = async (params: UseFacesParams): Promise<UseFacesResponse> => 
 
 		// Client-side pagination
 		const page = params.page || 1;
-		const pageSize = params.pageSize || 10;
+		const pageSize = params.pageSize || ADMIN_TABLE_PAGE_SIZE;
 		const start = (page - 1) * pageSize;
 		const end = start + pageSize;
 		const paginatedFaces = faces.slice(start, end);

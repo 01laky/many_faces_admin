@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import type { PaginationState } from '@tanstack/react-table';
 import { useNavigate } from 'react-router-dom';
 import {
 	useReactTable,
@@ -23,6 +24,8 @@ import {
 import { Button } from '@/components/radix/Button';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { toast } from 'react-toastify';
+import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
+import { AdminTablePagination } from '@/components/tables/AdminTablePagination';
 import './PagesTable.scss';
 
 interface PagesTableProps {
@@ -34,6 +37,10 @@ export function PagesTable({ faceId }: PagesTableProps) {
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
 	const [sorting, setSorting] = useState<SortingState>([]);
+	const [pagination, setPagination] = useState<PaginationState>({
+		pageIndex: 0,
+		pageSize: ADMIN_TABLE_PAGE_SIZE,
+	});
 
 	const { data: pages = [], isLoading, error, refetch } = usePages({ faceId });
 	const deletePageMutation = useDeletePage();
@@ -145,8 +152,10 @@ export function PagesTable({ faceId }: PagesTableProps) {
 		getPaginationRowModel: getPaginationRowModel(),
 		state: {
 			sorting,
+			pagination,
 		},
 		onSortingChange: setSorting,
+		onPaginationChange: setPagination,
 		manualPagination: false,
 		manualSorting: false,
 		manualFiltering: false,
@@ -241,6 +250,12 @@ export function PagesTable({ faceId }: PagesTableProps) {
 					</TableBody>
 				</Table>
 			</div>
+			<AdminTablePagination
+				table={table}
+				totalItems={pagesData.length}
+				itemLabel={t('pages.pagesTable.title')}
+				className="pages-table-pagination"
+			/>
 		</div>
 	);
 }

@@ -1,0 +1,20 @@
+.admin-table-pagination {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	margin-top: 1rem;
+}
+
+.admin-table-pagination__controls {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.admin-table-pagination__page {
+	min-width: 6rem;
+	text-align: center;
+}

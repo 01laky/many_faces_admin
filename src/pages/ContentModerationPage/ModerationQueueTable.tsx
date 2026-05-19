@@ -1,10 +1,31 @@
-import { Alert, Button, Card, Col, Form, Row, Spinner, Table } from 'react-bootstrap';
+import { useMemo, useState } from 'react';
+import { Alert, Button, Card, Col, Form, Row, Spinner } from 'react-bootstrap';
+import {
+	useReactTable,
+	getCoreRowModel,
+	getPaginationRowModel,
+	flexRender,
+	type ColumnDef,
+	type PaginationState,
+} from '@tanstack/react-table';
 import type { ModerationItem } from '@/hooks/api/useContentModerationApi';
 import {
+	Table,
+	TableHeader,
+	TableBody,
+	TableRow,
+	TableHeaderCell,
+	TableCell,
+} from '@/components/radix/Table';
+import {
+	buildModerationRowKey,
+	canRunBulkModeration,
 	getModerationQueueLabel,
 	parseModerationFlags,
 	type BulkModerationAction,
 } from '@/utils/contentModeration';
+import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
+import { AdminTablePagination } from '@/components/tables/AdminTablePagination';
 
 interface ModerationQueueTableProps {
 	data: ModerationItem[] | undefined;
@@ -25,6 +46,12 @@ interface ModerationQueueTableProps {
 	onRunBulkAction: () => void;
 }
 
+const COLUMN_COUNT = 9;
+
+/**
+ * SUPER_ADMIN moderation queue: bulk toolbar + TanStack Table over server-filtered items.
+ * Selection and mutations stay in the parent page; this component owns presentation only.
+ */
 export function ModerationQueueTable({
 	data,
 	isLoading,
@@ -43,6 +70,132 @@ export function ModerationQueueTable({
 	onBulkReasonChange,
 	onRunBulkAction,
 }: ModerationQueueTableProps) {
+	const rows = data ?? [];
+	const [pagination, setPagination] = useState<PaginationState>({
+		pageIndex: 0,
+		pageSize: ADMIN_TABLE_PAGE_SIZE,
+	});
+
+	const columns = useMemo<ColumnDef<ModerationItem>[]>(
+		() => [
+			{
+				id: 'select',
+				header: 'Select',
+				enableSorting: false,
+				cell: ({ row }) => {
+					const item = row.original;
+					const key = buildModerationRowKey(item);
+					return (
+						<Form.Check
+							aria-label={`Select ${item.contentType} ${item.contentId}`}
+							checked={selectedKeys.includes(key)}
+							onChange={() => onToggleSelected(item)}
+						/>
+					);
+				},
+			},
+			{
+				accessorKey: 'contentType',
+				header: 'Type',
+				cell: (info) => String(info.getValue()),
+			},
+			{
+				accessorKey: 'title',
+				header: 'Title',
+				// PI-8: plain text only — never render queue fields as HTML.
+				cell: (info) => String(info.getValue() ?? ''),
+			},
+			{
+				id: 'face',
+				header: 'Face',
+				cell: ({ row }) => row.original.faceTitle || String(row.original.faceId),
+			},
+			{
+				id: 'author',
+				header: 'Author',
+				cell: ({ row }) => row.original.creatorName.trim() || row.original.creatorId,
+			},
+			{
+				id: 'status',
+				header: 'Status',
+				cell: ({ row }) =>
+					getModerationQueueLabel(row.original.approvalStatus, row.original.aiReviewStatus),
+			},
+			{
+				id: 'ai',
+				header: 'AI',
+				cell: ({ row }) => {
+					const item = row.original;
+					const flags = parseModerationFlags(item.aiReviewFlagsJson);
+					const confidence =
+						item.aiReviewConfidence != null
+							? ` (${Math.round(item.aiReviewConfidence * 100)}%)`
+							: '';
+					const flagSuffix = flags.length > 0 ? ` - ${flags.join(', ')}` : '';
+					return `${item.aiReviewStatus}${confidence}${flagSuffix}`;
+				},
+			},
+			{
+				id: 'reason',
+				header: 'Reason',
+				enableSorting: false,
+				cell: ({ row }) => {
+					const key = buildModerationRowKey(row.original);
+					return (
+						<Form.Control
+							size="sm"
+							value={reasonByItem[key] ?? ''}
+							placeholder="Required for reject/remove and overrides"
+							onChange={(event) => onReasonChange(key, event.target.value)}
+						/>
+					);
+				},
+			},
+			{
+				id: 'actions',
+				header: 'Actions',
+				enableSorting: false,
+				cell: ({ row }) => {
+					const item = row.original;
+					return (
+						<div className="content-moderation-page__actions">
+							<Button size="sm" variant="outline-secondary" onClick={() => onSelectItem(item)}>
+								Details
+							</Button>
+							<Button size="sm" variant="success" onClick={() => onRunAction(item, 'approve')}>
+								Approve
+							</Button>
+							<Button size="sm" variant="warning" onClick={() => onRunAction(item, 'reject')}>
+								Reject
+							</Button>
+							<Button size="sm" variant="danger" onClick={() => onRunAction(item, 'remove')}>
+								Remove
+							</Button>
+						</div>
+					);
+				},
+			},
+		],
+		[selectedKeys, reasonByItem, onToggleSelected, onReasonChange, onSelectItem, onRunAction]
+	);
+
+	/*
+	 * TanStack Table returns unstable function identities; React Compiler flags useReactTable.
+	 * We only consume `table` in this file's JSX (no memoized children), matching other admin tables.
+	 */
+	// eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table; local render only
+	const table = useReactTable({
+		data: rows,
+		columns,
+		getCoreRowModel: getCoreRowModel(),
+		getPaginationRowModel: getPaginationRowModel(),
+		getRowId: (row) => buildModerationRowKey(row),
+		state: { pagination },
+		onPaginationChange: setPagination,
+	});
+
+	const bulkEnabled = canRunBulkModeration(selectedKeys.length, bulkActionPending);
+
 	return (
 		<>
 			<Card
@@ -87,12 +240,7 @@ export function ModerationQueueTable({
 								</Form.Group>
 							</Col>
 							<Col xs={12} sm={6} md="auto">
-								<Button
-									type="submit"
-									variant="primary"
-									className="w-100"
-									disabled={selectedKeys.length === 0 || bulkActionPending}
-								>
+								<Button type="submit" variant="primary" className="w-100" disabled={!bulkEnabled}>
 									Apply bulk action
 								</Button>
 							</Col>
@@ -109,76 +257,53 @@ export function ModerationQueueTable({
 			{isLoading && <Spinner animation="border" />}
 			{error && <Alert variant="danger">Failed to load moderation queue.</Alert>}
 
-			<Table responsive hover className="content-moderation-page__table">
-				<thead>
-					<tr>
-						<th>Select</th>
-						<th>Type</th>
-						<th>Title</th>
-						<th>Face</th>
-						<th>Author</th>
-						<th>Status</th>
-						<th>AI</th>
-						<th>Reason</th>
-						<th>Actions</th>
-					</tr>
-				</thead>
-				<tbody>
-					{(data ?? []).map((item) => {
-						const key = `${item.contentType}:${item.contentId}`;
-						return (
-							<tr key={key}>
-								<td>
-									<Form.Check
-										aria-label={`Select ${item.contentType} ${item.contentId}`}
-										checked={selectedKeys.includes(key)}
-										onChange={() => onToggleSelected(item)}
-									/>
-								</td>
-								<td>{item.contentType}</td>
-								<td>{item.title}</td>
-								<td>{item.faceTitle || item.faceId}</td>
-								<td>{item.creatorName.trim() || item.creatorId}</td>
-								<td>{getModerationQueueLabel(item.approvalStatus, item.aiReviewStatus)}</td>
-								<td>
-									{item.aiReviewStatus}
-									{item.aiReviewConfidence != null &&
-										` (${Math.round(item.aiReviewConfidence * 100)}%)`}
-									{parseModerationFlags(item.aiReviewFlagsJson).length > 0 &&
-										` - ${parseModerationFlags(item.aiReviewFlagsJson).join(', ')}`}
-								</td>
-								<td>
-									<Form.Control
-										size="sm"
-										value={reasonByItem[key] ?? ''}
-										placeholder="Required for reject/remove and overrides"
-										onChange={(event) => onReasonChange(key, event.target.value)}
-									/>
-								</td>
-								<td className="content-moderation-page__actions">
-									<Button size="sm" variant="outline-secondary" onClick={() => onSelectItem(item)}>
-										Details
-									</Button>
-									<Button size="sm" variant="success" onClick={() => onRunAction(item, 'approve')}>
-										Approve
-									</Button>
-									<Button size="sm" variant="warning" onClick={() => onRunAction(item, 'reject')}>
-										Reject
-									</Button>
-									<Button size="sm" variant="danger" onClick={() => onRunAction(item, 'remove')}>
-										Remove
-									</Button>
-								</td>
-							</tr>
-						);
-					})}
-					{!isLoading && (data ?? []).length === 0 && (
-						<tr>
-							<td colSpan={9}>No moderation items match the selected filters.</td>
-						</tr>
-					)}
-				</tbody>
-			</Table>
+			{!isLoading && !error && (
+				<div className="table-responsive">
+					<Table variant="surface" size="2" className="content-moderation-page__table">
+						<TableHeader>
+							{table.getHeaderGroups().map((headerGroup) => (
+								<TableRow key={headerGroup.id}>
+									{headerGroup.headers.map((header) => (
+										<TableHeaderCell key={header.id}>
+											{header.isPlaceholder
+												? null
+												: flexRender(header.column.columnDef.header, header.getContext())}
+										</TableHeaderCell>
+									))}
+								</TableRow>
+							))}
+						</TableHeader>
+						<TableBody>
+							{table.getRowModel().rows.length === 0 ? (
+								<TableRow>
+									<TableCell
+										colSpan={COLUMN_COUNT}
+										style={{ textAlign: 'center', padding: '2rem' }}
+									>
+										No moderation items match the selected filters.
+									</TableCell>
+								</TableRow>
+							) : (
+								table.getRowModel().rows.map((row) => (
+									<TableRow key={row.id}>
+										{row.getVisibleCells().map((cell) => (
+											<TableCell key={cell.id}>
+												{flexRender(cell.column.columnDef.cell, cell.getContext())}
+											</TableCell>
+										))}
+									</TableRow>
+								))
+							)}
+						</TableBody>
+					</Table>
+					<AdminTablePagination
+						table={table}
+						totalItems={rows.length}
+						itemLabel="items"
+						className="content-moderation-page__pagination"
+					/>
+				</div>
+			)}
 		</>
 	);
 }

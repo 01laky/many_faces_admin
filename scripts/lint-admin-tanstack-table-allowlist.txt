@@ -1,0 +1,2 @@
+# Paths (substring match) exempt from lint-admin-tanstack-table.mjs
+# Keep empty after full rollout.

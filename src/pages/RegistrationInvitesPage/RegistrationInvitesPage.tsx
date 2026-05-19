@@ -3,7 +3,8 @@
  * API status values are lowercase (`pending`, `completed`, …) from the backend.
  */
 import { useState } from 'react';
-import { Container, Table, Button, Form, Row, Col, Badge } from 'react-bootstrap';
+import { Container, Button, Form, Row, Col } from 'react-bootstrap';
+import { RegistrationInvitesTable } from '@/components/tables/RegistrationInvitesTable';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 import {
@@ -11,7 +12,6 @@ import {
 	useRegistrationInvitesList,
 	useResendRegistrationInviteEmail,
 	useRevokeRegistrationInvite,
-	isPendingInviteStatus,
 } from '@/hooks/api/useRegistrationInvitesAdminApi';
 
 export function RegistrationInvitesPage() {
@@ -109,52 +109,12 @@ export function RegistrationInvitesPage() {
 				{loading ? (
 					<p>{t('pages.registrationInvites.loading')}</p>
 				) : (
-					<Table striped bordered hover responsive>
-						<thead>
-							<tr>
-								<th>{t('pages.registrationInvites.email')}</th>
-								<th>{t('pages.registrationInvites.status')}</th>
-								<th>{t('pages.registrationInvites.expires')}</th>
-								<th />
-							</tr>
-						</thead>
-						<tbody>
-							{rows.map((row) => (
-								<tr key={row.id}>
-									<td>{row.email}</td>
-									<td>
-										<Badge bg={isPendingInviteStatus(row.status) ? 'warning' : 'secondary'}>
-											{row.status}
-										</Badge>
-									</td>
-									<td>{new Date(row.expiresAtUtc).toLocaleString()}</td>
-									<td>
-										{isPendingInviteStatus(row.status) ? (
-											<>
-												<Button
-													size="sm"
-													variant="outline-secondary"
-													className="me-2"
-													disabled={actionBusy}
-													onClick={() => void onResend(row.email)}
-												>
-													{t('pages.registrationInvites.resend')}
-												</Button>
-												<Button
-													size="sm"
-													variant="outline-danger"
-													disabled={actionBusy}
-													onClick={() => void onRevoke(row.id)}
-												>
-													{t('pages.registrationInvites.revoke')}
-												</Button>
-											</>
-										) : null}
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</Table>
+					<RegistrationInvitesTable
+						rows={rows}
+						actionBusy={actionBusy}
+						onResend={(rowEmail) => void onResend(rowEmail)}
+						onRevoke={(id) => void onRevoke(id)}
+					/>
 				)}
 			</Container>
 		</div>

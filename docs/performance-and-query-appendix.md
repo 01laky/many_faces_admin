@@ -44,6 +44,7 @@ No other production components call **`useMeCapabilities`** directly; capability
 | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | **i18n lazy-load**                            | Keep **static JSON** imports in `i18n/config.ts` for predictable admin bundle; lazy HTTP loading deferred (smaller admin locale set). |
 | **Table virtualization**                      | List UIs are moderate size; **@tanstack/react-table** without windowing until row-count SLA is defined.                               |
+| **TanStack Table data grids**                   | All admin tabular list UIs use **`useReactTable`** + Radix `@/components/radix/Table`; enforced via `yarn lint:tables`. Page-private tables: moderation queue, user-detail faces. |
 | **`react-toastify` CSS**                      | Stays in `main.tsx` global entry; **`ToastContainer`** uses **`limit={5}`**. Splitting CSS to an auth-only chunk deferred.            |
 | **Axios face-prefix interceptor**             | No measured hot-path cost; keep current **`applyFacePrefixToRequestUrl`** in the interceptor.                                         |
 | **Lighthouse / Profiler / Performance trace** | Run locally on `yarn build && yarn preview` and attach tables to the PR when benchmarking (not a CI gate here).                       |

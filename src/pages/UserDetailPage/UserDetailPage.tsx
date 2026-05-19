@@ -14,11 +14,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/radix/Button';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
-import {
-	canSubmitFaceBan,
-	canSubmitGlobalBan,
-	getFaceStatusI18nKey,
-} from '@/utils/operatorUserDetailUi';
+import { canSubmitFaceBan, canSubmitGlobalBan } from '@/utils/operatorUserDetailUi';
+import { UserDetailFacesTable } from './UserDetailFacesTable';
 import './UserDetailPage.scss';
 
 function mutationErrorMessage(error: unknown): string {
@@ -282,99 +279,18 @@ export function UserDetailPage() {
 
 					<div className="user-detail-card">
 						<h2 className="user-detail-section-title">{t('pages.userDetail.facesTitle')}</h2>
-						<div className="user-detail-faces-table-wrapper">
-							<table className="user-detail-faces-table">
-								<thead>
-									<tr>
-										<th>{t('pages.userDetail.faceColumnTitle')}</th>
-										<th>{t('pages.userDetail.faceColumnRole')}</th>
-										<th>{t('pages.userDetail.faceColumnStatus')}</th>
-										<th>{t('common.actions')}</th>
-									</tr>
-								</thead>
-								<tbody>
-									{user.faces.length === 0 ? (
-										<tr>
-											<td colSpan={4}>{t('pages.userDetail.noFaces')}</td>
-										</tr>
-									) : (
-										user.faces.map((face) => (
-											<tr key={face.faceId}>
-												<td>
-													<strong>{face.faceTitle}</strong>
-													<div className="user-detail-face-index">{face.faceIndex}</div>
-												</td>
-												<td>
-													<select
-														className="user-detail-role-select"
-														value={face.userRoleId}
-														disabled={setFaceRole.isPending}
-														onChange={(e) => handleRoleChange(face.faceId, Number(e.target.value))}
-													>
-														{faceRoles.map((role) => (
-															<option key={role.id} value={role.id}>
-																{role.name}
-															</option>
-														))}
-													</select>
-													<span className="user-detail-role-current">{face.roleName}</span>
-												</td>
-												<td>
-													{(() => {
-														const statusKey = getFaceStatusI18nKey(face);
-														return statusKey ? (
-															<span
-																className={`user-detail-badge ${face.isFaceBanned ? 'user-detail-badge--danger' : 'user-detail-badge--ok'}`}
-															>
-																{t(statusKey)}
-															</span>
-														) : (
-															'—'
-														);
-													})()}
-												</td>
-												<td>
-													{face.isFaceBanned ? (
-														<Button
-															variant="outline"
-															onClick={() => handleFaceUnban(face.faceId)}
-															disabled={faceUnban.isPending}
-														>
-															{t('pages.userDetail.faceUnban')}
-														</Button>
-													) : (
-														<div className="user-detail-face-ban-actions">
-															<textarea
-																className="user-detail-textarea user-detail-textarea--compact"
-																value={faceBanReasonById[face.faceId] ?? ''}
-																onChange={(e) =>
-																	setFaceBanReasonById((prev) => ({
-																		...prev,
-																		[face.faceId]: e.target.value,
-																	}))
-																}
-																placeholder={t('pages.userDetail.banReasonHint')}
-																rows={2}
-															/>
-															<Button
-																variant="outline"
-																onClick={() => handleFaceBan(face.faceId)}
-																disabled={
-																	faceBan.isPending ||
-																	!canSubmitFaceBan(faceBanReasonById[face.faceId])
-																}
-															>
-																{t('pages.userDetail.faceBan')}
-															</Button>
-														</div>
-													)}
-												</td>
-											</tr>
-										))
-									)}
-								</tbody>
-							</table>
-						</div>
+						<UserDetailFacesTable
+							faces={user.faces}
+							faceRoles={faceRoles}
+							faceBanReasonById={faceBanReasonById}
+							setFaceBanReasonById={setFaceBanReasonById}
+							onRoleChange={handleRoleChange}
+							onFaceBan={handleFaceBan}
+							onFaceUnban={handleFaceUnban}
+							roleChangePending={setFaceRole.isPending}
+							faceBanPending={faceBan.isPending}
+							faceUnbanPending={faceUnban.isPending}
+						/>
 					</div>
 
 					{isSuperAdminFromToken(token) && (

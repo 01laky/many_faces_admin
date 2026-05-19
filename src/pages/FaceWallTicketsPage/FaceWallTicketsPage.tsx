@@ -19,6 +19,8 @@ import {
 } from '@/hooks/api/useWallTicketsAdminApi';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
 import { Button } from '@/components/radix/Button';
+import { WallTicketsTable, WallTicketStatusBadge } from '@/components/tables/WallTicketsTable';
+import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
 import {
 	parseWallTicketIdFromSearch,
 	statusFilterToQuery,
@@ -27,27 +29,6 @@ import {
 	type WallTicketStatusFilter,
 } from '@/utils/wallTicketModeration';
 import './FaceWallTicketsPage.scss';
-
-function statusLabelKey(status: string): string {
-	const s = status.toLowerCase();
-	if (s === 'approved') return 'pages.faceWallTickets.statusApproved';
-	if (s === 'denied') return 'pages.faceWallTickets.statusDenied';
-	return 'pages.faceWallTickets.statusActive';
-}
-
-function WallTicketStatusBadge({ status }: { status: string }) {
-	const { t } = useTranslation('common');
-	const s = status.toLowerCase();
-	const cls =
-		s === 'approved'
-			? 'face-wall-tickets-page__badge--approved'
-			: s === 'denied'
-				? 'face-wall-tickets-page__badge--denied'
-				: 'face-wall-tickets-page__badge--active';
-	return (
-		<span className={`face-wall-tickets-page__badge ${cls}`}>{t(statusLabelKey(status))}</span>
-	);
-}
 
 export function FaceWallTicketsPage() {
 	const { id } = useParams<{ id: string }>();
@@ -74,7 +55,7 @@ export function FaceWallTicketsPage() {
 		isLoading: listLoading,
 		isError: listIsError,
 		error: listError,
-	} = useAdminWallTicketsList(faceId, page, 20, statusQuery);
+	} = useAdminWallTicketsList(faceId, page, ADMIN_TABLE_PAGE_SIZE, statusQuery);
 
 	const {
 		data: selected,
@@ -223,75 +204,15 @@ export function FaceWallTicketsPage() {
 						</div>
 					)}
 					{!loading && items.length > 0 && (
-						<div className="table-responsive">
-							<table className="table table-sm table-striped align-middle">
-								<thead>
-									<tr>
-										<th>{t('pages.faceWallTickets.colId')}</th>
-										<th>{t('pages.faceWallTickets.colTitle')}</th>
-										<th>{t('pages.faceWallTickets.colStatus')}</th>
-										<th>{t('pages.faceWallTickets.colCreator')}</th>
-										<th>{t('pages.faceWallTickets.colCounts')}</th>
-									</tr>
-								</thead>
-								<tbody>
-									{items.map((row) => (
-										<tr
-											key={row.id}
-											className={
-												selected?.id === row.id ? 'face-wall-tickets-page__row--selected' : ''
-											}
-											onClick={() => selectRow(row)}
-											role="button"
-											tabIndex={0}
-											onKeyDown={(e) => {
-												if (e.key === 'Enter' || e.key === ' ') selectRow(row);
-											}}
-										>
-											<td>{row.id}</td>
-											<td>{row.title}</td>
-											<td>
-												<WallTicketStatusBadge status={row.status} />
-											</td>
-											<td onClick={(e) => e.stopPropagation()}>
-												{row.creatorId ? (
-													<Link to={getLocalizedPath(`/users/${row.creatorId}`)}>
-														{row.creatorName || row.creatorId}
-													</Link>
-												) : (
-													row.creatorName
-												)}
-											</td>
-											<td>
-												{row.likesCount} / {row.commentsCount}
-											</td>
-										</tr>
-									))}
-								</tbody>
-							</table>
-						</div>
-					)}
-
-					{totalPages > 1 && (
-						<div className="face-wall-tickets-page__pager">
-							<Button
-								variant="outline"
-								disabled={page <= 1 || actionBusy}
-								onClick={() => setPage((p) => p - 1)}
-							>
-								{t('pages.faceWallTickets.prev')}
-							</Button>
-							<span>
-								{page} / {totalPages}
-							</span>
-							<Button
-								variant="outline"
-								disabled={page >= totalPages || actionBusy}
-								onClick={() => setPage((p) => p + 1)}
-							>
-								{t('pages.faceWallTickets.next')}
-							</Button>
-						</div>
+						<WallTicketsTable
+							items={items}
+							selectedId={selected?.id}
+							onSelectRow={selectRow}
+							page={page}
+							totalPages={totalPages}
+							onPageChange={setPage}
+							disabled={actionBusy}
+						/>
 					)}
 				</div>
 

@@ -1,9 +1,16 @@
-import { Alert, Table } from 'react-bootstrap';
+import { useMemo } from 'react';
+import { Alert } from 'react-bootstrap';
+import type { ColumnDef } from '@tanstack/react-table';
 import {
 	dashboardHasOperationalWarnings,
 	shouldWarnAboutOldestPending,
 } from '@/utils/contentModeration';
-import type { useModerationMetrics } from '@/hooks/api/useContentModerationApi';
+import type {
+	ModerationFacePending,
+	ModerationFlagCount,
+	useModerationMetrics,
+} from '@/hooks/api/useContentModerationApi';
+import { ModerationMetricsBreakdownTable } from './ModerationMetricsBreakdownTable';
 
 type MetricsData = NonNullable<ReturnType<typeof useModerationMetrics>['data']>;
 
@@ -12,6 +19,39 @@ interface ModerationMetricsPanelProps {
 }
 
 export function ModerationMetricsPanel({ metrics }: ModerationMetricsPanelProps) {
+	const flagColumns = useMemo<ColumnDef<ModerationFlagCount, unknown>[]>(
+		() => [
+			{
+				accessorKey: 'flag',
+				header: 'Flag',
+			},
+			{
+				accessorKey: 'count',
+				header: 'Count',
+			},
+		],
+		[]
+	);
+
+	const pendingByFaceColumns = useMemo<ColumnDef<ModerationFacePending, unknown>[]>(
+		() => [
+			{
+				id: 'face',
+				header: 'Face',
+				cell: ({ row }) => (
+					<>
+						{row.original.faceTitle} (#{row.original.faceId})
+					</>
+				),
+			},
+			{
+				accessorKey: 'pendingCount',
+				header: 'Pending',
+			},
+		],
+		[]
+	);
+
 	if (!metrics) return null;
 
 	return (
@@ -101,46 +141,22 @@ export function ModerationMetricsPanel({ metrics }: ModerationMetricsPanelProps)
 			{(metrics.topModerationFlags?.length ?? 0) > 0 && (
 				<section className="content-moderation-page__breakdown" aria-label="Top moderation flags">
 					<h2 className="content-moderation-page__subsection-title">Top flags (pending)</h2>
-					<Table size="sm" bordered responsive>
-						<thead>
-							<tr>
-								<th>Flag</th>
-								<th>Count</th>
-							</tr>
-						</thead>
-						<tbody>
-							{metrics.topModerationFlags.map((row) => (
-								<tr key={row.flag}>
-									<td>{row.flag}</td>
-									<td>{row.count}</td>
-								</tr>
-							))}
-						</tbody>
-					</Table>
+					<ModerationMetricsBreakdownTable
+						rows={metrics.topModerationFlags}
+						columns={flagColumns}
+						getRowId={(row) => row.flag}
+					/>
 				</section>
 			)}
 
 			{(metrics.pendingSubmissionsByFace?.length ?? 0) > 0 && (
 				<section className="content-moderation-page__breakdown" aria-label="Pending by face">
 					<h2 className="content-moderation-page__subsection-title">Pending by face</h2>
-					<Table size="sm" bordered responsive>
-						<thead>
-							<tr>
-								<th>Face</th>
-								<th>Pending</th>
-							</tr>
-						</thead>
-						<tbody>
-							{metrics.pendingSubmissionsByFace.map((row) => (
-								<tr key={row.faceId}>
-									<td>
-										{row.faceTitle} (#{row.faceId})
-									</td>
-									<td>{row.pendingCount}</td>
-								</tr>
-							))}
-						</tbody>
-					</Table>
+					<ModerationMetricsBreakdownTable
+						rows={metrics.pendingSubmissionsByFace}
+						columns={pendingByFaceColumns}
+						getRowId={(row) => String(row.faceId)}
+					/>
 				</section>
 			)}
 		</>
