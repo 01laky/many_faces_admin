@@ -1,0 +1,22 @@
+.admin-readonly-detail {
+	padding: 2rem 1rem;
+
+	&__header {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		margin-bottom: 1.5rem;
+	}
+
+	&__grid {
+		display: grid;
+		gap: 1rem;
+		max-width: 48rem;
+	}
+
+	&__field label {
+		display: block;
+		font-weight: 600;
+		margin-bottom: 0.25rem;
+	}
+}

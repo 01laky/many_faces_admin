@@ -44,7 +44,29 @@ export const EditPagePage = lazy(() =>
 	import('../pages/EditPagePage').then((m) => ({ default: m.EditPagePage }))
 );
 export const PageDetailPage = lazy(() =>
-	import('../pages/PageDetailPage').then((m) => ({ default: m.PageDetailPage }))
+	import('../pages/PageDetailPage/PageDetailPage').then((m) => ({ default: m.PageDetailPage }))
+);
+export const AlbumDetailPage = lazy(() =>
+	import('../pages/AlbumDetailPage/AlbumDetailPage').then((m) => ({ default: m.AlbumDetailPage }))
+);
+export const ReelDetailPage = lazy(() =>
+	import('../pages/ReelDetailPage/ReelDetailPage').then((m) => ({ default: m.ReelDetailPage }))
+);
+export const BlogDetailPage = lazy(() =>
+	import('../pages/BlogDetailPage/BlogDetailPage').then((m) => ({ default: m.BlogDetailPage }))
+);
+export const StoryDetailPage = lazy(() =>
+	import('../pages/StoryDetailPage/StoryDetailPage').then((m) => ({ default: m.StoryDetailPage }))
+);
+export const FaceChatRoomDetailPage = lazy(() =>
+	import('../pages/FaceChatRoomDetailPage/FaceChatRoomDetailPage').then((m) => ({
+		default: m.FaceChatRoomDetailPage,
+	}))
+);
+export const FaceProfileDetailPage = lazy(() =>
+	import('../pages/FaceProfileDetailPage/FaceProfileDetailPage').then((m) => ({
+		default: m.FaceProfileDetailPage,
+	}))
 );
 export const ChatPage = lazy(() =>
 	import('../pages/ChatPage').then((m) => ({ default: m.ChatPage }))

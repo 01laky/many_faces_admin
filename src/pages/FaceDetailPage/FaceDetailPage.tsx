@@ -5,6 +5,12 @@ import { useFace } from '@/hooks/api/useFacesApi';
 import { gradientPreviewStyle } from '@/utils/gradientPreview';
 import { Button } from '@/components/radix/Button';
 import { PagesTable } from '@/components/tables/PagesTable';
+import { AlbumsTable } from '@/components/tables/AlbumsTable/AlbumsTable';
+import { ReelsTable } from '@/components/tables/ReelsTable/ReelsTable';
+import { BlogsTable } from '@/components/tables/BlogsTable/BlogsTable';
+import { FaceChatRoomsTable } from '@/components/tables/FaceChatRoomsTable/FaceChatRoomsTable';
+import { FaceProfilesTable } from '@/components/tables/FaceProfilesTable/FaceProfilesTable';
+import { StoriesTable } from '@/components/tables/StoriesTable/StoriesTable';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { isAdminScopeFace } from '@/utils/adminScopeFace';
 import './FaceDetailPage.scss';
@@ -172,10 +178,19 @@ export function FaceDetailPage() {
 						</Row>
 					</div>
 
-					{/* Pages table */}
 					<div className="face-detail-pages-section">
 						<PagesTable faceId={face.id} />
 					</div>
+					{face.id > 0 && (
+						<>
+							<AlbumsTable faceId={face.id} />
+							<ReelsTable faceId={face.id} />
+							<BlogsTable faceId={face.id} />
+							<FaceChatRoomsTable faceId={face.id} />
+							<FaceProfilesTable faceId={face.id} />
+							<StoriesTable faceId={face.id} />
+						</>
+					)}
 				</div>
 			</Container>
 		</div>

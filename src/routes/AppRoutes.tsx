@@ -20,6 +20,12 @@ import {
 	CreatePagePage,
 	EditPagePage,
 	PageDetailPage,
+	AlbumDetailPage,
+	ReelDetailPage,
+	BlogDetailPage,
+	StoryDetailPage,
+	FaceChatRoomDetailPage,
+	FaceProfileDetailPage,
 	ChatPage,
 	UserChatPage,
 	SettingsPage,
@@ -236,6 +242,54 @@ export function AppRoutes() {
 							<ProtectedRoute redirectTo="login">{withLayout(<EditPagePage />)}</ProtectedRoute>
 						}
 					/>
+
+					<Route
+						path="albums/:id"
+						element={
+							<ProtectedRoute redirectTo="login">{withLayout(<AlbumDetailPage />)}</ProtectedRoute>
+						}
+					/>
+					<Route
+						path="reels/:id"
+						element={
+							<ProtectedRoute redirectTo="login">{withLayout(<ReelDetailPage />)}</ProtectedRoute>
+						}
+					/>
+					<Route
+						path="blogs/:id"
+						element={
+							<ProtectedRoute redirectTo="login">{withLayout(<BlogDetailPage />)}</ProtectedRoute>
+						}
+					/>
+					<Route
+						path="stories/:id"
+						element={
+							<ProtectedRoute redirectTo="login">{withLayout(<StoryDetailPage />)}</ProtectedRoute>
+						}
+					/>
+
+					{facesPaths.map((path) => (
+						<Route
+							key={`${path}/:faceId/chat-rooms/:roomId`}
+							path={`${path}/:faceId/chat-rooms/:roomId`}
+							element={
+								<ProtectedRoute redirectTo="login">
+									{withLayout(<FaceChatRoomDetailPage />)}
+								</ProtectedRoute>
+							}
+						/>
+					))}
+					{facesPaths.map((path) => (
+						<Route
+							key={`${path}/:faceId/profiles/:userId`}
+							path={`${path}/:faceId/profiles/:userId`}
+							element={
+								<ProtectedRoute redirectTo="login">
+									{withLayout(<FaceProfileDetailPage />)}
+								</ProtectedRoute>
+							}
+						/>
+					))}
 
 					{chatPaths.map((path) => (
 						<Route
