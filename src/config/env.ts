@@ -37,6 +37,31 @@ function getBoolEnv(key: string, defaultValue: boolean): boolean {
 	return value === 'true' || value === '1';
 }
 
+/** Host ports where nginx proxies API on the same origin (docker-compose admin-demo-proxy / direct :8082). */
+const ADMIN_DEV_PROXY_PORTS = new Set(['8090', '8091', '8082']);
+
+/**
+ * Docker admin HTTP entry (host :8090 → nginx :80) mirrors portal :9080 — browser must not call
+ * localhost:8001 on a remote PC. Same-origin → nginx → be-demo-dev:8000.
+ */
+export function resolveApiUrl(
+	fromEnv: string,
+	isDev: boolean,
+	location?: Pick<Location, 'port' | 'origin' | 'hostname' | 'protocol'>
+): string {
+	if (!isDev || !location) return fromEnv;
+	if (ADMIN_DEV_PROXY_PORTS.has(location.port)) {
+		return location.origin;
+	}
+	const host = location.hostname;
+	if (host !== 'localhost' && host !== '127.0.0.1' && location.port === '8082') {
+		const scheme = location.protocol === 'http:' ? 'http' : 'https';
+		const apiPort = scheme === 'http' ? '8000' : '8001';
+		return `${scheme}//${host}:${apiPort}`;
+	}
+	return fromEnv;
+}
+
 /* Reserved numeric env helper — keep commented until a `VITE_*` number knob ships.
 function _getNumberEnv(key: string, defaultValue: number): number {
 //   const value = import.meta.env[key];
@@ -46,9 +71,14 @@ function _getNumberEnv(key: string, defaultValue: number): number {
 }
 */
 
+const viteApiFallback = getEnv('VITE_API_URL', 'https://localhost:8001');
+
 export const env: EnvConfig = {
 	// API Configuration
-	apiUrl: getEnv('VITE_API_URL', 'https://localhost:8001'),
+	apiUrl:
+		typeof window !== 'undefined'
+			? resolveApiUrl(viteApiFallback, !!import.meta.env.DEV, window.location)
+			: viteApiFallback,
 	defaultFacePrefix: getEnv('VITE_DEFAULT_FACE_PREFIX', 'admin'),
 
 	// OAuth2 Configuration
