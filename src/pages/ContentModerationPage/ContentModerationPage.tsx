@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { PaginationState, SortingState } from '@tanstack/react-table';
 import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';

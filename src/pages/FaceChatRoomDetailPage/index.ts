@@ -1,0 +1,1 @@
+export { FaceChatRoomDetailPage } from './FaceChatRoomDetailPage';

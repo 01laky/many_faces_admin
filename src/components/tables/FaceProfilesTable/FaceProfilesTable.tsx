@@ -49,6 +49,21 @@ export function FaceProfilesTable({ faceId }: FaceProfilesTableProps) {
 				header: t('pages.profilesTable.colDisplayName'),
 				enableSorting: true,
 			},
+			{
+				accessorKey: 'commentsCount',
+				header: t('pages.profilesTable.colComments'),
+				enableSorting: false,
+			},
+			{
+				accessorKey: 'likesCount',
+				header: t('pages.profilesTable.colLikes'),
+				enableSorting: false,
+			},
+			{
+				accessorKey: 'reviewsCount',
+				header: t('pages.profilesTable.colReviews'),
+				enableSorting: false,
+			},
 		],
 		[t]
 	);

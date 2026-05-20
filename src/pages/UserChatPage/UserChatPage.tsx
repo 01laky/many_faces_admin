@@ -167,13 +167,14 @@ export function UserChatPage() {
 			return;
 		}
 
-		const sessionId = ++hubSessionRef.current;
+		const hubSession = hubSessionRef;
+		const sessionId = ++hubSession.current;
 		const getAccessToken = () => tokenRef.current ?? localStorage.getItem('auth_token');
 		const connection = buildAdminMessengerHubConnection(getAccessToken);
 		connectionRef.current = connection;
 		let cancelled = false;
 
-		const isActiveSession = () => !cancelled && hubSessionRef.current === sessionId;
+		const isActiveSession = () => !cancelled && hubSession.current === sessionId;
 
 		connection.on(
 			'ReceiveChatMessage',
@@ -253,7 +254,7 @@ export function UserChatPage() {
 		// Defer negotiate so Strict Mode cleanup (detail → user-chat deep link) does not abort in-flight start.
 		const startTimerId = window.setTimeout(() => {
 			void startHub();
-		}, 0);
+		}, 50);
 
 		const onVisible = () => {
 			if (document.visibilityState !== 'visible') return;
@@ -271,6 +272,8 @@ export function UserChatPage() {
 			hubStartInFlightRef.current = false;
 			window.clearTimeout(startTimerId);
 			document.removeEventListener('visibilitychange', onVisible);
+			// Strict Mode remount: a newer session already owns the hub — do not stop it.
+			if (hubSession.current !== sessionId) return;
 			const conn = connection;
 			void (async () => {
 				try {
@@ -283,7 +286,7 @@ export function UserChatPage() {
 					if (connectionRef.current === conn) {
 						connectionRef.current = null;
 					}
-					if (hubSessionRef.current === sessionId) {
+					if (hubSession.current === sessionId) {
 						setConnectionState('Disconnected');
 					}
 				}
@@ -312,6 +315,26 @@ export function UserChatPage() {
 			toast.error(t('pages.userChat.hub.errors.unknown'));
 		}
 	}, [token, t]);
+
+	// Deep link from content detail (e.g. profile → user-chat?u=) can leave hub Disconnected after Strict Mode; retry once settled.
+	useEffect(() => {
+		if (!selectedUserId || !isAuthenticated || !token || !isSuperAdminFromToken(token)) return;
+
+		const timerId = window.setTimeout(() => {
+			const conn = connectionRef.current;
+			if (!conn) return;
+			if (
+				conn.state === HubConnectionState.Connected ||
+				conn.state === HubConnectionState.Connecting ||
+				conn.state === HubConnectionState.Reconnecting
+			) {
+				return;
+			}
+			void handleReconnect();
+		}, 120);
+
+		return () => window.clearTimeout(timerId);
+	}, [selectedUserId, isAuthenticated, token, handleReconnect]);
 
 	const handleSend = async () => {
 		const text = input.trim();

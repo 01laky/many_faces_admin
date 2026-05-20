@@ -12,6 +12,11 @@ interface FaceChatRoomsTableProps {
 	faceId: number;
 }
 
+function formatCellValue(value: number | undefined): string {
+	if (value === null || value === undefined) return '—';
+	return String(value);
+}
+
 export function FaceChatRoomsTable({ faceId }: FaceChatRoomsTableProps) {
 	const { t } = useTranslation('common');
 	const navigate = useNavigate();
@@ -63,6 +68,12 @@ export function FaceChatRoomsTable({ faceId }: FaceChatRoomsTableProps) {
 					) : (
 						'—'
 					),
+			},
+			{
+				accessorKey: 'memberCount',
+				header: t('pages.chatRoomsTable.colMembers'),
+				enableSorting: false,
+				cell: ({ getValue }) => formatCellValue(getValue() as number | undefined),
 			},
 			{
 				accessorKey: 'createdAt',
