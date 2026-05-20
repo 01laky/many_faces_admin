@@ -150,3 +150,10 @@ export function wallStatusSlices(summary: AdminDashboardSummary): WallStatusTile
 		.sort(([a], [b]) => a.localeCompare(b))
 		.map(([status, count]) => ({ status, count: normalizeMetricValue(count) }));
 }
+
+/** Maps API status enum names to existing face wall ticket labels in AdminResources. */
+export function translateWallTicketStatus(status: string, t: (key: string) => string): string {
+	const key = `pages.faceWallTickets.status${status}`;
+	const label = t(key);
+	return label === key ? status : label;
+}

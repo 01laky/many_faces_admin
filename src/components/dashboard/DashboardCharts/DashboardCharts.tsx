@@ -6,6 +6,7 @@ import {
 	CartesianGrid,
 	Cell,
 	Legend,
+	LabelList,
 	Line,
 	LineChart,
 	Pie,
@@ -197,6 +198,13 @@ export function DashboardCharts({ summary, fromUtc, toUtc, enabled }: DashboardC
 										{barData.map((_, i) => (
 											<Cell key={barData[i].name} fill={BAR_COLORS[i % BAR_COLORS.length]} />
 										))}
+										<LabelList
+											dataKey="value"
+											position="top"
+											fill="#334155"
+											fontSize={11}
+											fontWeight={600}
+										/>
 									</Bar>
 								</BarChart>
 							</ResponsiveContainer>

@@ -1,10 +1,20 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Col, Row } from 'react-bootstrap';
-import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import {
+	Bar,
+	BarChart,
+	Cell,
+	LabelList,
+	ResponsiveContainer,
+	Tooltip,
+	XAxis,
+	YAxis,
+} from 'recharts';
 import type { AdminDashboardSummary } from '@/types/adminDashboardStats';
-import { buildMetricTiles, metricScaleMax, wallStatusSlices } from './dashboardMetricTiles';
-import { MetricTileChart } from './MetricTileChart';
+import { translateWallTicketStatus, wallStatusSlices } from './dashboardMetricTiles';
+import { buildSectionRows, METRIC_SECTIONS, type MetricSectionConfig } from './metricSections';
+import { MetricSectionChart } from './MetricSectionChart';
 import './DashboardMetricsTable.scss';
 
 export interface DashboardMetricsTableProps {
@@ -13,14 +23,34 @@ export interface DashboardMetricsTableProps {
 
 const WALL_BAR_COLORS = ['#3b82f6', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444', '#64748b'];
 
+const SECTION_CHIP_COLORS = [
+	'#3b82f6',
+	'#8b5cf6',
+	'#10b981',
+	'#f59e0b',
+	'#ec4899',
+	'#0ea5e9',
+	'#14b8a6',
+];
+
+function sectionChartData(
+	section: MetricSectionConfig,
+	rows: ReturnType<typeof buildSectionRows>,
+	t: (key: string) => string
+) {
+	return rows.map((row, index) => ({
+		name: t(`pages.dashboard.metrics.rows.${row.labelKey}`),
+		value: row.value,
+		fill: SECTION_CHIP_COLORS[index % SECTION_CHIP_COLORS.length]!,
+	}));
+}
+
 /**
- * Grid of metric tiles with varied mini charts (radial, bar, area, donut, progress).
+ * Platform metrics grouped by domain with one comparison chart per section and compact stat chips.
  */
 export function DashboardMetricsTable({ summary }: DashboardMetricsTableProps) {
 	const { t } = useTranslation('common');
 
-	const tiles = useMemo(() => (summary ? buildMetricTiles(summary) : []), [summary]);
-	const scaleMax = useMemo(() => metricScaleMax(tiles.map((tile) => tile.value)), [tiles]);
 	const wallSlices = useMemo(() => (summary ? wallStatusSlices(summary) : []), [summary]);
 
 	if (!summary) {
@@ -29,76 +59,134 @@ export function DashboardMetricsTable({ summary }: DashboardMetricsTableProps) {
 
 	return (
 		<div className="dash-metrics">
-			<h2 className="dash-metrics__title">{t('pages.dashboard.metrics.sectionTitle')}</h2>
+			<header className="dash-metrics__intro">
+				<h2 className="dash-metrics__title">{t('pages.dashboard.metrics.sectionTitle')}</h2>
+				<p className="dash-metrics__lead">{t('pages.dashboard.metrics.sectionLead')}</p>
+			</header>
 
-			<Row className="g-3">
-				{tiles.map((tile) => (
-					<Col key={tile.id} xs={12} sm={6} md={4} xl={4}>
-						<article
-							className="dash-metric-tile"
-							style={{ '--tile-accent': tile.accentColor } as React.CSSProperties}
-						>
-							<header className="dash-metric-tile__header">
-								<h3 className="dash-metric-tile__label">
-									{t(`pages.dashboard.metrics.rows.${tile.labelKey}`)}
-								</h3>
-								<p className="dash-metric-tile__value">{tile.value.toLocaleString()}</p>
-							</header>
-							<MetricTileChart
-								kind={tile.chartKind}
-								value={tile.value}
-								scaleMax={scaleMax}
-								accentColor={tile.accentColor}
-								labelSeed={tile.id}
-							/>
-						</article>
-					</Col>
-				))}
+			{METRIC_SECTIONS.map((section) => {
+				const rows = buildSectionRows(summary, section);
+				const chartData = sectionChartData(section, rows, t);
+				const sectionTotal = rows.reduce((sum, row) => sum + row.value, 0);
 
-				{wallSlices.length > 0 && (
-					<Col xs={12} lg={6}>
-						<article className="dash-metric-tile dash-metric-tile--wide">
-							<header className="dash-metric-tile__header">
-								<h3 className="dash-metric-tile__label">
-									{t('pages.dashboard.metrics.wallByStatus')}
-								</h3>
-								<p className="dash-metric-tile__value dash-metric-tile__value--sub">
-									{wallSlices.reduce((sum, row) => sum + row.count, 0).toLocaleString()} total
-								</p>
-							</header>
-							<div className="dash-metric-tile__chart dash-metric-tile__chart--tall" aria-hidden>
-								<ResponsiveContainer width="100%" height={160}>
-									<BarChart
-										data={wallSlices.map((row) => ({
-											name: row.status,
-											value: row.count,
-										}))}
-										layout="vertical"
-										margin={{ top: 4, right: 12, left: 4, bottom: 4 }}
-									>
-										<XAxis type="number" hide domain={[0, 'dataMax']} />
-										<YAxis
-											type="category"
-											dataKey="name"
-											width={72}
-											tick={{ fontSize: 11, fill: '#64748b' }}
+				return (
+					<section
+						key={section.id}
+						className="dash-metrics-section"
+						style={{ '--section-accent': section.accentColor } as React.CSSProperties}
+						aria-labelledby={`dash-section-${section.id}`}
+					>
+						<div className="dash-metrics-section__head">
+							<h3 id={`dash-section-${section.id}`} className="dash-metrics-section__title">
+								{t(`pages.dashboard.metrics.${section.titleKey}`)}
+							</h3>
+							<p className="dash-metrics-section__desc">
+								{t(`pages.dashboard.metrics.${section.descriptionKey}`)}
+							</p>
+							<p className="dash-metrics-section__total">
+								{t('pages.dashboard.metrics.sectionTotal', {
+									count: sectionTotal.toLocaleString(),
+								})}
+							</p>
+						</div>
+
+						<Row className="g-3 align-items-stretch">
+							<Col xs={12} lg={7}>
+								<div className="dash-metrics-section__panel dash-metrics-section__panel--chart">
+									<MetricSectionChart
+										layout={section.chartLayout}
+										data={chartData}
+										accentColor={section.accentColor}
+										emptyLabel={t('pages.dashboard.metrics.chartEmpty')}
+									/>
+								</div>
+							</Col>
+							<Col xs={12} lg={5}>
+								<ul
+									className="dash-metrics-section__chips"
+									aria-label={t(`pages.dashboard.metrics.${section.titleKey}`)}
+								>
+									{rows.map((row, index) => (
+										<li
+											key={row.field}
+											className="dash-metrics-chip"
+											style={
+												{
+													'--chip-accent': SECTION_CHIP_COLORS[index % SECTION_CHIP_COLORS.length],
+												} as React.CSSProperties
+											}
+										>
+											<span className="dash-metrics-chip__label">
+												{t(`pages.dashboard.metrics.rows.${row.labelKey}`)}
+											</span>
+											<span className="dash-metrics-chip__value">{row.value.toLocaleString()}</span>
+										</li>
+									))}
+								</ul>
+							</Col>
+						</Row>
+					</section>
+				);
+			})}
+
+			{wallSlices.length > 0 && (
+				<section
+					className="dash-metrics-section dash-metrics-section--wall"
+					aria-labelledby="dash-section-wall"
+				>
+					<div className="dash-metrics-section__head">
+						<h3 id="dash-section-wall" className="dash-metrics-section__title">
+							{t('pages.dashboard.metrics.sections.wall')}
+						</h3>
+						<p className="dash-metrics-section__desc">
+							{t('pages.dashboard.metrics.sections.wallDesc')}
+						</p>
+					</div>
+					<div className="dash-metrics-section__panel dash-metrics-section__panel--chart">
+						<p className="dash-metrics-section__wall-total">
+							{t('pages.dashboard.metrics.wallTotal', {
+								count: wallSlices.reduce((sum, row) => sum + row.count, 0).toLocaleString(),
+							})}
+						</p>
+						<div className="dash-metrics-section__chart dash-metrics-section__chart--wall">
+							<ResponsiveContainer width="100%" height={Math.max(180, wallSlices.length * 44)}>
+								<BarChart
+									data={wallSlices.map((row) => ({
+										name: translateWallTicketStatus(row.status, t),
+										value: row.count,
+									}))}
+									layout="vertical"
+									margin={{ top: 4, right: 56, left: 4, bottom: 4 }}
+								>
+									<XAxis type="number" tick={{ fontSize: 11, fill: '#64748b' }} />
+									<YAxis
+										type="category"
+										dataKey="name"
+										width={88}
+										tick={{ fontSize: 11, fill: '#475569' }}
+									/>
+									<Tooltip formatter={(v: number) => v.toLocaleString()} />
+									<Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={16}>
+										{wallSlices.map((row, index) => (
+											<Cell
+												key={row.status}
+												fill={WALL_BAR_COLORS[index % WALL_BAR_COLORS.length]}
+											/>
+										))}
+										<LabelList
+											dataKey="value"
+											position="right"
+											fill="#334155"
+											fontSize={11}
+											fontWeight={600}
 										/>
-										<Tooltip />
-										<Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={14}>
-											{wallSlices.map((row, index) => (
-												<Cell
-													key={row.status}
-													fill={WALL_BAR_COLORS[index % WALL_BAR_COLORS.length]}
-												/>
-											))}
-										</Bar>
-									</BarChart>
-								</ResponsiveContainer>
-							</div>
-						</article>
-					</Col>
-				)}
-			</Row>
+									</Bar>
+								</BarChart>
+							</ResponsiveContainer>
+						</div>
+					</div>
+				</section>
+			)}
 		</div>
 	);
 }

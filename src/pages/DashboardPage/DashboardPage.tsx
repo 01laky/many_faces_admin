@@ -138,11 +138,11 @@ export function DashboardPage() {
 					/>
 				)}
 
+				{!forbidden && <DashboardMetricsTable summary={statsData} />}
+
 				<DashboardAiStatsPanel />
 
 				<DashboardModerationWidget enabled={Boolean(isSuperAdmin && token)} />
-
-				{!forbidden && <DashboardMetricsTable summary={statsData} />}
 
 				<div className="dashboard-section">
 					<h2 className="dashboard-section__title">{t('pages.dashboard.quickActions')}</h2>
