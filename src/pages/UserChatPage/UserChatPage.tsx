@@ -38,6 +38,35 @@ function parseTargetUserId(search: string): string | null {
 	return u?.trim() ? u.trim() : null;
 }
 
+/** Starts hub when disconnected; no-op when already connected or negotiating. */
+async function startMessengerHubIfNeeded(
+	connection: HubConnection,
+	isActive: () => boolean,
+	setConnectionState: (state: ConnectionState) => void
+): Promise<void> {
+	if (!isActive()) return;
+	if (
+		connection.state === HubConnectionState.Connected ||
+		connection.state === HubConnectionState.Connecting ||
+		connection.state === HubConnectionState.Reconnecting
+	) {
+		if (connection.state === HubConnectionState.Connected && isActive()) {
+			setConnectionState('Connected');
+		}
+		return;
+	}
+	setConnectionState('Connecting');
+	try {
+		if (connection.state === HubConnectionState.Disconnected) {
+			await connection.start();
+		}
+		if (isActive()) setConnectionState('Connected');
+	} catch (err) {
+		console.error('Messenger hub connect failed:', err);
+		if (isActive()) setConnectionState('Disconnected');
+	}
+}
+
 export function UserChatPage() {
 	const { t } = useTranslation('common');
 	const { token, isAuthenticated, user } = useAuth();
@@ -67,7 +96,6 @@ export function UserChatPage() {
 
 	const connectionRef = useRef<HubConnection | null>(null);
 	const hubSessionRef = useRef(0);
-	const hubStartInFlightRef = useRef(false);
 	const tokenRef = useRef(token);
 	const selectedUserIdRef = useRef(selectedUserId);
 	const userIdRef = useRef(user?.id);
@@ -163,12 +191,12 @@ export function UserChatPage() {
 	// Single hub connection per authenticated super-admin session; handlers use refs for selected thread.
 	useEffect(() => {
 		if (!isAuthenticated || !token || !isSuperAdminFromToken(token)) {
-			hubStartInFlightRef.current = false;
 			return;
 		}
 
 		const hubSession = hubSessionRef;
 		const sessionId = ++hubSession.current;
+		let startInFlight = false;
 		const getAccessToken = () => tokenRef.current ?? localStorage.getItem('auth_token');
 		const connection = buildAdminMessengerHubConnection(getAccessToken);
 		connectionRef.current = connection;
@@ -235,19 +263,12 @@ export function UserChatPage() {
 		});
 
 		const startHub = async () => {
-			if (!isActiveSession() || hubStartInFlightRef.current) return;
-			hubStartInFlightRef.current = true;
-			if (isActiveSession()) setConnectionState('Connecting');
+			if (!isActiveSession() || startInFlight) return;
+			startInFlight = true;
 			try {
-				if (connection.state === HubConnectionState.Disconnected) {
-					await connection.start();
-				}
-				if (isActiveSession()) setConnectionState('Connected');
-			} catch (err) {
-				console.error('Messenger hub connect failed:', err);
-				if (isActiveSession()) setConnectionState('Disconnected');
+				await startMessengerHubIfNeeded(connection, isActiveSession, setConnectionState);
 			} finally {
-				hubStartInFlightRef.current = false;
+				startInFlight = false;
 			}
 		};
 
@@ -269,7 +290,6 @@ export function UserChatPage() {
 
 		return () => {
 			cancelled = true;
-			hubStartInFlightRef.current = false;
 			window.clearTimeout(startTimerId);
 			document.removeEventListener('visibilitychange', onVisible);
 			// Strict Mode remount: a newer session already owns the hub — do not stop it.
@@ -299,42 +319,34 @@ export function UserChatPage() {
 	const handleReconnect = useCallback(async () => {
 		const conn = connectionRef.current;
 		if (!conn || !token || !isSuperAdminFromToken(token)) return;
-		if (conn.state === HubConnectionState.Connected) {
-			setConnectionState('Connected');
-			return;
-		}
-		setConnectionState('Connecting');
-		try {
-			if (conn.state === HubConnectionState.Disconnected) {
-				await conn.start();
-			}
-			setConnectionState('Connected');
-		} catch (err) {
-			console.error('Messenger hub reconnect failed:', err);
-			setConnectionState('Disconnected');
+		await startMessengerHubIfNeeded(conn, () => true, setConnectionState);
+		if (connectionRef.current?.state !== HubConnectionState.Connected) {
 			toast.error(t('pages.userChat.hub.errors.unknown'));
 		}
 	}, [token, t]);
 
-	// Deep link from content detail (e.g. profile → user-chat?u=) can leave hub Disconnected after Strict Mode; retry once settled.
+	// Deep link from content detail (story/reel/blog → user-chat?u=) can miss hub start after Strict Mode; staggered retries.
 	useEffect(() => {
 		if (!selectedUserId || !isAuthenticated || !token || !isSuperAdminFromToken(token)) return;
 
-		const timerId = window.setTimeout(() => {
-			const conn = connectionRef.current;
-			if (!conn) return;
-			if (
-				conn.state === HubConnectionState.Connected ||
-				conn.state === HubConnectionState.Connecting ||
-				conn.state === HubConnectionState.Reconnecting
-			) {
-				return;
-			}
-			void handleReconnect();
-		}, 120);
+		const delaysMs = [120, 400, 900];
+		const timerIds = delaysMs.map((delay) =>
+			window.setTimeout(() => {
+				const conn = connectionRef.current;
+				if (!conn) return;
+				if (
+					conn.state === HubConnectionState.Connected ||
+					conn.state === HubConnectionState.Connecting ||
+					conn.state === HubConnectionState.Reconnecting
+				) {
+					return;
+				}
+				void startMessengerHubIfNeeded(conn, () => true, setConnectionState);
+			}, delay)
+		);
 
-		return () => window.clearTimeout(timerId);
-	}, [selectedUserId, isAuthenticated, token, handleReconnect]);
+		return () => timerIds.forEach((id) => window.clearTimeout(id));
+	}, [selectedUserId, isAuthenticated, token]);
 
 	const handleSend = async () => {
 		const text = input.trim();

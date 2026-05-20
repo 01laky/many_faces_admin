@@ -19,6 +19,7 @@ import { canSubmitFaceBan, canSubmitGlobalBan } from '@/utils/operatorUserDetail
 import { UserDetailFacesTable } from './UserDetailFacesTable';
 import { UserDetailAlbumsTable } from './UserDetailAlbumsTable';
 import { UserDetailBlogsTable } from './UserDetailBlogsTable';
+import { UserDetailStoriesTable } from './UserDetailStoriesTable';
 import { UserDetailReelsTable } from './UserDetailReelsTable';
 import './UserDetailPage.scss';
 
@@ -306,6 +307,13 @@ export function UserDetailPage() {
 
 					<div className="user-detail-card">
 						<UserDetailBlogsTable creatorId={userId} />
+					</div>
+
+					<div className="user-detail-card">
+						<UserDetailStoriesTable
+							creatorId={userId}
+							userFaceIds={user.faces.map((f) => f.faceId)}
+						/>
 					</div>
 
 					<div className="user-detail-card">

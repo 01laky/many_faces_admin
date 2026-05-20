@@ -22,8 +22,25 @@ export function clearLocalizationBundleCache(app: 'admin' = 'admin'): void {
 	void app;
 }
 
+/** Sentinel keys for post-.resx deploy sanity (story detail rev. 1.2). */
+function bundleHasRequiredAdminKeys(body: LocalizationBundleResponse): boolean {
+	const storyDetail = body.resources?.en?.common?.pages?.storyDetail;
+	return (
+		typeof storyDetail === 'object' &&
+		storyDetail !== null &&
+		typeof storyDetail.createdAt === 'string' &&
+		typeof storyDetail.managementSection === 'string'
+	);
+}
+
 export async function fetchLocalizationBundle(app: 'admin'): Promise<LocalizationBundleResponse> {
 	const base = env.apiUrl.replace(/\/$/, '');
+
+	// Dev: drop cached bundle so a rebuilt API (new .resx) is picked up without manual localStorage cleanup.
+	if (!import.meta.env.PROD) {
+		clearLocalizationBundleCache(app);
+	}
+
 	const cachedVersion =
 		typeof localStorage !== 'undefined' ? localStorage.getItem(`${CACHE_KEY_PREFIX}version`) : null;
 
@@ -46,6 +63,11 @@ export async function fetchLocalizationBundle(app: 'admin'): Promise<Localizatio
 	}
 
 	const body = (await response.json()) as LocalizationBundleResponse;
+	if (!bundleHasRequiredAdminKeys(body)) {
+		throw new Error(
+			'Admin localization bundle is missing story detail keys. Rebuild and restart BeDemo.Api, then reload.'
+		);
+	}
 	if (typeof localStorage !== 'undefined') {
 		localStorage.setItem(`${CACHE_KEY_PREFIX}version`, body.version);
 		localStorage.setItem(`${CACHE_KEY_PREFIX}body`, JSON.stringify(body));
