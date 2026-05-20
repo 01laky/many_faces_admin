@@ -18,6 +18,11 @@ export function canSuperAdmin(caps: MeCapabilities | null | undefined): boolean 
 	return hasPermission(caps, ACL_PERMISSION_KEYS.platformSuper);
 }
 
+/** Mirrors backend IAccessEvaluator.CanManageAllFaces (operator content + stealth/kick). */
+export function canManageAllFaces(caps: MeCapabilities | null | undefined): boolean {
+	return canPlatformAdmin(caps) || canSuperAdmin(caps);
+}
+
 export function hasTenantSession(caps: MeCapabilities | null | undefined): boolean {
 	return hasPermission(caps, ACL_PERMISSION_KEYS.tenantSession);
 }

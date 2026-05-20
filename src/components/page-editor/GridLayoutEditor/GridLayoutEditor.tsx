@@ -21,6 +21,9 @@ export type GridComponentType =
 	| 'chatRoom'
 	| 'chatRoomGrid'
 	| 'chatRoomCarousel'
+	| 'videoLounge'
+	| 'videoLoungeGrid'
+	| 'videoLoungeCarousel'
 	| 'userProfile'
 	| 'userProfileGrid'
 	| 'userProfileCarousel'
@@ -44,6 +47,7 @@ export interface GridItem {
 	title?: string | null;
 	icon?: string | null;
 	boundChatRoomId?: number;
+	boundVideoLoungeId?: number;
 	boundAlbumId?: number;
 	boundBlogId?: number;
 	boundAdId?: number;

@@ -9,6 +9,7 @@ import { AlbumsTable } from '@/components/tables/AlbumsTable/AlbumsTable';
 import { ReelsTable } from '@/components/tables/ReelsTable/ReelsTable';
 import { BlogsTable } from '@/components/tables/BlogsTable/BlogsTable';
 import { FaceChatRoomsTable } from '@/components/tables/FaceChatRoomsTable/FaceChatRoomsTable';
+import { FaceVideoLoungesTable } from '@/components/tables/FaceVideoLoungesTable';
 import { FaceProfilesTable } from '@/components/tables/FaceProfilesTable/FaceProfilesTable';
 import { StoriesTable } from '@/components/tables/StoriesTable/StoriesTable';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
@@ -187,6 +188,7 @@ export function FaceDetailPage() {
 							<ReelsTable faceId={face.id} />
 							<BlogsTable faceId={face.id} />
 							<FaceChatRoomsTable faceId={face.id} />
+							<FaceVideoLoungesTable faceId={face.id} />
 							<FaceProfilesTable faceId={face.id} />
 							<StoriesTable faceId={face.id} />
 						</>

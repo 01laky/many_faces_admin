@@ -25,6 +25,7 @@ import {
 	BlogDetailPage,
 	StoryDetailPage,
 	FaceChatRoomDetailPage,
+	FaceVideoLoungeDetailPage,
 	FaceProfileDetailPage,
 	ChatPage,
 	UserChatPage,
@@ -273,6 +274,17 @@ export function AppRoutes() {
 							element={
 								<ProtectedRoute redirectTo="login">
 									{withLayout(<FaceChatRoomDetailPage />)}
+								</ProtectedRoute>
+							}
+						/>
+					))}
+					{facesPaths.map((path) => (
+						<Route
+							key={`${path}/:faceId/video-lounges/:loungeId`}
+							path={`${path}/:faceId/video-lounges/:loungeId`}
+							element={
+								<ProtectedRoute redirectTo="login">
+									{withLayout(<FaceVideoLoungeDetailPage />)}
 								</ProtectedRoute>
 							}
 						/>

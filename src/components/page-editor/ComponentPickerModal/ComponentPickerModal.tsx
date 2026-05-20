@@ -120,6 +120,31 @@ const CATEGORIES: ComponentCategory[] = [
 		],
 	},
 	{
+		id: 'videoLounges',
+		labelKey: 'pages.editPage.gridLayout.categories.videoLounges',
+		icon: '🎙️',
+		options: [
+			{
+				type: 'videoLounge',
+				labelKey: 'pages.editPage.gridLayout.components.videoLounge',
+				descriptionKey: 'pages.editPage.gridLayout.components.videoLoungeDesc',
+				icon: '🎙️',
+			},
+			{
+				type: 'videoLoungeGrid',
+				labelKey: 'pages.editPage.gridLayout.components.videoLoungeGrid',
+				descriptionKey: 'pages.editPage.gridLayout.components.videoLoungeGridDesc',
+				icon: '⊞',
+			},
+			{
+				type: 'videoLoungeCarousel',
+				labelKey: 'pages.editPage.gridLayout.components.videoLoungeCarousel',
+				descriptionKey: 'pages.editPage.gridLayout.components.videoLoungeCarouselDesc',
+				icon: '⏩',
+			},
+		],
+	},
+	{
 		id: 'userProfiles',
 		labelKey: 'pages.editPage.gridLayout.categories.userProfiles',
 		icon: '👤',

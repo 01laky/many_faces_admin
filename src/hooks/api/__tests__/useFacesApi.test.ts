@@ -93,6 +93,23 @@ describe('useFacesApi', () => {
 			const opts = mockRequest.mock.calls[0][1] as { body: UpdateFaceData };
 			expect(opts.body.chatRoomsCreate).toBe(true);
 		});
+
+		it('should pass videoLoungesCreate in update body for API parity', async () => {
+			const updateData: UpdateFaceData = {
+				videoLoungesCreate: true,
+			};
+			const updatedFace: Face = {
+				id: 3,
+				index: 'f2',
+				title: 'T2',
+				videoLoungesCreate: true,
+			};
+			mockRequest.mockResolvedValue(updatedFace);
+			const result = await updateFace(3, updateData);
+			expect(result.videoLoungesCreate).toBe(true);
+			const opts = mockRequest.mock.calls[0][1] as { body: UpdateFaceData };
+			expect(opts.body.videoLoungesCreate).toBe(true);
+		});
 	});
 
 	describe('deleteFace', () => {

@@ -24,6 +24,8 @@ interface EditFaceFormData {
 	isPublic: boolean;
 	visibility: FaceVisibility;
 	allowRecensions: boolean;
+	chatRoomsCreate: boolean;
+	videoLoungesCreate: boolean;
 }
 
 export function EditFacePage() {
@@ -56,6 +58,8 @@ export function EditFacePage() {
 			.oneOf(['Public', 'Private', 'Face', 'Hidden'])
 			.required(),
 		allowRecensions: yup.boolean().required().default(false),
+		chatRoomsCreate: yup.boolean().required().default(false),
+		videoLoungesCreate: yup.boolean().required().default(false),
 	});
 
 	const {
@@ -75,6 +79,8 @@ export function EditFacePage() {
 			isPublic: true,
 			visibility: 'Public',
 			allowRecensions: false,
+			chatRoomsCreate: false,
+			videoLoungesCreate: false,
 		},
 	});
 
@@ -101,6 +107,8 @@ export function EditFacePage() {
 				isPublic: face.isPublic ?? true,
 				visibility: (face.visibility as FaceVisibility) || 'Public',
 				allowRecensions: face.allowRecensions ?? false,
+				chatRoomsCreate: face.chatRoomsCreate ?? false,
+				videoLoungesCreate: face.videoLoungesCreate ?? false,
 			});
 		}
 	}, [face, reset]);
@@ -296,6 +304,38 @@ export function EditFacePage() {
 											/>
 											<label className="form-check-label" htmlFor="allowRecensions">
 												{t('pages.editFace.allowRecensionsHelp', 'Users can write star reviews')}
+											</label>
+										</div>
+									</FormField>
+								</Col>
+								<Col xs={12} md={6}>
+									<FormField label={t('pages.editFace.chatRoomsCreate')}>
+										<div className="form-check form-switch mt-2">
+											<input
+												type="checkbox"
+												className="form-check-input"
+												id="chatRoomsCreate"
+												{...register('chatRoomsCreate')}
+												disabled={updateFaceMutation.isPending}
+											/>
+											<label className="form-check-label" htmlFor="chatRoomsCreate">
+												{t('pages.editFace.chatRoomsCreateHelp')}
+											</label>
+										</div>
+									</FormField>
+								</Col>
+								<Col xs={12} md={6}>
+									<FormField label={t('pages.editFace.videoLoungesCreate')}>
+										<div className="form-check form-switch mt-2">
+											<input
+												type="checkbox"
+												className="form-check-input"
+												id="videoLoungesCreate"
+												{...register('videoLoungesCreate')}
+												disabled={updateFaceMutation.isPending}
+											/>
+											<label className="form-check-label" htmlFor="videoLoungesCreate">
+												{t('pages.editFace.videoLoungesCreateHelp')}
 											</label>
 										</div>
 									</FormField>

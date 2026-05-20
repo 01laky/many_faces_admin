@@ -63,6 +63,11 @@ export const FaceChatRoomDetailPage = lazy(() =>
 		default: m.FaceChatRoomDetailPage,
 	}))
 );
+export const FaceVideoLoungeDetailPage = lazy(() =>
+	import('../pages/FaceVideoLoungeDetailPage/FaceVideoLoungeDetailPage').then((m) => ({
+		default: m.FaceVideoLoungeDetailPage,
+	}))
+);
 export const FaceProfileDetailPage = lazy(() =>
 	import('../pages/FaceProfileDetailPage/FaceProfileDetailPage').then((m) => ({
 		default: m.FaceProfileDetailPage,
