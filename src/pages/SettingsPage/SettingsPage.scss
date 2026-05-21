@@ -195,6 +195,14 @@
 		margin-top: 0.65rem;
 	}
 
+	&__field-hint--error {
+		color: #b91c1c;
+	}
+
+	&__saved--error {
+		color: #b91c1c;
+	}
+
 	&__footer {
 		margin-top: 1.5rem;
 		padding-top: 1.25rem;

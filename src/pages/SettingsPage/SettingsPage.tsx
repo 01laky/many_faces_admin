@@ -9,7 +9,17 @@ import {
 	setAdminAiLiveMaxParallelBundleCalls,
 } from '@/utils/adminAiLiveParallelSettings';
 import { recommendLiveParallelBundleCalls } from '@/utils/adminAiLiveParallelRecommendation';
-import { useOperatorAiWorkerHostProfile } from '@/hooks/api/useOperatorAiApi';
+import {
+	clampLiveStatsCacheMinutes,
+	liveStatsCacheDefaults,
+	minutesToTtlMilliseconds,
+	ttlMillisecondsToMinutes,
+} from '@/utils/adminAiLiveStatsCacheSettings';
+import {
+	useOperatorAiLiveStatsCacheSettings,
+	useOperatorAiWorkerHostProfile,
+	useUpdateOperatorAiLiveStatsCacheSettings,
+} from '@/hooks/api/useOperatorAiApi';
 import { formatBytes } from '@/utils/formatBytes';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Button } from '@/components/radix/Button';
@@ -27,8 +37,22 @@ export function SettingsPage() {
 	const [parallel, setParallel] = useState(initialParallel);
 	const [parallelDraft, setParallelDraft] = useState(String(initialParallel));
 	const [saved, setSaved] = useState(false);
+	const [saveError, setSaveError] = useState<string | null>(null);
 	const { data: workerHost } = useOperatorAiWorkerHostProfile();
+	const {
+		data: liveStatsCache,
+		isLoading: liveStatsCacheLoading,
+		isError: liveStatsCacheError,
+	} = useOperatorAiLiveStatsCacheSettings();
+	const updateLiveStatsCache = useUpdateOperatorAiLiveStatsCacheSettings();
+	const [cacheTtlMinutesDraft, setCacheTtlMinutesDraft] = useState<string | null>(null);
 	const parallelRecommendation = recommendLiveParallelBundleCalls(workerHost?.profile);
+
+	const cacheTtlDisplay =
+		cacheTtlMinutesDraft ??
+		(liveStatsCache?.ttlMilliseconds != null
+			? String(ttlMillisecondsToMinutes(liveStatsCache.ttlMilliseconds))
+			: String(liveStatsCacheDefaults.DEFAULT_MINUTES));
 
 	const commitParallelDraft = useCallback((raw: string, fallback: number) => {
 		const trimmed = raw.trim();
@@ -50,13 +74,45 @@ export function SettingsPage() {
 		return clamped;
 	}, []);
 
-	const onSave = useCallback(() => {
-		setAdminAiPublicStatsMode(mode);
-		const effective = commitParallelDraft(parallelDraft, parallel);
-		setAdminAiLiveMaxParallelBundleCalls(effective);
-		setSaved(true);
-		window.setTimeout(() => setSaved(false), 2500);
-	}, [mode, parallel, parallelDraft, commitParallelDraft]);
+	const onSave = useCallback(async () => {
+		setSaveError(null);
+		try {
+			const parsedMinutes = Number.parseInt(cacheTtlDisplay.trim(), 10);
+			const bounds = liveStatsCache ?? {
+				minTtlMilliseconds: 30_000,
+				maxTtlMilliseconds: 3_600_000,
+			};
+			const minutes = Number.isFinite(parsedMinutes)
+				? clampLiveStatsCacheMinutes(
+						parsedMinutes,
+						bounds.minTtlMilliseconds,
+						bounds.maxTtlMilliseconds
+					)
+				: liveStatsCacheDefaults.DEFAULT_MINUTES;
+			setCacheTtlMinutesDraft(String(minutes));
+
+			await updateLiveStatsCache.mutateAsync({
+				ttlMilliseconds: minutesToTtlMilliseconds(minutes),
+			});
+
+			setAdminAiPublicStatsMode(mode);
+			const effective = commitParallelDraft(parallelDraft, parallel);
+			setAdminAiLiveMaxParallelBundleCalls(effective);
+			setSaved(true);
+			window.setTimeout(() => setSaved(false), 2500);
+		} catch {
+			setSaveError(t('pages.settings.aiStats.liveCache.saveError'));
+		}
+	}, [
+		mode,
+		parallel,
+		parallelDraft,
+		commitParallelDraft,
+		cacheTtlDisplay,
+		liveStatsCache,
+		updateLiveStatsCache,
+		t,
+	]);
 
 	const onParallelChange = (raw: string) => {
 		if (raw === '' || /^\d+$/.test(raw)) {
@@ -66,6 +122,29 @@ export function SettingsPage() {
 
 	const onParallelBlur = () => {
 		commitParallelDraft(parallelDraft, parallel);
+	};
+
+	const onCacheTtlChange = (raw: string) => {
+		if (raw === '' || /^\d+$/.test(raw)) {
+			setCacheTtlMinutesDraft(raw);
+		}
+	};
+
+	const onCacheTtlBlur = () => {
+		const parsed = Number.parseInt(cacheTtlDisplay.trim(), 10);
+		if (!Number.isFinite(parsed)) {
+			setCacheTtlMinutesDraft(String(liveStatsCacheDefaults.DEFAULT_MINUTES));
+			return;
+		}
+		const bounds = liveStatsCache ?? {
+			minTtlMilliseconds: 30_000,
+			maxTtlMilliseconds: 3_600_000,
+		};
+		setCacheTtlMinutesDraft(
+			String(
+				clampLiveStatsCacheMinutes(parsed, bounds.minTtlMilliseconds, bounds.maxTtlMilliseconds)
+			)
+		);
 	};
 
 	const applyRecommendedParallel = (value: number) => {
@@ -210,6 +289,43 @@ export function SettingsPage() {
 							)}
 						</div>
 
+						<div className="settings-page__subsection">
+							<h3 className="settings-page__subsection-title">
+								{t('pages.settings.aiStats.liveCache.sectionLabel')}
+							</h3>
+							{liveStatsCacheLoading ? (
+								<p className="settings-page__field-hint">
+									{t('pages.settings.aiStats.liveCache.loading')}
+								</p>
+							) : liveStatsCacheError ? (
+								<p className="settings-page__field-hint settings-page__field-hint--error">
+									{t('pages.settings.aiStats.liveCache.error')}
+								</p>
+							) : (
+								<>
+									<FormField
+										label={t('pages.settings.aiStats.liveCache.ttlLabel')}
+										htmlFor="ai-live-cache-ttl"
+									>
+										<Input
+											id="ai-live-cache-ttl"
+											type="text"
+											inputMode="numeric"
+											autoComplete="off"
+											value={cacheTtlDisplay}
+											onChange={(e) => onCacheTtlChange(e.target.value)}
+											onBlur={onCacheTtlBlur}
+										/>
+									</FormField>
+									<p className="settings-page__field-hint">
+										{t('pages.settings.aiStats.liveCache.ttlHint', {
+											defaultMinutes: liveStatsCacheDefaults.DEFAULT_MINUTES,
+										})}
+									</p>
+								</>
+							)}
+						</div>
+
 						<AiWorkerHostSection />
 					</div>
 				</section>
@@ -221,6 +337,9 @@ export function SettingsPage() {
 						{t('pages.settings.save')}
 					</Button>
 					{saved && <span className="settings-page__saved">{t('pages.settings.saved')}</span>}
+					{saveError && (
+						<span className="settings-page__saved settings-page__saved--error">{saveError}</span>
+					)}
 				</div>
 			</footer>
 		</div>

@@ -5,6 +5,7 @@ import type { OperatorAiMessageDto } from '../models/OperatorAiMessageDto';
 import type { OperatorAiMessagesPageDto } from '../models/OperatorAiMessagesPageDto';
 import type { OperatorAiModelStatusDto } from '../models/OperatorAiModelStatusDto';
 import type { OperatorAiWorkerHostDto } from '../models/OperatorAiWorkerHostDto';
+import type { OperatorAiLiveStatsCacheSettingsDto } from '../models/OperatorAiLiveStatsCacheSettingsDto';
 
 export type OperatorAiConversationListItem = OperatorAiConversationListItemDto;
 export type OperatorAiMessage = OperatorAiMessageDto;
@@ -92,5 +93,27 @@ export async function refreshOperatorAiWorkerHost(token: string): Promise<Operat
 	return __request(OpenAPI, {
 		method: 'POST',
 		url: '/api/operator-ai/worker-host/refresh',
+	});
+}
+
+export async function getOperatorAiLiveStatsCacheSettings(
+	token: string
+): Promise<OperatorAiLiveStatsCacheSettingsDto> {
+	OpenAPI.TOKEN = token;
+	return __request(OpenAPI, {
+		method: 'GET',
+		url: '/api/operator-ai/live-stats-cache',
+	});
+}
+
+export async function updateOperatorAiLiveStatsCacheSettings(
+	token: string,
+	body: { ttlMilliseconds: number }
+): Promise<OperatorAiLiveStatsCacheSettingsDto> {
+	OpenAPI.TOKEN = token;
+	return __request(OpenAPI, {
+		method: 'PUT',
+		url: '/api/operator-ai/live-stats-cache',
+		body,
 	});
 }

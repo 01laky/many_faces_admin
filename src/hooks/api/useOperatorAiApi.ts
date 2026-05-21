@@ -9,6 +9,8 @@ import {
 	getOperatorAiWorkerHost,
 	listOperatorAiConversations,
 	refreshOperatorAiWorkerHost,
+	getOperatorAiLiveStatsCacheSettings,
+	updateOperatorAiLiveStatsCacheSettings,
 	type OperatorAiConversationListItem,
 	type OperatorAiMessagesPage,
 } from '@/api/services/operatorAiApi';
@@ -24,6 +26,7 @@ const conversationsKey = operatorAiConversationsQueryKey;
 const messagesKey = (id: number) => ['operatorAi', 'messages', id] as const;
 export const operatorAiModelStatusQueryKey = ['operatorAi', 'modelStatus'] as const;
 export const operatorAiWorkerHostQueryKey = ['operatorAi', 'workerHost'] as const;
+export const operatorAiLiveStatsCacheQueryKey = ['operatorAi', 'liveStatsCache'] as const;
 
 export function useOperatorAiConversations() {
 	const { token } = useAuth();
@@ -115,6 +118,28 @@ export function useRefreshOperatorAiWorkerHostProfile() {
 		mutationFn: () => refreshOperatorAiWorkerHost(token!),
 		onSuccess: (data) => {
 			queryClient.setQueryData(operatorAiWorkerHostQueryKey, data);
+		},
+	});
+}
+
+export function useOperatorAiLiveStatsCacheSettings() {
+	const { token } = useAuth();
+	return useQuery({
+		queryKey: operatorAiLiveStatsCacheQueryKey,
+		queryFn: () => getOperatorAiLiveStatsCacheSettings(token!),
+		enabled: Boolean(token),
+		staleTime: 60_000,
+	});
+}
+
+export function useUpdateOperatorAiLiveStatsCacheSettings() {
+	const { token } = useAuth();
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (body: { ttlMilliseconds: number }) =>
+			updateOperatorAiLiveStatsCacheSettings(token!, body),
+		onSuccess: (data) => {
+			queryClient.setQueryData(operatorAiLiveStatsCacheQueryKey, data);
 		},
 	});
 }

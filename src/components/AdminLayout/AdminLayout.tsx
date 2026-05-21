@@ -39,6 +39,12 @@ const SUPER_ADMIN_NAV_ITEMS: NavItem[] = [
 	{ path: '/user-chat', labelKey: 'pages.userChat.title', icon: '📩' },
 ];
 
+const SETTINGS_NAV_ITEM: NavItem = {
+	path: '/settings',
+	labelKey: 'pages.settings.title',
+	icon: '⚙️',
+};
+
 const DESKTOP_BREAKPOINT = 1024;
 
 interface AdminLayoutProps {
@@ -61,7 +67,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 		? userChatConversations.reduce((sum, c) => sum + c.unreadCount, 0)
 		: 0;
 
-	const navItems = isSuperAdmin ? [...NAV_ITEMS, ...SUPER_ADMIN_NAV_ITEMS] : NAV_ITEMS;
+	const navItems = isSuperAdmin
+		? [...NAV_ITEMS, ...SUPER_ADMIN_NAV_ITEMS, SETTINGS_NAV_ITEM]
+		: [...NAV_ITEMS, SETTINGS_NAV_ITEM];
 
 	// Detect screen size
 	const handleResize = useCallback(() => {
