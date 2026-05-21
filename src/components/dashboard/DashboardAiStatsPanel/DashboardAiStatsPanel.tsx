@@ -2,7 +2,11 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { usePublicStatsSnapshot } from '@/hooks/api/usePublicStatsApi';
-import { getAdminAiPublicStatsMode } from '@/utils/adminAiStatsSettings';
+import { useOperatorAiPublicStatsSettings } from '@/hooks/api/useOperatorAiApi';
+import {
+	adminAiPublicStatsDefaults,
+	normalizeAdminAiPublicStatsMode,
+} from '@/utils/adminAiStatsSettings';
 import './DashboardAiStatsPanel.scss';
 
 /**
@@ -12,7 +16,10 @@ import './DashboardAiStatsPanel.scss';
 export function DashboardAiStatsPanel() {
 	const { t } = useTranslation('common');
 	const getLocalizedPath = useLocalizedLink();
-	const mode = getAdminAiPublicStatsMode();
+	const { data: publicStatsSettings } = useOperatorAiPublicStatsSettings();
+	const mode = normalizeAdminAiPublicStatsMode(
+		publicStatsSettings?.publicStatsMode ?? adminAiPublicStatsDefaults.DEFAULT_MODE
+	);
 	const q = usePublicStatsSnapshot(mode !== 'off');
 
 	return (

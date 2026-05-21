@@ -6,6 +6,7 @@ import type { OperatorAiMessagesPageDto } from '../models/OperatorAiMessagesPage
 import type { OperatorAiModelStatusDto } from '../models/OperatorAiModelStatusDto';
 import type { OperatorAiWorkerHostDto } from '../models/OperatorAiWorkerHostDto';
 import type { OperatorAiLiveStatsCacheSettingsDto } from '../models/OperatorAiLiveStatsCacheSettingsDto';
+import type { OperatorAiPublicStatsSettingsDto } from '../models/OperatorAiPublicStatsSettingsDto';
 
 export type OperatorAiConversationListItem = OperatorAiConversationListItemDto;
 export type OperatorAiMessage = OperatorAiMessageDto;
@@ -114,6 +115,28 @@ export async function updateOperatorAiLiveStatsCacheSettings(
 	return __request(OpenAPI, {
 		method: 'PUT',
 		url: '/api/operator-ai/live-stats-cache',
+		body,
+	});
+}
+
+export async function getOperatorAiPublicStatsSettings(
+	token: string
+): Promise<OperatorAiPublicStatsSettingsDto> {
+	OpenAPI.TOKEN = token;
+	return __request(OpenAPI, {
+		method: 'GET',
+		url: '/api/operator-ai/public-stats-settings',
+	});
+}
+
+export async function updateOperatorAiPublicStatsSettings(
+	token: string,
+	body: { publicStatsMode: string; liveMaxParallelBundleCalls: number }
+): Promise<OperatorAiPublicStatsSettingsDto> {
+	OpenAPI.TOKEN = token;
+	return __request(OpenAPI, {
+		method: 'PUT',
+		url: '/api/operator-ai/public-stats-settings',
 		body,
 	});
 }

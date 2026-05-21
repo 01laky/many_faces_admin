@@ -11,6 +11,8 @@ import {
 	refreshOperatorAiWorkerHost,
 	getOperatorAiLiveStatsCacheSettings,
 	updateOperatorAiLiveStatsCacheSettings,
+	getOperatorAiPublicStatsSettings,
+	updateOperatorAiPublicStatsSettings,
 	type OperatorAiConversationListItem,
 	type OperatorAiMessagesPage,
 } from '@/api/services/operatorAiApi';
@@ -27,6 +29,7 @@ const messagesKey = (id: number) => ['operatorAi', 'messages', id] as const;
 export const operatorAiModelStatusQueryKey = ['operatorAi', 'modelStatus'] as const;
 export const operatorAiWorkerHostQueryKey = ['operatorAi', 'workerHost'] as const;
 export const operatorAiLiveStatsCacheQueryKey = ['operatorAi', 'liveStatsCache'] as const;
+export const operatorAiPublicStatsSettingsQueryKey = ['operatorAi', 'publicStatsSettings'] as const;
 
 export function useOperatorAiConversations() {
 	const { token } = useAuth();
@@ -140,6 +143,28 @@ export function useUpdateOperatorAiLiveStatsCacheSettings() {
 			updateOperatorAiLiveStatsCacheSettings(token!, body),
 		onSuccess: (data) => {
 			queryClient.setQueryData(operatorAiLiveStatsCacheQueryKey, data);
+		},
+	});
+}
+
+export function useOperatorAiPublicStatsSettings() {
+	const { token } = useAuth();
+	return useQuery({
+		queryKey: operatorAiPublicStatsSettingsQueryKey,
+		queryFn: () => getOperatorAiPublicStatsSettings(token!),
+		enabled: Boolean(token),
+		staleTime: 60_000,
+	});
+}
+
+export function useUpdateOperatorAiPublicStatsSettings() {
+	const { token } = useAuth();
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (body: { publicStatsMode: string; liveMaxParallelBundleCalls: number }) =>
+			updateOperatorAiPublicStatsSettings(token!, body),
+		onSuccess: (data) => {
+			queryClient.setQueryData(operatorAiPublicStatsSettingsQueryKey, data);
 		},
 	});
 }

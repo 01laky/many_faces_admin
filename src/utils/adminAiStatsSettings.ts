@@ -1,23 +1,21 @@
 export type AdminAiPublicStatsMode = 'off' | 'inline' | 'live';
 
-const STORAGE_KEY = 'admin_ai_public_stats_mode';
+export const adminAiPublicStatsDefaults = {
+	DEFAULT_MODE: 'inline' as const,
+} as const;
 
 const VALID: ReadonlySet<AdminAiPublicStatsMode> = new Set(['off', 'inline', 'live']);
 
-export function getAdminAiPublicStatsMode(): AdminAiPublicStatsMode {
-	try {
-		const raw = localStorage.getItem(STORAGE_KEY)?.trim().toLowerCase();
-		if (raw && VALID.has(raw as AdminAiPublicStatsMode)) return raw as AdminAiPublicStatsMode;
-	} catch {
-		/* ignore */
+export function normalizeAdminAiPublicStatsMode(
+	raw: string | null | undefined
+): AdminAiPublicStatsMode {
+	const normalized = raw?.trim().toLowerCase();
+	if (normalized && VALID.has(normalized as AdminAiPublicStatsMode)) {
+		return normalized as AdminAiPublicStatsMode;
 	}
-	return 'inline';
+	return adminAiPublicStatsDefaults.DEFAULT_MODE;
 }
 
-export function setAdminAiPublicStatsMode(mode: AdminAiPublicStatsMode): void {
-	try {
-		localStorage.setItem(STORAGE_KEY, mode);
-	} catch {
-		/* ignore */
-	}
+export function isAdminAiPublicStatsMode(value: string): value is AdminAiPublicStatsMode {
+	return VALID.has(value as AdminAiPublicStatsMode);
 }

@@ -12,6 +12,7 @@ import {
 	useOperatorAiConversations,
 	useOperatorAiMessagesInfinite,
 	useOperatorAiModelStatus,
+	useOperatorAiPublicStatsSettings,
 	operatorAiConversationsQueryKey,
 	operatorAiModelStatusQueryKey,
 	operatorAiQueryKeys,
@@ -20,8 +21,14 @@ import {
 	type OperatorAiMessageAppendedEvent,
 	type OperatorAiMessagesPage,
 } from '@/hooks/api/useOperatorAiApi';
-import { getAdminAiPublicStatsMode } from '@/utils/adminAiStatsSettings';
-import { getAdminAiLiveMaxParallelBundleCalls } from '@/utils/adminAiLiveParallelSettings';
+import {
+	adminAiPublicStatsDefaults,
+	normalizeAdminAiPublicStatsMode,
+} from '@/utils/adminAiStatsSettings';
+import {
+	adminAiLiveParallelDefaults,
+	normalizeLiveParallelBundleCalls,
+} from '@/utils/adminAiLiveParallelSettings';
 import {
 	appendExchangeToMessagesPage,
 	conversationTitle,
@@ -52,6 +59,7 @@ export function ChatPage() {
 
 	const { data: conversations = [], isLoading: listLoading } = useOperatorAiConversations();
 	const { data: modelStatus } = useOperatorAiModelStatus();
+	const { data: publicStatsSettings } = useOperatorAiPublicStatsSettings();
 	const {
 		data: infiniteMessages,
 		isLoading: messagesLoading,
@@ -110,7 +118,9 @@ export function ChatPage() {
 
 	const conversationsKey = operatorAiConversationsQueryKey;
 	const { messagesKey } = operatorAiQueryKeys();
-	const statsModeForUi = getAdminAiPublicStatsMode();
+	const statsModeForUi = normalizeAdminAiPublicStatsMode(
+		publicStatsSettings?.publicStatsMode ?? adminAiPublicStatsDefaults.DEFAULT_MODE
+	);
 
 	useEffect(() => {
 		if (conversationId == null) return;
@@ -339,9 +349,17 @@ export function ChatPage() {
 		const optimisticUserId = -Date.now();
 		setSendingElapsedSec(0);
 		setIsSending(true);
-		const statsMode = getAdminAiPublicStatsMode();
+		const statsMode = normalizeAdminAiPublicStatsMode(
+			publicStatsSettings?.publicStatsMode ?? adminAiPublicStatsDefaults.DEFAULT_MODE
+		);
 		const responseLocale = i18n.language;
-		const parallel = statsMode === 'live' ? getAdminAiLiveMaxParallelBundleCalls() : undefined;
+		const parallel =
+			statsMode === 'live'
+				? normalizeLiveParallelBundleCalls(
+						publicStatsSettings?.liveMaxParallelBundleCalls,
+						adminAiLiveParallelDefaults.DEFAULT
+					)
+				: undefined;
 		setPendingByConv((map) => ({
 			...map,
 			[conversationId]: [
