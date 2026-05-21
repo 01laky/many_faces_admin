@@ -1,0 +1,40 @@
+.profile-detail-section-picker-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.45);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1200;
+}
+
+.profile-detail-section-picker {
+	background: #fff;
+	border-radius: 8px;
+	padding: 1.25rem;
+	max-width: 520px;
+	width: 90%;
+	max-height: 80vh;
+	overflow: auto;
+}
+
+.profile-detail-section-picker header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 1rem;
+}
+
+.profile-detail-section-picker__grid {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	margin-bottom: 1rem;
+}
+
+.profile-detail-section-picker__close {
+	border: none;
+	background: transparent;
+	font-size: 1.5rem;
+	cursor: pointer;
+}

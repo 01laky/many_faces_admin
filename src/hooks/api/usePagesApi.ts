@@ -109,6 +109,7 @@ export interface CreatePageData {
 	description?: string;
 	path: string;
 	index: number;
+	gridSchema?: string | null;
 }
 
 const createPageRequest = async (data: CreatePageData): Promise<Page> => {

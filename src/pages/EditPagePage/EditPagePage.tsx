@@ -10,6 +10,12 @@ import { FormField } from '@/components/radix/FormField';
 import { Input } from '@/components/radix/Input';
 import { GridLayoutEditor } from '@/components/page-editor/GridLayoutEditor';
 import type { GridSchema } from '@/components/page-editor/GridLayoutEditor';
+import { ProfileDetailGridLayoutEditor } from '@/components/page-editor/profileDetail/ProfileDetailGridLayoutEditor';
+import type { ProfileDetailGridSchema } from '@/components/page-editor/profileDetail/profileDetailGridTypes';
+import {
+	parseProfileDetailGridSchema,
+	serializeProfileDetailGridSchema,
+} from '@/components/page-editor/profileDetail/profileDetailGridSchemaUtils';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { usePage, useUpdatePage } from '@/hooks/api/usePagesApi';
 import { usePageTypes } from '@/hooks/api/usePageTypesApi';
@@ -44,16 +50,28 @@ export function EditPagePage() {
 
 	// Grid schema state
 	const [gridSchema, setGridSchema] = useState<GridSchema | null>(null);
+	const [profileGridSchema, setProfileGridSchema] = useState<ProfileDetailGridSchema | null>(null);
 	const [gridSchemaLoaded, setGridSchemaLoaded] = useState(false);
+
+	const pageTypeIndex = useMemo(
+		() => pageTypes.find((pt) => pt.id === page?.pageTypeId)?.index,
+		[pageTypes, page?.pageTypeId]
+	);
+	const isProfileDetailTemplate = pageTypeIndex === 'profileDetail';
 
 	const handleGridChange = useCallback((schema: GridSchema) => {
 		setGridSchema(schema);
+	}, []);
+
+	const handleProfileGridChange = useCallback((schema: ProfileDetailGridSchema) => {
+		setProfileGridSchema(schema);
 	}, []);
 
 	// Switching edit target must reload grid from API; otherwise stale layout leaks between pages.
 	useEffect(() => {
 		queueMicrotask(() => {
 			setGridSchema(null);
+			setProfileGridSchema(null);
 			setGridSchemaLoaded(false);
 		});
 	}, [pageId]);
@@ -126,17 +144,23 @@ export function EditPagePage() {
 			index: page.index || 0,
 		});
 		// Load grid schema from page data (only once per page load)
-		if (!gridSchemaLoaded && page.gridSchema) {
+		if (!gridSchemaLoaded) {
 			queueMicrotask(() => {
-				try {
-					setGridSchema(JSON.parse(page.gridSchema));
-				} catch {
-					// Invalid JSON, ignore
+				const ptIndex = pageTypes.find((pt) => pt.id === page.pageTypeId)?.index;
+				if (ptIndex === 'profileDetail') {
+					// Profile-detail pages use a stricter backend-validated schema than
+					// generic pages. Parse through the helper so malformed persisted JSON
+					// opens as the default layout and can be saved back in a valid shape.
+					setProfileGridSchema(parseProfileDetailGridSchema(page.gridSchema));
+				} else if (page.gridSchema) {
+					try {
+						setGridSchema(JSON.parse(page.gridSchema) as GridSchema);
+					} catch {
+						// Invalid JSON, ignore
+					}
 				}
 				setGridSchemaLoaded(true);
 			});
-		} else if (!gridSchemaLoaded) {
-			queueMicrotask(() => setGridSchemaLoaded(true));
 		}
 	}, [page, pageId, pageTypes, reset, gridSchemaLoaded]);
 
@@ -161,7 +185,11 @@ export function EditPagePage() {
 				id: pageId,
 				data: {
 					...data,
-					gridSchema: gridSchema ? JSON.stringify(gridSchema) : null,
+					gridSchema: isProfileDetailTemplate
+						? serializeProfileDetailGridSchema(profileGridSchema)
+						: gridSchema
+							? JSON.stringify(gridSchema)
+							: null,
 				},
 			},
 			{
@@ -232,8 +260,16 @@ export function EditPagePage() {
 						>
 							← {t('common.back')}
 						</Button>
-						<h1>{t('pages.editPage.title')}</h1>
+						<h1>
+							{isProfileDetailTemplate
+								? t('pages.profileDetailTemplate.editTitle')
+								: t('pages.editPage.title')}
+						</h1>
 					</div>
+
+					{isProfileDetailTemplate && (
+						<p className="text-muted mb-3">{t('pages.profileDetailTemplate.banner')}</p>
+					)}
 
 					<div className="page-form-card">
 						<form onSubmit={handleSubmit(onSubmit)} className="page-form">
@@ -247,7 +283,9 @@ export function EditPagePage() {
 										<select
 											{...register('pageTypeId', { valueAsNumber: true })}
 											className="form-select"
-											disabled={updatePageMutation.isPending || pageTypesLoading}
+											disabled={
+												updatePageMutation.isPending || pageTypesLoading || isProfileDetailTemplate
+											}
 											style={{
 												width: '100%',
 												padding: '0.5rem',
@@ -317,37 +355,52 @@ export function EditPagePage() {
 								</Col>
 							</Row>
 
-							{/* Route Translations Section */}
-							<div className="route-translations-section mt-4">
-								<h3 className="mb-3">{t('pages.editPage.routeTranslations')}</h3>
-								<p className="text-muted mb-3">{t('pages.editPage.routeTranslationsHelp')}</p>
-								<Row>
-									{supportedLanguages.map((lang) => (
-										<Col xs={12} md={4} key={lang}>
-											<FormField label={`${t(`language.${lang}`)} (${lang})`}>
-												<Input
-													type="text"
-													value={translations[lang] || ''}
-													onChange={(e) =>
-														setTranslationEdits((prev) => ({
-															...(prev ?? initialTranslations),
-															[lang]: e.target.value,
-														}))
-													}
-													placeholder={t('pages.editPage.routeTranslationPlaceholder')}
-													disabled={updatePageMutation.isPending}
-												/>
-											</FormField>
-										</Col>
-									))}
-								</Row>
-							</div>
+							{!isProfileDetailTemplate && (
+								<div className="route-translations-section mt-4">
+									<h3 className="mb-3">{t('pages.editPage.routeTranslations')}</h3>
+									<p className="text-muted mb-3">{t('pages.editPage.routeTranslationsHelp')}</p>
+									<Row>
+										{supportedLanguages.map((lang) => (
+											<Col xs={12} md={4} key={lang}>
+												<FormField label={`${t(`language.${lang}`)} (${lang})`}>
+													<Input
+														type="text"
+														value={translations[lang] || ''}
+														onChange={(e) =>
+															setTranslationEdits((prev) => ({
+																...(prev ?? initialTranslations),
+																[lang]: e.target.value,
+															}))
+														}
+														placeholder={t('pages.editPage.routeTranslationPlaceholder')}
+														disabled={updatePageMutation.isPending}
+													/>
+												</FormField>
+											</Col>
+										))}
+									</Row>
+								</div>
+							)}
 
-							{/* Grid Layout Editor */}
 							<div className="grid-layout-section mt-4">
-								<h3 className="mb-3">{t('pages.editPage.gridLayout.title')}</h3>
-								<p className="text-muted mb-3">{t('pages.editPage.gridLayout.help')}</p>
-								<GridLayoutEditor value={gridSchema} onChange={handleGridChange} />
+								<h3 className="mb-3">
+									{isProfileDetailTemplate
+										? t('pages.profileDetailTemplate.gridTitle')
+										: t('pages.editPage.gridLayout.title')}
+								</h3>
+								<p className="text-muted mb-3">
+									{isProfileDetailTemplate
+										? t('pages.profileDetailTemplate.gridHelp')
+										: t('pages.editPage.gridLayout.help')}
+								</p>
+								{isProfileDetailTemplate ? (
+									<ProfileDetailGridLayoutEditor
+										value={profileGridSchema}
+										onChange={handleProfileGridChange}
+									/>
+								) : (
+									<GridLayoutEditor value={gridSchema} onChange={handleGridChange} />
+								)}
 							</div>
 
 							<div className="page-form-actions">

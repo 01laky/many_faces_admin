@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -9,8 +9,9 @@ import { Button } from '@/components/radix/Button';
 import { FormField } from '@/components/radix/FormField';
 import { Input } from '@/components/radix/Input';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
-import { useCreatePage, type CreatePageData } from '@/hooks/api/usePagesApi';
+import { useCreatePage, usePages, type CreatePageData } from '@/hooks/api/usePagesApi';
 import { usePageTypes } from '@/hooks/api/usePageTypesApi';
+import { DEFAULT_PROFILE_DETAIL_GRID_SCHEMA_JSON } from '@/components/page-editor/profileDetail/defaultProfileDetailSchema';
 import {
 	useUpdatePageRouteTranslations,
 	type PageRouteTranslationData,
@@ -37,6 +38,18 @@ export function CreatePagePage() {
 
 	// Fetch page types for dropdown
 	const { data: pageTypes = [], isLoading: pageTypesLoading } = usePageTypes();
+	const { data: facePages } = usePages({ faceId: faceIdNum, page: 1, pageSize: 100 });
+	const profileDetailTypeId = pageTypes.find((pt) => pt.index === 'profileDetail')?.id;
+	const hasProfileTemplate = useMemo(
+		() =>
+			profileDetailTypeId != null &&
+			(facePages?.items.some((p) => p.pageTypeId === profileDetailTypeId) ?? false),
+		[facePages?.items, profileDetailTypeId]
+	);
+	const availablePageTypes = useMemo(
+		() => pageTypes.filter((pt) => !(pt.index === 'profileDetail' && hasProfileTemplate)),
+		[pageTypes, hasProfileTemplate]
+	);
 
 	// Supported languages for route translations
 	const supportedLanguages = ['en', 'sk', 'cz'];
@@ -83,10 +96,19 @@ export function CreatePagePage() {
 
 	const onSubmit = async (data: CreatePageFormData) => {
 		if (!faceIdNum) return;
+		const isProfileDetail = profileDetailTypeId != null && data.pageTypeId === profileDetailTypeId;
 		createPageMutation.mutate(
 			{
 				faceId: faceIdNum,
 				...data,
+				...(isProfileDetail
+					? {
+							name: data.name || 'Member profile layout',
+							path: data.path || '/_profile-detail',
+							index: data.index ?? 999,
+							gridSchema: DEFAULT_PROFILE_DETAIL_GRID_SCHEMA_JSON,
+						}
+					: {}),
 			} as CreatePageData,
 			{
 				onSuccess: async (createdPage) => {
@@ -162,7 +184,7 @@ export function CreatePagePage() {
 											{pageTypesLoading ? (
 												<option>Loading...</option>
 											) : (
-												pageTypes.map((pt) => (
+												availablePageTypes.map((pt) => (
 													<option key={pt.id} value={pt.id}>
 														{pt.index}
 													</option>

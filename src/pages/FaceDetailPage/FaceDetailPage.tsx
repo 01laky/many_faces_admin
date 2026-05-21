@@ -2,6 +2,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Container, Row, Col } from 'react-bootstrap';
 import { useFace } from '@/hooks/api/useFacesApi';
+import { usePages } from '@/hooks/api/usePagesApi';
+import { usePageTypes } from '@/hooks/api/usePageTypesApi';
 import { gradientPreviewStyle } from '@/utils/gradientPreview';
 import { Button } from '@/components/radix/Button';
 import { PagesTable } from '@/components/tables/PagesTable';
@@ -24,6 +26,10 @@ export function FaceDetailPage() {
 
 	const faceId = id ? parseInt(id, 10) : 0;
 	const { data: face, isLoading, error } = useFace(faceId);
+	const { data: facePages } = usePages({ faceId, page: 1, pageSize: 100 });
+	const { data: pageTypes = [] } = usePageTypes();
+	const profileDetailTypeId = pageTypes.find((pt) => pt.index === 'profileDetail')?.id;
+	const profileTemplatePage = facePages?.items.find((p) => p.pageTypeId === profileDetailTypeId);
 
 	if (isLoading) {
 		return (
@@ -178,6 +184,24 @@ export function FaceDetailPage() {
 							)}
 						</Row>
 					</div>
+
+					{!isAdminScopeFace(face) && (
+						<div className="face-detail-card face-detail-profile-layout">
+							<h2 className="h5 mb-2">{t('pages.profileDetailTemplate.sectionTitle')}</h2>
+							<p className="text-muted mb-3">{t('pages.profileDetailTemplate.sectionHelp')}</p>
+							{profileTemplatePage ? (
+								<Button
+									onClick={() =>
+										navigate(getLocalizedPath(`/pages/${profileTemplatePage.id}/edit`))
+									}
+								>
+									{t('pages.profileDetailTemplate.editCta')}
+								</Button>
+							) : (
+								<p className="text-muted mb-0">{t('pages.profileDetailTemplate.missingHelp')}</p>
+							)}
+						</div>
+					)}
 
 					<div className="face-detail-pages-section">
 						<PagesTable faceId={face.id} />

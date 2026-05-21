@@ -3,6 +3,7 @@ import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-t
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePages, useDeletePage, type Page } from '@/hooks/api/usePagesApi';
+import { usePageTypes } from '@/hooks/api/usePageTypesApi';
 import { Button } from '@/components/radix/Button';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { toast } from 'react-toastify';
@@ -34,6 +35,8 @@ export function PagesTable({ faceId }: PagesTableProps) {
 	});
 
 	const deletePageMutation = useDeletePage();
+	const { data: pageTypes = [] } = usePageTypes();
+	const profileDetailTypeId = pageTypes.find((pt) => pt.index === 'profileDetail')?.id;
 
 	const handleDelete = useCallback(
 		(id: number) => {
@@ -98,6 +101,8 @@ export function PagesTable({ faceId }: PagesTableProps) {
 				enableSorting: false,
 				cell: (info) => {
 					const pageId = info.row.original.id;
+					const isProfileTemplate =
+						profileDetailTypeId != null && info.row.original.pageTypeId === profileDetailTypeId;
 					return (
 						<div
 							className="admin-data-table__cell-interactive"
@@ -114,7 +119,10 @@ export function PagesTable({ faceId }: PagesTableProps) {
 							<Button
 								variant="danger"
 								onClick={() => handleDelete(pageId)}
-								disabled={deletePageMutation.isPending}
+								disabled={deletePageMutation.isPending || isProfileTemplate}
+								title={
+									isProfileTemplate ? t('pages.profileDetailTemplate.deleteDisabled') : undefined
+								}
 							>
 								{t('common.delete')}
 							</Button>
@@ -123,7 +131,7 @@ export function PagesTable({ faceId }: PagesTableProps) {
 				},
 			},
 		],
-		[t, navigate, getLocalizedPath, deletePageMutation.isPending, handleDelete]
+		[t, navigate, getLocalizedPath, deletePageMutation.isPending, handleDelete, profileDetailTypeId]
 	);
 
 	const handleCreateClick = () => {
