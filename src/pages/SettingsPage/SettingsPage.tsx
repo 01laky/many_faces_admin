@@ -7,6 +7,9 @@ import {
 	getAdminAiLiveMaxParallelBundleCalls,
 	setAdminAiLiveMaxParallelBundleCalls,
 } from '@/utils/adminAiLiveParallelSettings';
+import { recommendLiveParallelBundleCalls } from '@/utils/adminAiLiveParallelRecommendation';
+import { useOperatorAiWorkerHostProfile } from '@/hooks/api/useOperatorAiApi';
+import { formatBytes } from '@/utils/formatBytes';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Button } from '@/components/radix/Button';
 import { FormField } from '@/components/radix/FormField';
@@ -21,6 +24,11 @@ export function SettingsPage() {
 	const [mode, setMode] = useState<AdminAiPublicStatsMode>(() => getAdminAiPublicStatsMode());
 	const [parallel, setParallel] = useState(() => getAdminAiLiveMaxParallelBundleCalls());
 	const [saved, setSaved] = useState(false);
+	const { data: workerHost } = useOperatorAiWorkerHostProfile();
+	const parallelRecommendation = recommendLiveParallelBundleCalls(workerHost?.profile);
+	const parallelInputMax = parallelRecommendation
+		? Math.min(adminAiLiveParallelDefaults.MAX, parallelRecommendation.upperBound)
+		: adminAiLiveParallelDefaults.MAX;
 
 	const onSave = useCallback(() => {
 		setAdminAiPublicStatsMode(mode);
@@ -32,10 +40,7 @@ export function SettingsPage() {
 	const onParallelChange = (raw: string) => {
 		const parsed = Number(raw);
 		if (!Number.isFinite(parsed)) return;
-		const clamped = Math.min(
-			adminAiLiveParallelDefaults.MAX,
-			Math.max(adminAiLiveParallelDefaults.MIN, parsed)
-		);
+		const clamped = Math.min(parallelInputMax, Math.max(adminAiLiveParallelDefaults.MIN, parsed));
 		setParallel(clamped);
 	};
 
@@ -122,14 +127,50 @@ export function SettingsPage() {
 											id="ai-live-parallel"
 											type="number"
 											min={adminAiLiveParallelDefaults.MIN}
-											max={adminAiLiveParallelDefaults.MAX}
+											max={parallelInputMax}
 											value={parallel}
 											onChange={(e) => onParallelChange(e.target.value)}
 										/>
 									</FormField>
 									<p className="settings-page__field-hint">
-										{t('pages.settings.aiStats.liveParallel.hint')}
+										{t('pages.settings.aiStats.liveParallel.hint', {
+											max: parallelInputMax,
+										})}
 									</p>
+									{parallelRecommendation ? (
+										<div className="settings-page__parallel-recommendation">
+											<p className="settings-page__parallel-recommendation-text">
+												{t('pages.settings.aiStats.liveParallel.recommendation', {
+													gpu:
+														parallelRecommendation.basis.gpuName ??
+														t('pages.settings.aiStats.liveParallel.unknownGpu'),
+													vram: parallelRecommendation.basis.vramBytes
+														? formatBytes(parallelRecommendation.basis.vramBytes)
+														: t('pages.settings.aiStats.liveParallel.unknownVram'),
+													ram: parallelRecommendation.basis.ramAvailableBytes
+														? formatBytes(parallelRecommendation.basis.ramAvailableBytes)
+														: t('pages.settings.aiStats.liveParallel.unknownRam'),
+													recommended: parallelRecommendation.recommended,
+													upperBound: parallelRecommendation.upperBound,
+												})}
+											</p>
+											{parallel !== parallelRecommendation.recommended && (
+												<Button
+													type="button"
+													variant="secondary"
+													onClick={() => setParallel(parallelRecommendation.recommended)}
+												>
+													{t('pages.settings.aiStats.liveParallel.applyRecommended', {
+														value: parallelRecommendation.recommended,
+													})}
+												</Button>
+											)}
+										</div>
+									) : (
+										<p className="settings-page__field-hint settings-page__field-hint--muted">
+											{t('pages.settings.aiStats.liveParallel.recommendationFallback')}
+										</p>
+									)}
 								</div>
 							)}
 						</div>

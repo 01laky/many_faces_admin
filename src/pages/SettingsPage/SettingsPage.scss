@@ -165,11 +165,34 @@
 		margin-top: 1.25rem;
 		padding-top: 1.25rem;
 		border-top: 1px solid rgba(0, 0, 0, 0.06);
-		max-width: 16rem;
+		max-width: 36rem;
 
 		.form-field {
 			margin-bottom: 0;
 		}
+	}
+
+	&__parallel-recommendation {
+		margin-top: 0.85rem;
+		padding: 0.85rem 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid rgba(13, 110, 253, 0.25);
+		background: rgba(13, 110, 253, 0.04);
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.65rem;
+	}
+
+	&__parallel-recommendation-text {
+		margin: 0;
+		font-size: 0.875rem;
+		color: #334155;
+		line-height: 1.5;
+	}
+
+	&__field-hint--muted {
+		margin-top: 0.65rem;
 	}
 
 	&__footer {
