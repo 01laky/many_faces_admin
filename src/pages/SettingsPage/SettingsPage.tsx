@@ -4,6 +4,7 @@ import type { AdminAiPublicStatsMode } from '@/utils/adminAiStatsSettings';
 import { getAdminAiPublicStatsMode, setAdminAiPublicStatsMode } from '@/utils/adminAiStatsSettings';
 import {
 	adminAiLiveParallelDefaults,
+	clampLiveParallelBundleCalls,
 	getAdminAiLiveMaxParallelBundleCalls,
 	setAdminAiLiveMaxParallelBundleCalls,
 } from '@/utils/adminAiLiveParallelSettings';
@@ -22,26 +23,55 @@ const MODES: AdminAiPublicStatsMode[] = ['off', 'inline', 'live'];
 export function SettingsPage() {
 	const { t } = useTranslation('common');
 	const [mode, setMode] = useState<AdminAiPublicStatsMode>(() => getAdminAiPublicStatsMode());
-	const [parallel, setParallel] = useState(() => getAdminAiLiveMaxParallelBundleCalls());
+	const initialParallel = getAdminAiLiveMaxParallelBundleCalls();
+	const [parallel, setParallel] = useState(initialParallel);
+	const [parallelDraft, setParallelDraft] = useState(String(initialParallel));
 	const [saved, setSaved] = useState(false);
 	const { data: workerHost } = useOperatorAiWorkerHostProfile();
 	const parallelRecommendation = recommendLiveParallelBundleCalls(workerHost?.profile);
-	const parallelInputMax = parallelRecommendation
-		? Math.min(adminAiLiveParallelDefaults.MAX, parallelRecommendation.upperBound)
-		: adminAiLiveParallelDefaults.MAX;
+
+	const commitParallelDraft = useCallback((raw: string, fallback: number) => {
+		const trimmed = raw.trim();
+		if (!trimmed) {
+			const clamped = clampLiveParallelBundleCalls(fallback);
+			setParallel(clamped);
+			setParallelDraft(String(clamped));
+			return clamped;
+		}
+		const parsed = Number.parseInt(trimmed, 10);
+		if (!Number.isFinite(parsed)) {
+			setParallel(fallback);
+			setParallelDraft(String(fallback));
+			return fallback;
+		}
+		const clamped = clampLiveParallelBundleCalls(parsed);
+		setParallel(clamped);
+		setParallelDraft(String(clamped));
+		return clamped;
+	}, []);
 
 	const onSave = useCallback(() => {
 		setAdminAiPublicStatsMode(mode);
-		setAdminAiLiveMaxParallelBundleCalls(parallel);
+		const effective = commitParallelDraft(parallelDraft, parallel);
+		setAdminAiLiveMaxParallelBundleCalls(effective);
 		setSaved(true);
 		window.setTimeout(() => setSaved(false), 2500);
-	}, [mode, parallel]);
+	}, [mode, parallel, parallelDraft, commitParallelDraft]);
 
 	const onParallelChange = (raw: string) => {
-		const parsed = Number(raw);
-		if (!Number.isFinite(parsed)) return;
-		const clamped = Math.min(parallelInputMax, Math.max(adminAiLiveParallelDefaults.MIN, parsed));
+		if (raw === '' || /^\d+$/.test(raw)) {
+			setParallelDraft(raw);
+		}
+	};
+
+	const onParallelBlur = () => {
+		commitParallelDraft(parallelDraft, parallel);
+	};
+
+	const applyRecommendedParallel = (value: number) => {
+		const clamped = clampLiveParallelBundleCalls(value);
 		setParallel(clamped);
+		setParallelDraft(String(clamped));
 	};
 
 	return (
@@ -125,16 +155,19 @@ export function SettingsPage() {
 									>
 										<Input
 											id="ai-live-parallel"
-											type="number"
+											type="text"
+											inputMode="numeric"
+											autoComplete="off"
 											min={adminAiLiveParallelDefaults.MIN}
-											max={parallelInputMax}
-											value={parallel}
+											max={adminAiLiveParallelDefaults.MAX}
+											value={parallelDraft}
 											onChange={(e) => onParallelChange(e.target.value)}
+											onBlur={onParallelBlur}
 										/>
 									</FormField>
 									<p className="settings-page__field-hint">
 										{t('pages.settings.aiStats.liveParallel.hint', {
-											max: parallelInputMax,
+											max: adminAiLiveParallelDefaults.MAX,
 										})}
 									</p>
 									{parallelRecommendation ? (
@@ -158,7 +191,9 @@ export function SettingsPage() {
 												<Button
 													type="button"
 													variant="secondary"
-													onClick={() => setParallel(parallelRecommendation.recommended)}
+													onClick={() =>
+														applyRecommendedParallel(parallelRecommendation.recommended)
+													}
 												>
 													{t('pages.settings.aiStats.liveParallel.applyRecommended', {
 														value: parallelRecommendation.recommended,

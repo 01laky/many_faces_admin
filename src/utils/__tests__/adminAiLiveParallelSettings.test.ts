@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
 	adminAiLiveParallelDefaults,
+	clampLiveParallelBundleCalls,
 	getAdminAiLiveMaxParallelBundleCalls,
 	setAdminAiLiveMaxParallelBundleCalls,
 } from '../adminAiLiveParallelSettings';
@@ -47,5 +48,11 @@ describe('adminAiLiveParallelSettings', () => {
 	it('falls back on invalid string', () => {
 		store[adminAiLiveParallelDefaults.STORAGE_KEY] = 'abc';
 		expect(getAdminAiLiveMaxParallelBundleCalls()).toBe(2);
+	});
+
+	it('clampLiveParallelBundleCalls respects min and max', () => {
+		expect(clampLiveParallelBundleCalls(0)).toBe(1);
+		expect(clampLiveParallelBundleCalls(12)).toBe(8);
+		expect(clampLiveParallelBundleCalls(4)).toBe(4);
 	});
 });

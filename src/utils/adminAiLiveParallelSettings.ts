@@ -17,12 +17,16 @@ export function getAdminAiLiveMaxParallelBundleCalls(): number {
 }
 
 export function setAdminAiLiveMaxParallelBundleCalls(value: number): void {
-	const clamped = Math.min(MAX, Math.max(MIN, Math.round(value)));
+	const clamped = clampLiveParallelBundleCalls(value);
 	try {
 		localStorage.setItem(STORAGE_KEY, String(clamped));
 	} catch {
 		/* ignore */
 	}
+}
+
+export function clampLiveParallelBundleCalls(value: number): number {
+	return Math.min(MAX, Math.max(MIN, Math.round(value)));
 }
 
 export const adminAiLiveParallelDefaults = { STORAGE_KEY, DEFAULT, MIN, MAX } as const;
