@@ -21,6 +21,7 @@ import {
 	type OperatorAiMessagesPage,
 } from '@/hooks/api/useOperatorAiApi';
 import { getAdminAiPublicStatsMode } from '@/utils/adminAiStatsSettings';
+import { getAdminAiLiveMaxParallelBundleCalls } from '@/utils/adminAiLiveParallelSettings';
 import {
 	appendExchangeToMessagesPage,
 	conversationTitle,
@@ -109,6 +110,7 @@ export function ChatPage() {
 
 	const conversationsKey = operatorAiConversationsQueryKey;
 	const { messagesKey } = operatorAiQueryKeys();
+	const statsModeForUi = getAdminAiPublicStatsMode();
 
 	useEffect(() => {
 		if (conversationId == null) return;
@@ -339,6 +341,7 @@ export function ChatPage() {
 		setIsSending(true);
 		const statsMode = getAdminAiPublicStatsMode();
 		const responseLocale = i18n.language;
+		const parallel = statsMode === 'live' ? getAdminAiLiveMaxParallelBundleCalls() : undefined;
 		setPendingByConv((map) => ({
 			...map,
 			[conversationId]: [
@@ -354,7 +357,22 @@ export function ChatPage() {
 		}));
 		try {
 			await Promise.race([
-				conn.invoke('SendToAiWithOperatorStats', conversationId, text, statsMode, responseLocale),
+				statsMode === 'live'
+					? conn.invoke(
+							'SendToAiWithOperatorStats',
+							conversationId,
+							text,
+							statsMode,
+							responseLocale,
+							parallel
+						)
+					: conn.invoke(
+							'SendToAiWithOperatorStats',
+							conversationId,
+							text,
+							statsMode,
+							responseLocale
+						),
 				new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), SEND_TIMEOUT_MS)),
 			]);
 		} catch (err) {
@@ -532,7 +550,11 @@ export function ChatPage() {
 									<div className="chat-page__message chat-page__message--ai">
 										<span className="chat-page__message-label">{t('pages.chat.ai')}</span>
 										<div className="chat-page__message-content chat-page__typing">
-											<p className="chat-page__typing-line">{t('pages.chat.waitingForAi')}</p>
+											<p className="chat-page__typing-line">
+												{statsModeForUi === 'live'
+													? t('pages.chat.liveLoading')
+													: t('pages.chat.waitingForAi')}
+											</p>
 											{sendingElapsedSec > 0 && (
 												<p className="chat-page__typing-hint">
 													{t('pages.chat.waitingForAiElapsed', {
