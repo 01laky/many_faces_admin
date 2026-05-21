@@ -6,7 +6,14 @@ import type { SupportedLanguage } from '@/i18n/config';
 import { getEnglishRoute, getTranslatedRoute } from '@/utils/routeTranslations';
 import './LanguageSwitcher.scss';
 
-export function LanguageSwitcher() {
+type LanguageSwitcherVariant = 'header' | 'settings';
+
+interface LanguageSwitcherProps {
+	variant?: LanguageSwitcherVariant;
+	id?: string;
+}
+
+export function LanguageSwitcher({ variant = 'header', id }: LanguageSwitcherProps) {
 	const { currentLanguage, changeLanguage, t } = useApp();
 	const { t: i18nT } = useTranslation('common');
 	const navigate = useNavigate();
@@ -61,9 +68,14 @@ export function LanguageSwitcher() {
 		navigate(`/${langCode}${translatedPath ? `/${translatedPath}` : ''}`, { replace: true });
 	};
 
+	const triggerClassName =
+		variant === 'settings'
+			? 'language-select-trigger language-select-trigger--settings'
+			: 'language-select-trigger language-select-trigger--header';
+
 	return (
 		<Select.Root value={displayLanguage} onValueChange={handleLanguageChange}>
-			<Select.Trigger className="language-select-trigger" aria-label={t('language.select')}>
+			<Select.Trigger id={id} className={triggerClassName} aria-label={t('language.select')}>
 				<Select.Value />
 				<Select.Icon className="language-select-icon">
 					<svg

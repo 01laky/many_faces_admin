@@ -17,7 +17,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { isSuperAdminFromToken } from '@/utils/contentModeration';
 import { useOperatorUserChatConversations } from '@/hooks/api/useOperatorUserChatApi';
-import { LanguageSwitcher } from '../LanguageSwitcher';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import './AdminLayout.scss';
@@ -139,7 +138,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 				</div>
 
 				<div className="admin-header__right">
-					<LanguageSwitcher />
 					{user && (
 						<div className="admin-header__user">
 							<DropdownMenu.Root>
