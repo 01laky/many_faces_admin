@@ -1,5 +1,28 @@
 # Many Faces AI (MFAI) - admin panel application
 
+**Operator cockpit for Many Faces AI.** This React app is where platform admins manage faces, pages, users, moderation, operator AI chat, dashboard metrics, and the settings that shape the user-facing portal.
+
+| Start here        | Link                                                                                                |
+| ----------------- | --------------------------------------------------------------------------------------------------- |
+| Run in full stack | `../scripts/start-all-dev.sh` from `many_faces_main`                                                |
+| Local app         | `http://localhost:8090` / `https://localhost:8091` via admin proxy                                  |
+| Design guide      | [`docs/guides/admin-ui-list-and-detail-pages.md`](../docs/guides/admin-ui-list-and-detail-pages.md) |
+| AI dashboard/chat | [`docs/guides/admin-dashboard-metrics.md`](../docs/guides/admin-dashboard-metrics.md)               |
+
+```mermaid
+flowchart LR
+    operator["Admin / Operator"] --> admin["many_faces_admin<br/>React + Vite"]
+    admin --> api["many_faces_backend<br/>REST + SignalR"]
+    admin --> settings["Settings<br/>AI mode · parallel · Redis TTL"]
+    admin --> pages["Page/grid editor"]
+    admin --> moderation["Moderation + user ops"]
+    settings --> api
+    pages --> api
+    moderation --> api
+    api --> pg["PostgreSQL"]
+    api --> ai["many_faces_ai + Ollama"]
+```
+
 ## Agent / AI layout guide
 
 For **list tables** and **detail pages**, follow **[`docs/guides/admin-ui-list-and-detail-pages.md`](../docs/guides/admin-ui-list-and-detail-pages.md)** (Cursor: `.cursor/rules/admin-ui-list-detail-pages.mdc`, entry: [`AGENTS.md`](./AGENTS.md)).
@@ -55,7 +78,7 @@ flowchart LR
 
 The **Dashboard** page loads consolidated platform statistics from **`GET /api/Stats`** and optional histograms from **`GET /api/Stats/timeseries`**. This requires the admin app to call the API under the **configured admin face prefix** (see `VITE_DEFAULT_FACE_PREFIX` / `src/config/env.ts`) so the backend grants **`CanManageAllFaces`**.
 
-The **AI & public aggregates** panel and **Settings → AI chat — public statistics** use a **separate** URL shape for the anonymous snapshot: **`absolutePublicFaceUrl('/api/Stats/public')`** → **`/public/api/Stats/public`** on the same API host, so the browser (and automated tests) do not accidentally request **`/admin/...`** without a JWT. Modes (**`off`**, **`inline`**, **`live`**) are stored in **`localStorage`** (`admin_ai_public_stats_mode`). **`ChatPage`** invokes **`SendToAiWithOperatorStats`** with the saved mode.
+The **AI & public aggregates** panel and **Settings → AI chat — public statistics** use a **separate** URL shape for the anonymous snapshot: **`absolutePublicFaceUrl('/api/Stats/public')`** → **`/public/api/Stats/public`** on the same API host, so the browser (and automated tests) do not accidentally request **`/admin/...`** without a JWT. Modes (**`off`**, **`inline`**, **`live`**) and the live parallel cap are server-backed through **`GET/PUT /admin/api/operator-ai/public-stats-settings`**. **`ChatPage`** invokes **`SendToAiWithOperatorStats`** with the current server settings.
 
 See the monorepo guide [**`docs/guides/admin-dashboard-metrics.md`**](../docs/guides/admin-dashboard-metrics.md) for ACL rules, **`AiStats:PublicSnapshotAbsoluteUrl`** (**live** mode), SignalR + gRPC flow, performance notes, and **test file references**.
 

@@ -208,13 +208,17 @@ export function SettingsPage() {
 					</div>
 
 					<div className="settings-page__section-body">
-						<FormField
-							label={t('pages.settings.general.languageLabel')}
-							htmlFor="settings-language"
-						>
-							<LanguageSwitcher variant="settings" id="settings-language" />
-						</FormField>
-						<p className="settings-page__field-hint">{t('pages.settings.general.languageHint')}</p>
+						<div className="settings-page__compact-field">
+							<FormField
+								label={t('pages.settings.general.languageLabel')}
+								htmlFor="settings-language"
+							>
+								<LanguageSwitcher variant="settings" id="settings-language" />
+							</FormField>
+							<p className="settings-page__field-hint">
+								{t('pages.settings.general.languageHint')}
+							</p>
+						</div>
 					</div>
 				</section>
 
@@ -352,7 +356,7 @@ export function SettingsPage() {
 									{t('pages.settings.aiStats.liveCache.error')}
 								</p>
 							) : (
-								<>
+								<div className="settings-page__compact-field">
 									<FormField
 										label={t('pages.settings.aiStats.liveCache.ttlLabel')}
 										htmlFor="ai-live-cache-ttl"
@@ -372,7 +376,7 @@ export function SettingsPage() {
 											defaultMinutes: liveStatsCacheDefaults.DEFAULT_MINUTES,
 										})}
 									</p>
-								</>
+								</div>
 							)}
 						</div>
 
