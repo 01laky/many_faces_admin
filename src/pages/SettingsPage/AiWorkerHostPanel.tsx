@@ -4,7 +4,11 @@ import type {
 	OperatorAiWorkerHostProfile,
 	OperatorAiWorkerHostProfileDisk,
 } from '@/api/models/OperatorAiWorkerHostDto';
-import { useOperatorAiWorkerHostProfile } from '@/hooks/api/useOperatorAiApi';
+import {
+	useOperatorAiWorkerHostProfile,
+	useRefreshOperatorAiWorkerHostProfile,
+} from '@/hooks/api/useOperatorAiApi';
+import { Button } from '@/components/radix/Button';
 import {
 	formatWorkerHostBytes,
 	isWorkerHostProfileStale,
@@ -236,12 +240,25 @@ export function AiWorkerHostPanel({ data, isLoading, isError }: PanelProps) {
 export function AiWorkerHostSection() {
 	const { t } = useTranslation('common');
 	const { data, isLoading, isError } = useOperatorAiWorkerHostProfile();
+	const refresh = useRefreshOperatorAiWorkerHostProfile();
 
 	return (
 		<div className="settings-page__subsection settings-page__subsection--worker-host">
-			<h3 className="settings-page__subsection-title">
-				{t('pages.settings.aiWorkerHost.sectionTitle')}
-			</h3>
+			<div className="settings-page__subsection-header">
+				<h3 className="settings-page__subsection-title">
+					{t('pages.settings.aiWorkerHost.sectionTitle')}
+				</h3>
+				<Button
+					type="button"
+					variant="secondary"
+					disabled={refresh.isPending}
+					onClick={() => refresh.mutate()}
+				>
+					{refresh.isPending
+						? t('pages.settings.aiWorkerHost.refreshing')
+						: t('pages.settings.aiWorkerHost.refresh')}
+				</Button>
+			</div>
 			<p className="settings-page__subsection-desc">
 				{t('pages.settings.aiWorkerHost.description')}
 			</p>

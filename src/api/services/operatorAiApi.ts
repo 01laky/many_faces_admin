@@ -86,3 +86,11 @@ export async function getOperatorAiWorkerHost(token: string): Promise<OperatorAi
 		url: '/api/operator-ai/worker-host',
 	});
 }
+
+export async function refreshOperatorAiWorkerHost(token: string): Promise<OperatorAiWorkerHostDto> {
+	OpenAPI.TOKEN = token;
+	return __request(OpenAPI, {
+		method: 'POST',
+		url: '/api/operator-ai/worker-host/refresh',
+	});
+}

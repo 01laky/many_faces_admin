@@ -8,6 +8,7 @@ import {
 	getOperatorAiModelStatus,
 	getOperatorAiWorkerHost,
 	listOperatorAiConversations,
+	refreshOperatorAiWorkerHost,
 	type OperatorAiConversationListItem,
 	type OperatorAiMessagesPage,
 } from '@/api/services/operatorAiApi';
@@ -104,6 +105,17 @@ export function useOperatorAiWorkerHostProfile() {
 		queryFn: () => getOperatorAiWorkerHost(token!),
 		enabled: Boolean(token),
 		staleTime: 60_000,
+	});
+}
+
+export function useRefreshOperatorAiWorkerHostProfile() {
+	const { token } = useAuth();
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: () => refreshOperatorAiWorkerHost(token!),
+		onSuccess: (data) => {
+			queryClient.setQueryData(operatorAiWorkerHostQueryKey, data);
+		},
 	});
 }
 
