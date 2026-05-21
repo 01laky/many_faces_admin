@@ -63,6 +63,12 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0;
+
+		&--worker-host {
+			margin-top: 1.5rem;
+			padding-top: 1.5rem;
+			border-top: 1px solid rgba(0, 0, 0, 0.06);
+		}
 	}
 
 	&__subsection-title {
@@ -173,6 +179,102 @@
 		color: #15803d;
 	}
 
+	&__worker-host {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	&__worker-host-banner {
+		margin: 0;
+		padding: 0.65rem 0.85rem;
+		border-radius: 0.5rem;
+		font-size: 0.875rem;
+		line-height: 1.45;
+
+		&--warn {
+			background: rgba(245, 158, 11, 0.12);
+			border: 1px solid rgba(245, 158, 11, 0.35);
+			color: #92400e;
+		}
+	}
+
+	&__worker-host-message {
+		margin: 0;
+		font-size: 0.9375rem;
+		color: #64748b;
+
+		&--error {
+			color: #b91c1c;
+		}
+	}
+
+	&__worker-host-grid {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.85rem 1.25rem;
+		margin: 0;
+
+		dt {
+			margin: 0 0 0.2rem;
+			font-size: 0.75rem;
+			font-weight: 600;
+			text-transform: uppercase;
+			letter-spacing: 0.04em;
+			color: rgba(0, 0, 0, 0.5);
+		}
+
+		dd {
+			margin: 0;
+			font-size: 0.9375rem;
+			color: rgba(0, 0, 0, 0.88);
+			line-height: 1.45;
+		}
+	}
+
+	&__worker-host-span {
+		grid-column: 1 / -1;
+	}
+
+	&__worker-host-list {
+		margin: 0;
+		padding-left: 1.1rem;
+	}
+
+	&__worker-host-tag {
+		display: inline-block;
+		margin-left: 0.5rem;
+		padding: 0.1rem 0.45rem;
+		border-radius: 999px;
+		font-size: 0.75rem;
+		font-weight: 600;
+		background: rgba(148, 163, 184, 0.2);
+		color: #475569;
+
+		&--ok {
+			background: rgba(34, 197, 94, 0.15);
+			color: #15803d;
+		}
+	}
+
+	&__scope-badge {
+		display: inline-block;
+		padding: 0.15rem 0.55rem;
+		border-radius: 999px;
+		font-size: 0.75rem;
+		font-weight: 600;
+
+		&--host {
+			background: rgba(13, 110, 253, 0.12);
+			color: #0d47a1;
+		}
+
+		&--container {
+			background: rgba(245, 158, 11, 0.15);
+			color: #92400e;
+		}
+	}
+
 	@media (max-width: 640px) {
 		padding: 1.25rem 1rem 2rem;
 
@@ -184,6 +286,10 @@
 
 		&__parallel {
 			max-width: none;
+		}
+
+		&__worker-host-grid {
+			grid-template-columns: 1fr;
 		}
 	}
 }

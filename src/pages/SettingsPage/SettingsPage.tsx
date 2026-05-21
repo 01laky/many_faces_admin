@@ -11,6 +11,7 @@ import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Button } from '@/components/radix/Button';
 import { FormField } from '@/components/radix/FormField';
 import { Input } from '@/components/radix/Input';
+import { AiWorkerHostSection } from './AiWorkerHostPanel';
 import './SettingsPage.scss';
 
 const MODES: AdminAiPublicStatsMode[] = ['off', 'inline', 'live'];
@@ -132,6 +133,8 @@ export function SettingsPage() {
 								</div>
 							)}
 						</div>
+
+						<AiWorkerHostSection />
 					</div>
 				</section>
 			</div>

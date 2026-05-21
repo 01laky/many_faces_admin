@@ -6,6 +6,7 @@ import {
 	deleteOperatorAiConversation,
 	getOperatorAiMessages,
 	getOperatorAiModelStatus,
+	getOperatorAiWorkerHost,
 	listOperatorAiConversations,
 	type OperatorAiConversationListItem,
 	type OperatorAiMessagesPage,
@@ -21,6 +22,7 @@ export const operatorAiConversationsQueryKey = ['operatorAi', 'conversations'] a
 const conversationsKey = operatorAiConversationsQueryKey;
 const messagesKey = (id: number) => ['operatorAi', 'messages', id] as const;
 export const operatorAiModelStatusQueryKey = ['operatorAi', 'modelStatus'] as const;
+export const operatorAiWorkerHostQueryKey = ['operatorAi', 'workerHost'] as const;
 
 export function useOperatorAiConversations() {
 	const { token } = useAuth();
@@ -92,6 +94,16 @@ export function useOperatorAiModelStatus() {
 			if (data?.unavailable) return 10_000;
 			return 3_000;
 		},
+	});
+}
+
+export function useOperatorAiWorkerHostProfile() {
+	const { token } = useAuth();
+	return useQuery({
+		queryKey: operatorAiWorkerHostQueryKey,
+		queryFn: () => getOperatorAiWorkerHost(token!),
+		enabled: Boolean(token),
+		staleTime: 60_000,
 	});
 }
 

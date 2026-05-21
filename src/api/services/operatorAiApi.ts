@@ -4,6 +4,7 @@ import type { OperatorAiConversationListItemDto } from '../models/OperatorAiConv
 import type { OperatorAiMessageDto } from '../models/OperatorAiMessageDto';
 import type { OperatorAiMessagesPageDto } from '../models/OperatorAiMessagesPageDto';
 import type { OperatorAiModelStatusDto } from '../models/OperatorAiModelStatusDto';
+import type { OperatorAiWorkerHostDto } from '../models/OperatorAiWorkerHostDto';
 
 export type OperatorAiConversationListItem = OperatorAiConversationListItemDto;
 export type OperatorAiMessage = OperatorAiMessageDto;
@@ -75,5 +76,13 @@ export async function getOperatorAiModelStatus(token: string): Promise<OperatorA
 	return __request(OpenAPI, {
 		method: 'GET',
 		url: '/api/operator-ai/model-status',
+	});
+}
+
+export async function getOperatorAiWorkerHost(token: string): Promise<OperatorAiWorkerHostDto> {
+	OpenAPI.TOKEN = token;
+	return __request(OpenAPI, {
+		method: 'GET',
+		url: '/api/operator-ai/worker-host',
 	});
 }
