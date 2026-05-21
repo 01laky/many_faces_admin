@@ -3,7 +3,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
 import { fetchLocalizationBundle } from './fetchLocalizationBundle';
 
-export const supportedLanguages = ['en', 'sk', 'cz'] as const;
+export const supportedLanguages = ['en', 'sk', 'cz', 'de', 'fr', 'it'] as const;
 export type SupportedLanguage = (typeof supportedLanguages)[number];
 
 let initPromise: Promise<void> | null = null;

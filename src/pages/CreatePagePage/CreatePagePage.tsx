@@ -52,7 +52,7 @@ export function CreatePagePage() {
 	);
 
 	// Supported languages for route translations
-	const supportedLanguages = ['en', 'sk', 'cz'];
+	const supportedLanguages = ['en', 'sk', 'cz', 'de', 'fr', 'it'];
 	const [translations, setTranslations] = useState<Record<string, string>>({});
 
 	// Validation schema

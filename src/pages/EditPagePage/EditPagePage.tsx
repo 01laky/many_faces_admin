@@ -77,7 +77,7 @@ export function EditPagePage() {
 	}, [pageId]);
 
 	// Supported languages for route translations
-	const supportedLanguages = ['en', 'sk', 'cz'];
+	const supportedLanguages = ['en', 'sk', 'cz', 'de', 'fr', 'it'];
 
 	// Derive initial translations from API data
 	const initialTranslations = useMemo(() => {

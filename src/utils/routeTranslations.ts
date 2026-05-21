@@ -131,7 +131,7 @@ export function getAllRouteTranslations(
 	const translations: string[] = [slug]; // Canonical English slug for React Router
 
 	// Get translations for all supported languages
-	const supportedLanguages: SupportedLanguage[] = ['en', 'sk', 'cz'];
+	const supportedLanguages: SupportedLanguage[] = ['en', 'sk', 'cz', 'de', 'fr', 'it'];
 	supportedLanguages.forEach((lang) => {
 		const translated = t(routeKey, { lng: lang });
 		if (translated !== slug && !translations.includes(translated)) {

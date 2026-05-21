@@ -22,7 +22,11 @@ import {
 } from '@/hooks/api/useOperatorUserChatApi';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { mapOperatorUserChatHubError } from '@/utils/operatorUserChatHubErrors';
-import { appendUserChatMessage, type UiUserChatMessage } from '@/utils/userChatMessageMerge';
+import {
+	appendUserChatMessage,
+	replaceOptimisticUserChatMessage,
+	type UiUserChatMessage,
+} from '@/utils/userChatMessageMerge';
 import { isSuperAdminFromToken } from '@/utils/contentModeration';
 import { formatOperatorUserDisplayName } from '@/utils/operatorUserDetailUi';
 import { Button } from '@/components/radix/Button';
@@ -231,17 +235,30 @@ export function UserChatPage() {
 					readAt: null,
 				};
 
-				if (senderId === target) {
-					const qc = queryClientRef.current;
-					const key = [...operatorUserChatMessagesKey(target), 'infinite'] as const;
+				const qc = queryClientRef.current;
+				const key = [...operatorUserChatMessagesKey(target), 'infinite'] as const;
+
+				if (senderId === me) {
+					qc.setQueryData<InfiniteData<OperatorUserChatHistoryPage>>(key, (old) =>
+						patchOperatorUserChatInfiniteFirstPage(old, (page) => ({
+							...page,
+							items: replaceOptimisticUserChatMessage(page.items, msg, me ?? ''),
+						}))
+					);
+					setPending((prev) =>
+						prev.filter(
+							(m) => !(m.pending && m.id < 0 && m.senderId === me && m.content === content)
+						)
+					);
+				} else {
 					qc.setQueryData<InfiniteData<OperatorUserChatHistoryPage>>(key, (old) =>
 						patchOperatorUserChatInfiniteFirstPage(old, (page) => ({
 							...page,
 							items: appendUserChatMessage(page.items, msg),
 						}))
 					);
+					setPending((prev) => appendUserChatMessage(prev, msg));
 				}
-				setPending((prev) => appendUserChatMessage(prev, msg));
 				void queryClientRef.current.invalidateQueries({
 					queryKey: operatorUserChatConversationsKey,
 				});
@@ -375,8 +392,6 @@ export function UserChatPage() {
 
 		try {
 			await conn.invoke('SendPlatformDirectMessage', selectedUserId, text);
-			setPending([]);
-			void queryClient.invalidateQueries({ queryKey: operatorUserChatMessagesKey(selectedUserId) });
 			void queryClient.invalidateQueries({ queryKey: operatorUserChatConversationsKey });
 		} catch (err) {
 			console.error(err);

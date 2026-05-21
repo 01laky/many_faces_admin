@@ -42,6 +42,7 @@ import {
 } from '@/utils/operatorAiChatUtils';
 import { mapOperatorAiHubError } from '@/utils/operatorAiHubErrors';
 import { formatMessageHeader } from '@/utils/operatorAiLocale';
+import { toOperatorAiResponseLocale } from '@/utils/toOperatorAiResponseLocale';
 import { Button } from '@/components/radix/Button';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
 import './ChatPage.scss';
@@ -352,7 +353,7 @@ export function ChatPage() {
 		const statsMode = normalizeAdminAiPublicStatsMode(
 			publicStatsSettings?.publicStatsMode ?? adminAiPublicStatsDefaults.DEFAULT_MODE
 		);
-		const responseLocale = i18n.language;
+		const responseLocale = toOperatorAiResponseLocale(i18n.language);
 		const parallel =
 			statsMode === 'live'
 				? normalizeLiveParallelBundleCalls(
