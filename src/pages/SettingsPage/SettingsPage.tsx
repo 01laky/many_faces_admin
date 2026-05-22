@@ -36,6 +36,7 @@ import { Button } from '@/components/radix/Button';
 import { FormField } from '@/components/radix/FormField';
 import { Input } from '@/components/radix/Input';
 import { AiWorkerHostSection } from './AiWorkerHostPanel';
+import { InfrastructureWorkersSection } from './InfrastructureWorkersSection';
 import './SettingsPage.scss';
 
 const MODES: AdminAiPublicStatsMode[] = ['off', 'inline', 'live'];
@@ -264,6 +265,8 @@ export function SettingsPage() {
 					</div>
 				</section>
 
+				<InfrastructureWorkersSection />
+
 				<section className="settings-page__section" aria-labelledby="settings-ai-heading">
 					<div className="settings-page__section-head">
 						<h2 id="settings-ai-heading" className="settings-page__section-title">
@@ -279,27 +282,25 @@ export function SettingsPage() {
 							id="settings-ai-master"
 							className="settings-page__subsection settings-page__subsection--ai-master"
 						>
-							<div className="settings-page__master-switch-head">
-								<h3 className="settings-page__subsection-title">
-									{t('pages.settings.aiSystem.masterSwitch.label')}
-								</h3>
-								<button
-									type="button"
-									className={`settings-page__switch ${systemSettingsLoading ? '' : aiGloballyEnabled ? 'settings-page__switch--on' : 'settings-page__switch--off'}`}
-									role="switch"
-									aria-checked={aiGloballyEnabled}
-									aria-busy={updateSystemAi.isPending}
-									disabled={
-										systemSettingsLoading || updateSystemAi.isPending || systemSettingsLoadError
-									}
-									onClick={() => void proposeAiEnabledChange(!aiGloballyEnabled)}
-								>
-									<span className="settings-page__switch-knob" />
-								</button>
-							</div>
+							<h3 className="settings-page__subsection-title">
+								{t('pages.settings.aiSystem.masterSwitch.label')}
+							</h3>
 							<p className="settings-page__field-hint">
 								{t('pages.settings.aiSystem.masterSwitch.hint')}
 							</p>
+							<button
+								type="button"
+								className={`settings-page__switch ${systemSettingsLoading ? '' : aiGloballyEnabled ? 'settings-page__switch--on' : 'settings-page__switch--off'}`}
+								role="switch"
+								aria-checked={aiGloballyEnabled}
+								aria-busy={updateSystemAi.isPending}
+								disabled={
+									systemSettingsLoading || updateSystemAi.isPending || systemSettingsLoadError
+								}
+								onClick={() => void proposeAiEnabledChange(!aiGloballyEnabled)}
+							>
+								<span className="settings-page__switch-knob" />
+							</button>
 							{systemSettingsLoadError && (
 								<p className="settings-page__field-hint settings-page__field-hint--error">
 									{t('common.error')}

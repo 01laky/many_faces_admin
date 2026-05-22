@@ -22,14 +22,21 @@ export function clearLocalizationBundleCache(app: 'admin' = 'admin'): void {
 	void app;
 }
 
-/** Sentinel keys for post-.resx deploy sanity (story detail rev. 1.2). */
+/** Sentinel keys for post-.resx deploy sanity (story detail + settings infra smoke panel). */
 function bundleHasRequiredAdminKeys(body: LocalizationBundleResponse): boolean {
 	const storyDetail = body.resources?.en?.common?.pages?.storyDetail;
+	const infra = body.resources?.en?.common?.pages?.settings?.infra;
 	return (
 		typeof storyDetail === 'object' &&
 		storyDetail !== null &&
 		typeof storyDetail.createdAt === 'string' &&
-		typeof storyDetail.managementSection === 'string'
+		typeof storyDetail.managementSection === 'string' &&
+		typeof infra === 'object' &&
+		infra !== null &&
+		typeof infra.sectionTitle === 'string' &&
+		typeof infra.mail === 'object' &&
+		infra.mail !== null &&
+		typeof (infra.mail as { title?: string }).title === 'string'
 	);
 }
 
@@ -55,7 +62,11 @@ export async function fetchLocalizationBundle(app: 'admin'): Promise<Localizatio
 
 	if (response.status === 304 && cachedVersion) {
 		const raw = localStorage.getItem(`${CACHE_KEY_PREFIX}body`);
-		if (raw) return JSON.parse(raw) as LocalizationBundleResponse;
+		if (raw) {
+			const cached = JSON.parse(raw) as LocalizationBundleResponse;
+			if (bundleHasRequiredAdminKeys(cached)) return cached;
+			clearLocalizationBundleCache(app);
+		}
 	}
 
 	if (!response.ok) {
@@ -65,7 +76,7 @@ export async function fetchLocalizationBundle(app: 'admin'): Promise<Localizatio
 	const body = (await response.json()) as LocalizationBundleResponse;
 	if (!bundleHasRequiredAdminKeys(body)) {
 		throw new Error(
-			'Admin localization bundle is missing story detail keys. Rebuild and restart BeDemo.Api, then reload.'
+			'Admin localization bundle is missing required keys (story detail or settings infra). Rebuild and restart BeDemo.Api, then hard-reload the admin app.'
 		);
 	}
 	if (typeof localStorage !== 'undefined') {
