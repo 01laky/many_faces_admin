@@ -13,6 +13,8 @@ import {
 	updateOperatorAiLiveStatsCacheSettings,
 	getOperatorAiPublicStatsSettings,
 	updateOperatorAiPublicStatsSettings,
+	getOperatorAiSystemSettings,
+	updateOperatorAiSystemSettings,
 	type OperatorAiConversationListItem,
 	type OperatorAiMessagesPage,
 } from '@/api/services/operatorAiApi';
@@ -30,6 +32,8 @@ export const operatorAiModelStatusQueryKey = ['operatorAi', 'modelStatus'] as co
 export const operatorAiWorkerHostQueryKey = ['operatorAi', 'workerHost'] as const;
 export const operatorAiLiveStatsCacheQueryKey = ['operatorAi', 'liveStatsCache'] as const;
 export const operatorAiPublicStatsSettingsQueryKey = ['operatorAi', 'publicStatsSettings'] as const;
+/** Singleton global AI toggle — shared preload from AdminLayout (~30s coalescing). */
+export const operatorAiSystemSettingsQueryKey = ['operatorAi', 'systemSettings'] as const;
 
 export function useOperatorAiConversations() {
 	const { token } = useAuth();
@@ -87,16 +91,18 @@ export function patchOperatorAiInfiniteFirstPage(
 	return { ...data, pages: [patch(data.pages[0]), ...data.pages.slice(1)] };
 }
 
-export function useOperatorAiModelStatus() {
+/** Poll model status while AI is enabled — avoids chatter when globally off. */
+export function useOperatorAiModelStatus(operatorAiGloballyEnabled = true) {
 	const { token } = useAuth();
 	return useQuery({
 		queryKey: operatorAiModelStatusQueryKey,
 		queryFn: () => getOperatorAiModelStatus(token!),
-		enabled: Boolean(token),
+		enabled: Boolean(token) && operatorAiGloballyEnabled,
 		staleTime: 0,
 		refetchOnMount: 'always',
 		refetchInterval: (query) => {
 			const data = query.state.data;
+			if (!operatorAiGloballyEnabled) return false;
 			if (data?.ready) return 20_000;
 			if (data?.unavailable) return 10_000;
 			return 3_000;
@@ -154,6 +160,32 @@ export function useOperatorAiPublicStatsSettings() {
 		queryFn: () => getOperatorAiPublicStatsSettings(token!),
 		enabled: Boolean(token),
 		staleTime: 60_000,
+	});
+}
+
+/** Global AI master switch singleton (GET cached across layout/pages). */
+export function useOperatorAiSystemSettings() {
+	const { token } = useAuth();
+	return useQuery({
+		queryKey: operatorAiSystemSettingsQueryKey,
+		queryFn: () => getOperatorAiSystemSettings(token!),
+		enabled: Boolean(token),
+		staleTime: 30_000,
+		refetchOnWindowFocus: true,
+	});
+}
+
+export function useUpdateOperatorAiSystemSettings() {
+	const { token } = useAuth();
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (body: { aiEnabled: boolean }) => updateOperatorAiSystemSettings(token!, body),
+		onSuccess: (data) => {
+			queryClient.setQueryData(operatorAiSystemSettingsQueryKey, data);
+			void queryClient.invalidateQueries({ queryKey: operatorAiModelStatusQueryKey });
+			void queryClient.invalidateQueries({ queryKey: operatorAiWorkerHostQueryKey });
+			void queryClient.invalidateQueries({ queryKey: operatorAiPublicStatsSettingsQueryKey });
+		},
 	});
 }
 

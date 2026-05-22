@@ -9,18 +9,25 @@ import {
 } from '@/utils/adminAiStatsSettings';
 import './DashboardAiStatsPanel.scss';
 
+type DashboardAiStatsPanelProps = {
+	/** Mirrors backend singleton AI flag — entire panel suppressed when IA is globally off. */
+	operatorAiGloballyEnabled: boolean;
+};
+
 /**
  * Dashboard strip: current AI “public statistics” mode and a peek at anonymous aggregate totals
  * (same payload the AI may use in inline/live modes).
  */
-export function DashboardAiStatsPanel() {
+export function DashboardAiStatsPanel({ operatorAiGloballyEnabled }: DashboardAiStatsPanelProps) {
 	const { t } = useTranslation('common');
 	const getLocalizedPath = useLocalizedLink();
 	const { data: publicStatsSettings } = useOperatorAiPublicStatsSettings();
 	const mode = normalizeAdminAiPublicStatsMode(
 		publicStatsSettings?.publicStatsMode ?? adminAiPublicStatsDefaults.DEFAULT_MODE
 	);
-	const q = usePublicStatsSnapshot(mode !== 'off');
+	const q = usePublicStatsSnapshot(operatorAiGloballyEnabled && mode !== 'off');
+
+	if (!operatorAiGloballyEnabled) return null;
 
 	return (
 		<section className="dashboard-ai-stats" aria-labelledby="dashboard-ai-stats-title">

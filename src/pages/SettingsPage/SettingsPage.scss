@@ -354,4 +354,71 @@
 			grid-template-columns: 1fr;
 		}
 	}
+
+	&__subsection--ai-master {
+		padding-bottom: 0.5rem;
+	}
+
+	&__master-switch-head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+
+		.settings-page__subsection-title {
+			margin-bottom: 0;
+		}
+	}
+
+	&__switch {
+		position: relative;
+		flex: 0 0 auto;
+		width: 3.125rem;
+		height: 1.625rem;
+		border-radius: 999px;
+		border: 1px solid rgba(0, 0, 0, 0.12);
+		background: rgba(226, 232, 240, 0.9);
+		cursor: pointer;
+		padding: 0;
+		transition:
+			background 0.2s ease,
+			border-color 0.2s ease;
+
+		&:disabled {
+			cursor: not-allowed;
+			opacity: 0.55;
+		}
+
+		&--on {
+			background: rgba(37, 99, 235, 0.95);
+			border-color: rgba(37, 99, 235, 0.95);
+
+			.settings-page__switch-knob {
+				transform: translateX(1.45rem);
+			}
+		}
+
+		&--off .settings-page__switch-knob {
+			transform: translateX(0.15rem);
+		}
+	}
+
+	&__switch-knob {
+		position: absolute;
+		left: 0;
+		top: 50%;
+		margin-top: -0.575rem;
+		width: 1.125rem;
+		height: 1.125rem;
+		border-radius: 50%;
+		background: #fff;
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+		transition: transform 0.2s ease;
+		pointer-events: none;
+	}
+
+	.settings-page__option.is-locked {
+		opacity: 0.62;
+	}
 }

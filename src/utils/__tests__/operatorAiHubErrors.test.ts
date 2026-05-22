@@ -14,6 +14,7 @@ describe('operatorAiHubErrors', () => {
 		'ai_unavailable',
 		'ai_generation_failed',
 		'ai_guard_rejected',
+		'ai_disabled',
 	] as const;
 
 	it.each(codes)('maps known code %s', (code) => {

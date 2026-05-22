@@ -42,6 +42,20 @@
 	}
 }
 
+.dashboard-card-link--inactive {
+	cursor: default;
+	pointer-events: none;
+
+	.dashboard-card__arrow {
+		display: none;
+	}
+
+	.dashboard-card:hover {
+		transform: none;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+	}
+}
+
 .dashboard-card {
 	display: flex;
 	flex-direction: column;

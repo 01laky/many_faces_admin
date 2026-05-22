@@ -7,6 +7,7 @@ import type { OperatorAiModelStatusDto } from '../models/OperatorAiModelStatusDt
 import type { OperatorAiWorkerHostDto } from '../models/OperatorAiWorkerHostDto';
 import type { OperatorAiLiveStatsCacheSettingsDto } from '../models/OperatorAiLiveStatsCacheSettingsDto';
 import type { OperatorAiPublicStatsSettingsDto } from '../models/OperatorAiPublicStatsSettingsDto';
+import type { OperatorAiSystemSettingsDto } from '../models/OperatorAiSystemSettingsDto';
 
 export type OperatorAiConversationListItem = OperatorAiConversationListItemDto;
 export type OperatorAiMessage = OperatorAiMessageDto;
@@ -18,10 +19,6 @@ export type OperatorAiMessageAppendedEvent = {
 	assistantMessage: OperatorAiMessage;
 	conversation: OperatorAiConversationListItem;
 };
-
-function authHeaders(token: string) {
-	return { Authorization: `Bearer ${token}` };
-}
 
 export async function listOperatorAiConversations(
 	token: string,
@@ -126,6 +123,28 @@ export async function getOperatorAiPublicStatsSettings(
 	return __request(OpenAPI, {
 		method: 'GET',
 		url: '/api/operator-ai/public-stats-settings',
+	});
+}
+
+export async function getOperatorAiSystemSettings(
+	token: string
+): Promise<OperatorAiSystemSettingsDto> {
+	OpenAPI.TOKEN = token;
+	return __request(OpenAPI, {
+		method: 'GET',
+		url: '/api/operator-ai/system-settings',
+	});
+}
+
+export async function updateOperatorAiSystemSettings(
+	token: string,
+	body: { aiEnabled: boolean }
+): Promise<OperatorAiSystemSettingsDto> {
+	OpenAPI.TOKEN = token;
+	return __request(OpenAPI, {
+		method: 'PUT',
+		url: '/api/operator-ai/system-settings',
+		body,
 	});
 }
 

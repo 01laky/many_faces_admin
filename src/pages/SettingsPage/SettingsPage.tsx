@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
 import {
 	adminAiPublicStatsDefaults,
 	normalizeAdminAiPublicStatsMode,
@@ -20,10 +21,14 @@ import {
 import {
 	useOperatorAiLiveStatsCacheSettings,
 	useOperatorAiPublicStatsSettings,
+	useOperatorAiSystemSettings,
 	useOperatorAiWorkerHostProfile,
 	useUpdateOperatorAiLiveStatsCacheSettings,
 	useUpdateOperatorAiPublicStatsSettings,
+	useUpdateOperatorAiSystemSettings,
 } from '@/hooks/api/useOperatorAiApi';
+import { useConfirmModal } from '@/hooks/useConfirmModal';
+import { resolveOperatorAiEnableErrorMessage } from '@/utils/resolveOperatorAiEnableErrorMessage';
 import type { OperatorAiPublicStatsSettingsDto } from '@/api/models/OperatorAiPublicStatsSettingsDto';
 import { formatBytes } from '@/utils/formatBytes';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -65,6 +70,13 @@ export function SettingsPage() {
 		isError: publicStatsError,
 	} = useOperatorAiPublicStatsSettings();
 	const {
+		data: systemSettings,
+		isLoading: systemSettingsLoading,
+		isError: systemSettingsLoadError,
+	} = useOperatorAiSystemSettings();
+	const updateSystemAi = useUpdateOperatorAiSystemSettings();
+	const { confirm, ConfirmModalHost } = useConfirmModal();
+	const {
 		data: liveStatsCache,
 		isLoading: liveStatsCacheLoading,
 		isError: liveStatsCacheError,
@@ -78,6 +90,34 @@ export function SettingsPage() {
 		localMode,
 		localParallel,
 		localParallelDraft
+	);
+	const aiGloballyEnabled = systemSettings?.aiEnabled === true;
+	const subSettingsInteractionLocked = systemSettingsLoading || !aiGloballyEnabled;
+
+	const proposeAiEnabledChange = useCallback(
+		async (nextEnabled: boolean) => {
+			await confirm({
+				message: nextEnabled
+					? t('pages.settings.aiSystem.enableConfirm.message')
+					: t('pages.settings.aiSystem.disableConfirm.message'),
+				cancelLabel: t('pages.settings.aiSystem.confirm.cancel'),
+				confirmLabel: nextEnabled
+					? t('pages.settings.aiSystem.enableConfirm.confirm')
+					: t('pages.settings.aiSystem.disableConfirm.confirm'),
+				confirmVariant: nextEnabled ? 'primary' : 'danger',
+				confirmAction: async () => {
+					try {
+						await updateSystemAi.mutateAsync({ aiEnabled: nextEnabled });
+					} catch (err) {
+						toast.error(
+							nextEnabled ? resolveOperatorAiEnableErrorMessage(t, err) : t('common.error')
+						);
+						throw err;
+					}
+				},
+			});
+		},
+		[confirm, updateSystemAi, t]
 	);
 
 	const cacheTtlDisplay =
@@ -107,6 +147,7 @@ export function SettingsPage() {
 	}, []);
 
 	const onSave = useCallback(async () => {
+		if (subSettingsInteractionLocked) return;
 		setSaveError(null);
 		try {
 			const parsedMinutes = Number.parseInt(cacheTtlDisplay.trim(), 10);
@@ -150,6 +191,7 @@ export function SettingsPage() {
 		updateLiveStatsCache,
 		updatePublicStatsSettings,
 		t,
+		subSettingsInteractionLocked,
 	]);
 
 	const onParallelChange = (raw: string) => {
@@ -233,6 +275,38 @@ export function SettingsPage() {
 					</div>
 
 					<div className="settings-page__section-body">
+						<div
+							id="settings-ai-master"
+							className="settings-page__subsection settings-page__subsection--ai-master"
+						>
+							<div className="settings-page__master-switch-head">
+								<h3 className="settings-page__subsection-title">
+									{t('pages.settings.aiSystem.masterSwitch.label')}
+								</h3>
+								<button
+									type="button"
+									className={`settings-page__switch ${systemSettingsLoading ? '' : aiGloballyEnabled ? 'settings-page__switch--on' : 'settings-page__switch--off'}`}
+									role="switch"
+									aria-checked={aiGloballyEnabled}
+									aria-busy={updateSystemAi.isPending}
+									disabled={
+										systemSettingsLoading || updateSystemAi.isPending || systemSettingsLoadError
+									}
+									onClick={() => void proposeAiEnabledChange(!aiGloballyEnabled)}
+								>
+									<span className="settings-page__switch-knob" />
+								</button>
+							</div>
+							<p className="settings-page__field-hint">
+								{t('pages.settings.aiSystem.masterSwitch.hint')}
+							</p>
+							{systemSettingsLoadError && (
+								<p className="settings-page__field-hint settings-page__field-hint--error">
+									{t('common.error')}
+								</p>
+							)}
+						</div>
+
 						<div className="settings-page__subsection">
 							<h3 className="settings-page__subsection-title">
 								{t('pages.settings.aiStats.sectionTitle')}
@@ -240,6 +314,11 @@ export function SettingsPage() {
 							<p className="settings-page__subsection-desc">
 								{t('pages.settings.aiStats.description')}
 							</p>
+							{subSettingsInteractionLocked && (
+								<p className="settings-page__field-hint settings-page__field-hint--muted">
+									{t('pages.settings.aiSystem.subSettingsLocked')}
+								</p>
+							)}
 
 							{publicStatsLoading ? (
 								<p className="settings-page__field-hint">
@@ -255,17 +334,19 @@ export function SettingsPage() {
 										className="settings-page__options"
 										role="radiogroup"
 										aria-label={t('pages.settings.aiStats.sectionTitle')}
+										aria-disabled={subSettingsInteractionLocked}
 									>
 										{MODES.map((m) => (
 											<label
 												key={m}
-												className={`settings-page__option ${mode === m ? 'is-selected' : ''}`}
+												className={`settings-page__option ${mode === m ? 'is-selected' : ''} ${subSettingsInteractionLocked ? 'is-locked' : ''}`}
 											>
 												<input
 													type="radio"
 													name="ai-public-stats-mode"
 													value={m}
 													checked={mode === m}
+													disabled={subSettingsInteractionLocked}
 													onChange={() => setLocalMode(m)}
 												/>
 												<span className="settings-page__option-label">
@@ -292,6 +373,7 @@ export function SettingsPage() {
 													min={adminAiLiveParallelDefaults.MIN}
 													max={adminAiLiveParallelDefaults.MAX}
 													value={parallelDraft}
+													disabled={subSettingsInteractionLocked}
 													onChange={(e) => onParallelChange(e.target.value)}
 													onBlur={onParallelBlur}
 												/>
@@ -322,6 +404,7 @@ export function SettingsPage() {
 														<Button
 															type="button"
 															variant="secondary"
+															disabled={subSettingsInteractionLocked}
 															onClick={() =>
 																applyRecommendedParallel(parallelRecommendation.recommended)
 															}
@@ -347,6 +430,11 @@ export function SettingsPage() {
 							<h3 className="settings-page__subsection-title">
 								{t('pages.settings.aiStats.liveCache.sectionLabel')}
 							</h3>
+							{subSettingsInteractionLocked && (
+								<p className="settings-page__field-hint settings-page__field-hint--muted">
+									{t('pages.settings.aiSystem.subSettingsLocked')}
+								</p>
+							)}
 							{liveStatsCacheLoading ? (
 								<p className="settings-page__field-hint">
 									{t('pages.settings.aiStats.liveCache.loading')}
@@ -367,6 +455,7 @@ export function SettingsPage() {
 											inputMode="numeric"
 											autoComplete="off"
 											value={cacheTtlDisplay}
+											disabled={subSettingsInteractionLocked}
 											onChange={(e) => onCacheTtlChange(e.target.value)}
 											onBlur={onCacheTtlBlur}
 										/>
@@ -380,14 +469,14 @@ export function SettingsPage() {
 							)}
 						</div>
 
-						<AiWorkerHostSection />
+						<AiWorkerHostSection aiInteractionDisabled={subSettingsInteractionLocked} />
 					</div>
 				</section>
 			</div>
 
 			<footer className="settings-page__footer">
 				<div className="settings-page__actions">
-					<Button type="button" onClick={onSave}>
+					<Button type="button" onClick={onSave} disabled={subSettingsInteractionLocked}>
 						{t('pages.settings.save')}
 					</Button>
 					{saved && <span className="settings-page__saved">{t('pages.settings.saved')}</span>}
@@ -396,6 +485,7 @@ export function SettingsPage() {
 					)}
 				</div>
 			</footer>
+			{ConfirmModalHost}
 		</div>
 	);
 }

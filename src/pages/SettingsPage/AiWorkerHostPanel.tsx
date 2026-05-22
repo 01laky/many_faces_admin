@@ -237,7 +237,11 @@ export function AiWorkerHostPanel({ data, isLoading, isError }: PanelProps) {
 	);
 }
 
-export function AiWorkerHostSection() {
+export function AiWorkerHostSection({
+	aiInteractionDisabled = false,
+}: {
+	aiInteractionDisabled?: boolean;
+}) {
 	const { t } = useTranslation('common');
 	const { data, isLoading, isError } = useOperatorAiWorkerHostProfile();
 	const refresh = useRefreshOperatorAiWorkerHostProfile();
@@ -251,7 +255,7 @@ export function AiWorkerHostSection() {
 				<Button
 					type="button"
 					variant="secondary"
-					disabled={refresh.isPending}
+					disabled={refresh.isPending || aiInteractionDisabled}
 					onClick={() => refresh.mutate()}
 				>
 					{refresh.isPending

@@ -2,8 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { HubConnection } from '@microsoft/signalr';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { buildAdminAiChatHubConnection } from '@/api/signalr/buildAdminAiChatHubConnection';
 import type { InfiniteData } from '@tanstack/react-query';
 import {
@@ -13,6 +14,7 @@ import {
 	useOperatorAiMessagesInfinite,
 	useOperatorAiModelStatus,
 	useOperatorAiPublicStatsSettings,
+	useOperatorAiSystemSettings,
 	operatorAiConversationsQueryKey,
 	operatorAiModelStatusQueryKey,
 	operatorAiQueryKeys,
@@ -55,11 +57,23 @@ export function ChatPage() {
 	const { t, i18n } = useTranslation('common');
 	const { token, isAuthenticated, user } = useAuth();
 	const queryClient = useQueryClient();
+	const navigate = useNavigate();
+	const getLocalizedPath = useLocalizedLink();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const conversationId = parseConversationIdFromSearch(searchParams.toString());
 
+	const { data: operatorAiSys, isLoading: operatorAiSysLoading } = useOperatorAiSystemSettings();
+	const operatorAiGloballyEnabled = operatorAiSys?.aiEnabled === true;
+
+	useEffect(() => {
+		if (operatorAiSysLoading || !token) return;
+		if (!operatorAiGloballyEnabled) {
+			navigate(`${getLocalizedPath('/settings')}#settings-ai-master`, { replace: true });
+		}
+	}, [operatorAiSysLoading, token, operatorAiGloballyEnabled, navigate, getLocalizedPath]);
+
 	const { data: conversations = [], isLoading: listLoading } = useOperatorAiConversations();
-	const { data: modelStatus } = useOperatorAiModelStatus();
+	const { data: modelStatus } = useOperatorAiModelStatus(operatorAiGloballyEnabled);
 	const { data: publicStatsSettings } = useOperatorAiPublicStatsSettings();
 	const {
 		data: infiniteMessages,
@@ -188,6 +202,11 @@ export function ChatPage() {
 	}, [isSending]);
 
 	useEffect(() => {
+		if (operatorAiSysLoading || !operatorAiGloballyEnabled) {
+			hubStartInFlightRef.current = false;
+			return;
+		}
+
 		if (!isAuthenticated || !token) {
 			hubStartInFlightRef.current = false;
 			return;
@@ -297,7 +316,7 @@ export function ChatPage() {
 		};
 		// token read via tokenRef — omit from deps to avoid hub reconnect loop on refresh
 		// eslint-disable-next-line react-hooks/exhaustive-deps -- messagesKey stable; hub lifetime tied to auth + conversation list key
-	}, [isAuthenticated, conversationsKey]);
+	}, [isAuthenticated, conversationsKey, operatorAiSysLoading, operatorAiGloballyEnabled, token]);
 
 	const handleLoadOlder = async () => {
 		if (conversationId == null || loadingOlder || !hasMore) return;
@@ -443,6 +462,17 @@ export function ChatPage() {
 					: t('pages.chat.modelStatusUnknown');
 
 	const unnamed = t('pages.chat.unnamedThread');
+
+	if (operatorAiSysLoading) {
+		return (
+			<div className="chat-page-shell" role="status" aria-busy>
+				<p className="chat-page__empty-main">{t('pages.chat.loadingOlder')}</p>
+			</div>
+		);
+	}
+	if (!operatorAiGloballyEnabled) {
+		return null;
+	}
 
 	return (
 		<div className="chat-page-shell">

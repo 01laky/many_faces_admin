@@ -10,6 +10,7 @@ const HUB_ERROR_KEYS: Record<string, string> = {
 	ai_unavailable: 'pages.chat.hub.errors.ai_unavailable',
 	ai_generation_failed: 'pages.chat.hub.errors.ai_generation_failed',
 	ai_guard_rejected: 'pages.chat.hub.errors.ai_guard_rejected',
+	ai_disabled: 'pages.chat.hub.errors.ai_disabled',
 };
 
 export function isKnownOperatorAiHubErrorCode(code: string | null | undefined): boolean {

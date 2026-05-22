@@ -17,7 +17,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { isSuperAdminFromToken } from '@/utils/contentModeration';
 import { useOperatorUserChatConversations } from '@/hooks/api/useOperatorUserChatApi';
+import { useOperatorAiSystemSettings } from '@/hooks/api/useOperatorAiApi';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
+import { filterAdminSidebarNavItemsForAiSystem } from '@/utils/adminSidebarNavAi';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import './AdminLayout.scss';
 
@@ -63,13 +65,16 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 	const reduceMotion = useReducedMotion();
 	const isSuperAdmin = isSuperAdminFromToken(token);
 	const { data: userChatConversations = [] } = useOperatorUserChatConversations();
+	const { data: operatorAiSystemSettings } = useOperatorAiSystemSettings();
+	const operatorAiGloballyEnabled = operatorAiSystemSettings?.aiEnabled === true;
 	const userChatUnread = isSuperAdmin
 		? userChatConversations.reduce((sum, c) => sum + c.unreadCount, 0)
 		: 0;
 
-	const navItems = isSuperAdmin
+	const baseNavItems = isSuperAdmin
 		? [...NAV_ITEMS, ...SUPER_ADMIN_NAV_ITEMS, SETTINGS_NAV_ITEM]
 		: [...NAV_ITEMS, SETTINGS_NAV_ITEM];
+	const navItems = filterAdminSidebarNavItemsForAiSystem(baseNavItems, operatorAiGloballyEnabled);
 
 	// Detect screen size
 	const handleResize = useCallback(() => {

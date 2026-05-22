@@ -5,8 +5,10 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { useStats } from '@/hooks/api/useStatsApi';
+import { useOperatorAiSystemSettings } from '@/hooks/api/useOperatorAiApi';
 import { ApiError } from '@/api/core/ApiError';
 import { isSuperAdminFromToken } from '@/utils/contentModeration';
+import { shouldDashboardPrimaryStatLink } from '@/utils/dashboardPrimaryStatLinks';
 import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
 import { DashboardModerationWidget } from '@/components/dashboard/DashboardModerationWidget';
 import { DashboardMetricsTable } from '@/components/dashboard/DashboardMetricsTable';
@@ -24,6 +26,8 @@ export function DashboardPage() {
 
 	const statsQuery = useStats(Boolean(token));
 	const { data: statsData, isLoading: statsLoading, isError, error } = statsQuery;
+	const { data: operatorAiSystemSettings } = useOperatorAiSystemSettings();
+	const operatorAiGloballyEnabled = operatorAiSystemSettings?.aiEnabled === true;
 
 	const forbidden = isError && error instanceof ApiError && error.status === 403;
 
@@ -99,6 +103,15 @@ export function DashboardPage() {
 					</Alert>
 				)}
 
+				{operatorAiSystemSettings != null && !operatorAiGloballyEnabled && (
+					<Alert variant="info" className="mb-4 dashboard-page__ai-off-banner" role="status">
+						{t('pages.dashboard.aiDisabledBanner.message')}{' '}
+						<Link to={`${getLocalizedPath('/settings')}#settings-ai-master`}>
+							{t('pages.dashboard.aiDisabledBanner.cta')}
+						</Link>
+					</Alert>
+				)}
+
 				{isError && !forbidden && (
 					<Alert variant="danger" className="mb-4" role="alert">
 						{t('pages.dashboard.statsError')}
@@ -108,23 +121,43 @@ export function DashboardPage() {
 				<Row className="g-3 mb-4 dashboard-page__stat-row">
 					{primaryCards.map((stat) => (
 						<Col xs={12} sm={6} lg={4} xl={2} key={stat.label} className="d-flex">
-							<Link to={getLocalizedPath(stat.link)} className="dashboard-card-link">
-								<div
-									className="dashboard-card"
-									style={{ '--accent-color': stat.color } as React.CSSProperties}
-								>
-									<div className="dashboard-card__top">
-										<div className="dashboard-card__icon" aria-hidden>
-											{stat.icon}
+							{shouldDashboardPrimaryStatLink(operatorAiGloballyEnabled, stat) ? (
+								<Link to={getLocalizedPath(stat.link)} className="dashboard-card-link">
+									<div
+										className="dashboard-card"
+										style={{ '--accent-color': stat.color } as React.CSSProperties}
+									>
+										<div className="dashboard-card__top">
+											<div className="dashboard-card__icon" aria-hidden>
+												{stat.icon}
+											</div>
+											<span className="dashboard-card__arrow" aria-hidden>
+												→
+											</span>
 										</div>
-										<span className="dashboard-card__arrow" aria-hidden>
-											→
-										</span>
+										<div className="dashboard-card__label">{stat.label}</div>
+										<div className="dashboard-card__value">{stat.value}</div>
 									</div>
-									<div className="dashboard-card__label">{stat.label}</div>
-									<div className="dashboard-card__value">{stat.value}</div>
+								</Link>
+							) : (
+								<div
+									className="dashboard-card-link dashboard-card-link--inactive"
+									aria-current={false}
+								>
+									<div
+										className="dashboard-card"
+										style={{ '--accent-color': stat.color } as React.CSSProperties}
+									>
+										<div className="dashboard-card__top">
+											<div className="dashboard-card__icon" aria-hidden>
+												{stat.icon}
+											</div>
+										</div>
+										<div className="dashboard-card__label">{stat.label}</div>
+										<div className="dashboard-card__value">{stat.value}</div>
+									</div>
 								</div>
-							</Link>
+							)}
 						</Col>
 					))}
 				</Row>
@@ -140,7 +173,7 @@ export function DashboardPage() {
 
 				{!forbidden && <DashboardMetricsTable summary={statsData} />}
 
-				<DashboardAiStatsPanel />
+				<DashboardAiStatsPanel operatorAiGloballyEnabled={operatorAiGloballyEnabled} />
 
 				<DashboardModerationWidget enabled={Boolean(isSuperAdmin && token)} />
 
