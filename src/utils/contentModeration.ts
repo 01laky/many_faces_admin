@@ -29,23 +29,7 @@ export const AI_REVIEW_STATUSES: Array<AiReviewStatus | ''> = [
 	'',
 ];
 
-/** Client-side SUPER_ADMIN detection for gating the moderation route (mirrors backend checks). */
-export function isSuperAdminFromToken(token: string | null | undefined) {
-	if (!token) return false;
-	try {
-		const payload = JSON.parse(atob(token.split('.')[1] ?? ''));
-		const role =
-			payload.role ??
-			payload.roles ??
-			payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
-		if (Array.isArray(role)) {
-			return role.includes('SUPER_ADMIN');
-		}
-		return role === 'SUPER_ADMIN';
-	} catch {
-		return false;
-	}
-}
+export { isSuperAdminFromToken } from './platformAccess';
 
 /** True when super-admin approve/reject actions still apply. */
 export function isPendingModeration(approvalStatus: string | null | undefined): boolean {

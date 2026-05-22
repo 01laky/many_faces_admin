@@ -14,6 +14,7 @@ import {
 	clearAuthAndCapabilitiesQueries,
 } from '../hooks/api/useAuthApi';
 import { useMeCapabilities } from '../hooks/api/useMeCapabilities';
+import { assertAdminAppAccessAllowed } from '../utils/adminAppAccess';
 
 /**
  * User information interface
@@ -80,39 +81,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	 */
 	useEffect(() => {
 		void (async () => {
-			await Promise.resolve();
-			const loadAuthState = () => {
-				try {
-					const storedToken = localStorage.getItem(STORAGE_KEYS.TOKEN);
-					const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
+			try {
+				const storedToken = localStorage.getItem(STORAGE_KEYS.TOKEN);
+				const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
 
-					if (storedToken && !isTokenExpired(storedToken)) {
-						setToken(storedToken);
-						setAuthToken(storedToken);
-						setIsAuthenticated(true);
-
-						if (storedUser) {
-							try {
-								setUser(JSON.parse(storedUser));
-							} catch (e) {
-								logger.warn('Failed to parse stored user data', { error: String(e) });
-							}
-						}
-					} else if (storedToken && isTokenExpired(storedToken)) {
+				if (storedToken && !isTokenExpired(storedToken)) {
+					const allowed = await assertAdminAppAccessAllowed(storedToken);
+					if (!allowed) {
 						localStorage.removeItem(STORAGE_KEYS.TOKEN);
 						localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
 						localStorage.removeItem(STORAGE_KEYS.USER);
 						setAuthToken(null);
 						clearAuthAndCapabilitiesQueries(queryClient);
+						setIsAuthenticated(false);
+						setToken(null);
+						setUser(null);
+						return;
 					}
-				} catch (error) {
-					logger.error('Failed to load auth state', error);
-				} finally {
-					setIsLoading(false);
-				}
-			};
 
-			loadAuthState();
+					setToken(storedToken);
+					setAuthToken(storedToken);
+					setIsAuthenticated(true);
+
+					if (storedUser) {
+						try {
+							setUser(JSON.parse(storedUser));
+						} catch (e) {
+							logger.warn('Failed to parse stored user data', { error: String(e) });
+						}
+					}
+				} else if (storedToken && isTokenExpired(storedToken)) {
+					localStorage.removeItem(STORAGE_KEYS.TOKEN);
+					localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+					localStorage.removeItem(STORAGE_KEYS.USER);
+					setAuthToken(null);
+					clearAuthAndCapabilitiesQueries(queryClient);
+				}
+			} catch (error) {
+				logger.error('Failed to load auth state', error);
+			} finally {
+				setIsLoading(false);
+			}
 		})();
 	}, [queryClient]);
 
@@ -186,6 +195,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				});
 
 				if (result?.accessToken) {
+					const allowed = await assertAdminAppAccessAllowed(result.accessToken);
+					if (!allowed) {
+						localStorage.removeItem(STORAGE_KEYS.TOKEN);
+						localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+						localStorage.removeItem(STORAGE_KEYS.USER);
+						setAuthToken(null);
+						setToken(null);
+						setUser(null);
+						setIsAuthenticated(false);
+						clearAuthAndCapabilitiesQueries(queryClient);
+						throw new Error('PLATFORM_ACCESS_DENIED');
+					}
+
 					setToken(result.accessToken);
 					setAuthToken(result.accessToken);
 					setIsAuthenticated(true);
@@ -212,7 +234,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 					}
 
 					logger.info('Login successful', { username });
-					// Toast will be shown in LoginPage component
 				}
 			} catch (error) {
 				logger.error('Login failed', error);
@@ -227,7 +248,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				setIsLoading(false);
 			}
 		},
-		[loginMutation]
+		[loginMutation, queryClient]
 	);
 
 	/**
@@ -283,6 +304,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			const result = await refreshTokenMutation.mutateAsync();
 
 			if (result?.accessToken) {
+				const allowed = await assertAdminAppAccessAllowed(result.accessToken);
+				if (!allowed) {
+					localStorage.removeItem(STORAGE_KEYS.TOKEN);
+					localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+					localStorage.removeItem(STORAGE_KEYS.USER);
+					setAuthToken(null);
+					setToken(null);
+					setUser(null);
+					setIsAuthenticated(false);
+					clearAuthAndCapabilitiesQueries(queryClient);
+					throw new Error('PLATFORM_ACCESS_DENIED');
+				}
+
 				setToken(result.accessToken);
 				setAuthToken(result.accessToken);
 				setIsAuthenticated(true);
@@ -290,10 +324,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			}
 		} catch (error) {
 			logger.error('Token refresh failed', error);
-			// If refresh fails, logout user
+			if (error instanceof Error && error.message === 'PLATFORM_ACCESS_DENIED') {
+				return;
+			}
 			await logout();
 		}
-	}, [refreshTokenMutation, logout]);
+	}, [refreshTokenMutation, logout, queryClient]);
 
 	const authContextValue = useMemo(
 		() => ({

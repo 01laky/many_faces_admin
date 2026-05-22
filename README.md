@@ -1,11 +1,14 @@
 # Many Faces AI (MFAI) - admin panel application
 
-**Operator cockpit for Many Faces AI.** This React app is where platform admins manage faces, pages, users, moderation, operator AI chat, dashboard metrics, and the settings that shape the user-facing portal.
+**Operator cockpit for Many Faces AI.** This React app is where **platform super-admins** manage faces, pages, users, moderation, operator AI chat, dashboard metrics, and settings that shape the user-facing portal.
+
+**Sign-in:** **`SUPER_ADMIN` only** — global **`ADMIN`** must use **`many_faces_portal`**. Guide: [`docs/guides/admin-superadmin-only-access.md`](../docs/guides/admin-superadmin-only-access.md).
 
 | Start here        | Link                                                                                                |
 | ----------------- | --------------------------------------------------------------------------------------------------- |
 | Run in full stack | `../scripts/start-all-dev.sh` from `many_faces_main`                                                |
 | Local app         | `http://localhost:8090` / `https://localhost:8091` via admin proxy                                  |
+| Access policy     | [`docs/guides/admin-superadmin-only-access.md`](../docs/guides/admin-superadmin-only-access.md)     |
 | Design guide      | [`docs/guides/admin-ui-list-and-detail-pages.md`](../docs/guides/admin-ui-list-and-detail-pages.md) |
 | AI dashboard/chat | [`docs/guides/admin-dashboard-metrics.md`](../docs/guides/admin-dashboard-metrics.md)               |
 

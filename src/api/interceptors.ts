@@ -18,6 +18,10 @@ import { OpenAPI } from './core/OpenAPI';
 import { setAuthToken } from './config';
 import { env } from '../config/env';
 import { logger } from '../utils/logger';
+import {
+	assertAdminAppAccessAllowed,
+	forcePlatformAccessDeniedLogout,
+} from '../utils/adminAppAccess';
 
 /* ------------------------------------------------------------------ */
 /*  Internal state                                                     */
@@ -43,6 +47,17 @@ const processQueue = (error: unknown, token: string | null = null) => {
 	});
 	failedQueue = [];
 };
+
+/** True when the request targets the admin face API base (not OAuth or other hosts). */
+function isAdminScopedApiRequest(config: AxiosRequestConfig | InternalAxiosRequestConfig): boolean {
+	const rawUrl = config.url ?? '';
+	if (rawUrl.includes('/oauth2/token')) return false;
+	const base = env.apiUrl.replace(/\/+$/, '');
+	const absolute = rawUrl.startsWith('http')
+		? rawUrl
+		: `${base}${rawUrl.startsWith('/') ? '' : '/'}${rawUrl}`;
+	return absolute.startsWith(base);
+}
 
 /* ------------------------------------------------------------------ */
 /*  Force-logout (outside React)                                       */
@@ -93,6 +108,12 @@ export function setupAxiosInterceptors() {
 
 			// Safety: if there is no config we cannot retry.
 			if (!originalRequest) {
+				return Promise.reject(error);
+			}
+
+			// Platform 403 on admin API — session is invalid for this SPA (stale ADMIN JWT, demoted role).
+			if (error.response?.status === 403 && isAdminScopedApiRequest(originalRequest)) {
+				forcePlatformAccessDeniedLogout();
 				return Promise.reject(error);
 			}
 
@@ -163,6 +184,12 @@ export function setupAxiosInterceptors() {
 				}
 
 				logger.info('Token refreshed via interceptor');
+
+				const allowed = await assertAdminAppAccessAllowed(newAccessToken);
+				if (!allowed) {
+					forcePlatformAccessDeniedLogout();
+					return Promise.reject(new Error('Platform access denied after token refresh'));
+				}
 
 				// Drain queued requests with the new token.
 				processQueue(null, newAccessToken);

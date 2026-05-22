@@ -68,6 +68,13 @@ export function LoginPage() {
 			navigate(dashboardPath, { replace: true });
 		} catch (error) {
 			logger.error('Login failed', error);
+			if (error instanceof Error && error.message === 'PLATFORM_ACCESS_DENIED') {
+				toast.error(
+					t('pages.login.superAdminRequired') ||
+						'This console is for platform super-administrators only. Use the customer portal for other accounts.'
+				);
+				return;
+			}
 			// Extract error message from error
 			let errorMessage = t('pages.login.error') || 'Login failed';
 
