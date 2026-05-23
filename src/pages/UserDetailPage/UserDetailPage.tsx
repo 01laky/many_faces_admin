@@ -9,7 +9,7 @@ import {
 	useOperatorUserMutations,
 } from '@/hooks/api/useOperatorUsersApi';
 import { useOperatorUserChatThreadExists } from '@/hooks/api/useOperatorUserChatApi';
-import { isSuperAdminFromToken } from '@/utils/contentModeration';
+import { isSuperAdminFromToken } from '@/utils/platformAccess';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/radix/Button';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
@@ -22,11 +22,7 @@ import { UserDetailBlogsTable } from './UserDetailBlogsTable';
 import { UserDetailStoriesTable } from './UserDetailStoriesTable';
 import { UserDetailReelsTable } from './UserDetailReelsTable';
 import './UserDetailPage.scss';
-
-function mutationErrorMessage(error: unknown): string {
-	if (error instanceof Error && error.message) return error.message;
-	return 'Request failed';
-}
+import { mutationErrorMessage } from '@/utils/operatorDetailFormat';
 
 export function UserDetailPage() {
 	const { id } = useParams<{ id: string }>();

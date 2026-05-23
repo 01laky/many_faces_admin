@@ -17,25 +17,15 @@ import { ContentMediaPreviewModal } from '@/components/ContentMediaPreviewModal/
 import { AlbumDeleteReasonDialog } from '@/components/AlbumDeleteReasonDialog/AlbumDeleteReasonDialog';
 import { Button } from '@/components/radix/Button';
 import { useAuth } from '@/contexts/AuthContext';
-import { isSuperAdminFromToken } from '@/utils/contentModeration';
+import { isSuperAdminFromToken } from '@/utils/platformAccess';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { buildLocalizedUserChatPath } from '@/utils/userChatPaths';
 import { storyImagesToMediaItems } from '@/utils/storyDetailMedia';
 import { isStoryLive, mapStoryDetailError, storyStateLabelKey } from '@/utils/storyDetailUi';
-import '../UserDetailPage/UserDetailPage.scss';
+import { formatDate, formatValue } from '@/utils/operatorDetailFormat';
+import '@/styles/operatorDetailPage.scss';
 
 type DialogMode = 'deleteStory' | 'deleteImage' | null;
-
-function formatValue(value: string | number | null | undefined): string {
-	if (value === null || value === undefined || value === '') return '—';
-	return String(value);
-}
-
-function formatDate(value: string | null | undefined): string {
-	if (!value) return '—';
-	const d = new Date(value);
-	return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString();
-}
 
 export function StoryDetailPage() {
 	const { id } = useParams<{ id: string }>();

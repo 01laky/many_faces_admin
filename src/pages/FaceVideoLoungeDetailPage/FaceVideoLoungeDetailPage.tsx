@@ -20,23 +20,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useMeCapabilities } from '@/hooks/api/useMeCapabilities';
 import { canManageAllFaces } from '@/acl/permissions';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
-import '../UserDetailPage/UserDetailPage.scss';
-
-function mutationErrorMessage(error: unknown): string {
-	if (error instanceof Error && error.message) return error.message;
-	return 'Request failed';
-}
-
-function formatValue(value: string | number | null | undefined): string {
-	if (value === null || value === undefined || value === '') return '—';
-	return String(value);
-}
-
-function formatDate(value: string | null | undefined): string {
-	if (!value) return '—';
-	const d = new Date(value);
-	return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString();
-}
+import { formatDate, formatValue, mutationErrorMessage } from '@/utils/operatorDetailFormat';
+import '@/styles/operatorDetailPage.scss';
 
 export function FaceVideoLoungeDetailPage() {
 	const { faceId: faceIdParam, loungeId: loungeIdParam } = useParams<{

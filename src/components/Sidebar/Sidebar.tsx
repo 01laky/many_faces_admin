@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { useAuth } from '@/contexts/AuthContext';
-import { isSuperAdminFromToken } from '@/utils/contentModeration';
+import { isSuperAdminFromToken } from '@/utils/platformAccess';
 import './Sidebar.scss';
 
 interface NavItem {

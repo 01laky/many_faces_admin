@@ -14,7 +14,7 @@ import { useOperatorUserMutations } from '@/hooks/api/useOperatorUsersApi';
 import { AlbumDeleteReasonDialog } from '@/components/AlbumDeleteReasonDialog/AlbumDeleteReasonDialog';
 import { Button } from '@/components/radix/Button';
 import { useAuth } from '@/contexts/AuthContext';
-import { isSuperAdminFromToken } from '@/utils/contentModeration';
+import { isSuperAdminFromToken } from '@/utils/platformAccess';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { buildLocalizedUserChatPath } from '@/utils/userChatPaths';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
@@ -26,23 +26,8 @@ import {
 } from '@/utils/faceProfileDetailUi';
 import { FaceProfileDetailCommentsTable } from './FaceProfileDetailCommentsTable';
 import { FaceProfileDetailReviewsTable } from './FaceProfileDetailReviewsTable';
-import '../UserDetailPage/UserDetailPage.scss';
-
-function mutationErrorMessage(error: unknown): string {
-	if (error instanceof Error && error.message) return error.message;
-	return 'Request failed';
-}
-
-function formatValue(value: string | number | boolean | null | undefined): string {
-	if (value === null || value === undefined || value === '') return '—';
-	return String(value);
-}
-
-function formatDate(value: string | null | undefined): string {
-	if (!value) return '—';
-	const d = new Date(value);
-	return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString();
-}
+import { formatDate, formatValue, mutationErrorMessage } from '@/utils/operatorDetailFormat';
+import '@/styles/operatorDetailPage.scss';
 
 export function FaceProfileDetailPage() {
 	const { faceId: faceIdParam, userId: userIdParam } = useParams<{

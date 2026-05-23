@@ -6,6 +6,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { buildAdminAiChatHubConnection } from '@/api/signalr/buildAdminAiChatHubConnection';
+import { resolveHubAccessToken } from '@/utils/authStorage';
 import type { InfiniteData } from '@tanstack/react-query';
 import {
 	useCreateOperatorAiConversation,
@@ -212,7 +213,7 @@ export function ChatPage() {
 			return;
 		}
 
-		const getAccessToken = () => tokenRef.current ?? localStorage.getItem('auth_token');
+		const getAccessToken = () => resolveHubAccessToken(tokenRef.current);
 		const connection = buildAdminAiChatHubConnection(getAccessToken);
 		connectionRef.current = connection;
 		let cancelled = false;

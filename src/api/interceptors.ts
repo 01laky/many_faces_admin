@@ -15,9 +15,14 @@
 import axios from 'axios';
 import type { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 import { OpenAPI } from './core/OpenAPI';
-import { setAuthToken } from './config';
 import { env } from '../config/env';
 import { logger } from '../utils/logger';
+import {
+	clearAuthStorage,
+	getRefreshTokenFromStorage,
+	persistAccessToken,
+	persistRefreshToken,
+} from '../utils/authStorage';
 import {
 	assertAdminAppAccessAllowed,
 	forcePlatformAccessDeniedLogout,
@@ -69,16 +74,8 @@ function isAdminScopedApiRequest(config: AxiosRequestConfig | InternalAxiosReque
  */
 function forceLogout() {
 	logger.warn('Token refresh failed – forcing logout');
+	clearAuthStorage();
 
-	// Clear API client token
-	setAuthToken(null);
-
-	// Clear localStorage
-	localStorage.removeItem('auth_token');
-	localStorage.removeItem('auth_refresh_token');
-	localStorage.removeItem('auth_user');
-
-	// Redirect to login – pick up the current language prefix if possible
 	const langMatch = window.location.pathname.match(/^\/([a-z]{2})\//);
 	const lang = langMatch?.[1] ?? 'en';
 	window.location.href = `/${lang}/login`;
@@ -140,7 +137,7 @@ export function setupAxiosInterceptors() {
 			originalRequest._retry = true;
 			isRefreshing = true;
 
-			const refreshToken = localStorage.getItem('auth_refresh_token');
+			const refreshToken = getRefreshTokenFromStorage();
 
 			if (!refreshToken) {
 				isRefreshing = false;
@@ -176,11 +173,9 @@ export function setupAxiosInterceptors() {
 					throw new Error('No access token in refresh response');
 				}
 
-				// Persist the new tokens.
-				setAuthToken(newAccessToken);
-				localStorage.setItem('auth_token', newAccessToken);
+				persistAccessToken(newAccessToken);
 				if (tokenData.refreshToken) {
-					localStorage.setItem('auth_refresh_token', tokenData.refreshToken);
+					persistRefreshToken(tokenData.refreshToken);
 				}
 
 				logger.info('Token refreshed via interceptor');

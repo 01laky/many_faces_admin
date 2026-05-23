@@ -15,6 +15,12 @@ import {
 } from '../hooks/api/useAuthApi';
 import { useMeCapabilities } from '../hooks/api/useMeCapabilities';
 import { assertAdminAppAccessAllowed } from '../utils/adminAppAccess';
+import {
+	clearAuthStorage,
+	getAccessTokenFromStorage,
+	getStoredUserJson,
+	persistStoredUserJson,
+} from '../utils/authStorage';
 
 /**
  * User information interface
@@ -30,13 +36,10 @@ interface User {
  * Authentication context type
  */
 interface AuthContextType {
-	// State
 	isAuthenticated: boolean;
 	isLoading: boolean;
 	user: User | null;
 	token: string | null;
-
-	// Actions
 	login: (username: string, password: string, options?: { rememberMe?: boolean }) => Promise<void>;
 	logout: () => Promise<void>;
 	refreshAuth: () => Promise<void>;
@@ -49,14 +52,20 @@ function MeCapabilitiesWarmup({ token }: { token: string | null }) {
 	return null;
 }
 
-/**
- * Storage keys
- */
-const STORAGE_KEYS = {
-	TOKEN: 'auth_token',
-	REFRESH_TOKEN: 'auth_refresh_token',
-	USER: 'auth_user',
-} as const;
+function resetLocalAuthState(
+	queryClient: ReturnType<typeof useQueryClient>,
+	setters: {
+		setToken: (t: string | null) => void;
+		setUser: (u: User | null) => void;
+		setIsAuthenticated: (v: boolean) => void;
+	}
+): void {
+	clearAuthStorage();
+	clearAuthAndCapabilitiesQueries(queryClient);
+	setters.setToken(null);
+	setters.setUser(null);
+	setters.setIsAuthenticated(false);
+}
 
 /**
  * Authentication Provider component
@@ -70,32 +79,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const { t } = useTranslation('common');
 	const queryClient = useQueryClient();
 
-	// React Query hooks
 	const loginMutation = useLoginMutation();
 	const logoutMutation = useLogoutMutation();
 	const refreshTokenMutation = useRefreshTokenMutation();
 	const { data: tokenData, isLoading: tokenLoading } = useAuthToken();
 
-	/**
-	 * Load authentication state from localStorage on mount and sync with React Query
-	 */
 	useEffect(() => {
 		void (async () => {
 			try {
-				const storedToken = localStorage.getItem(STORAGE_KEYS.TOKEN);
-				const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
+				const storedToken = getAccessTokenFromStorage();
+				const storedUser = getStoredUserJson();
 
 				if (storedToken && !isTokenExpired(storedToken)) {
 					const allowed = await assertAdminAppAccessAllowed(storedToken);
 					if (!allowed) {
-						localStorage.removeItem(STORAGE_KEYS.TOKEN);
-						localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-						localStorage.removeItem(STORAGE_KEYS.USER);
-						setAuthToken(null);
-						clearAuthAndCapabilitiesQueries(queryClient);
-						setIsAuthenticated(false);
-						setToken(null);
-						setUser(null);
+						resetLocalAuthState(queryClient, { setToken, setUser, setIsAuthenticated });
 						return;
 					}
 
@@ -111,10 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 						}
 					}
 				} else if (storedToken && isTokenExpired(storedToken)) {
-					localStorage.removeItem(STORAGE_KEYS.TOKEN);
-					localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-					localStorage.removeItem(STORAGE_KEYS.USER);
-					setAuthToken(null);
+					clearAuthStorage();
 					clearAuthAndCapabilitiesQueries(queryClient);
 				}
 			} catch (error) {
@@ -125,7 +120,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		})();
 	}, [queryClient]);
 
-	// Sync token from React Query
 	useEffect(() => {
 		void (async () => {
 			await Promise.resolve();
@@ -141,20 +135,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		})();
 	}, [tokenData, tokenLoading]);
 
-	// Session watcher: periodically check JWT expiry; skip ticks while tab is hidden.
 	useEffect(() => {
 		if (!token || !isAuthenticated) return;
 
 		const checkExpiry = () => {
 			if (token && isTokenExpired(token)) {
-				localStorage.removeItem(STORAGE_KEYS.TOKEN);
-				localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-				localStorage.removeItem(STORAGE_KEYS.USER);
-				setAuthToken(null);
-				setToken(null);
-				setIsAuthenticated(false);
-				setUser(null);
-				clearAuthAndCapabilitiesQueries(queryClient);
+				resetLocalAuthState(queryClient, { setToken, setUser, setIsAuthenticated });
 				toast.info(
 					t('pages.logout.sessionExpired') || 'Your session has expired. Please log in again.'
 				);
@@ -177,17 +163,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		};
 	}, [token, isAuthenticated, t, queryClient]);
 
-	/**
-	 * Login function - uses React Query mutation
-	 */
 	const login = useCallback(
 		async (username: string, password: string, options?: { rememberMe?: boolean }) => {
 			try {
 				setIsLoading(true);
 				logger.info('Attempting login', { username });
 
-				// Use React Query mutation
-				// rememberMe optional; useAuthApi coerces for OAuth2 body (buildPasswordGrantTokenRequest).
 				const result = await loginMutation.mutateAsync({
 					username,
 					password,
@@ -197,14 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				if (result?.accessToken) {
 					const allowed = await assertAdminAppAccessAllowed(result.accessToken);
 					if (!allowed) {
-						localStorage.removeItem(STORAGE_KEYS.TOKEN);
-						localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-						localStorage.removeItem(STORAGE_KEYS.USER);
-						setAuthToken(null);
-						setToken(null);
-						setUser(null);
-						setIsAuthenticated(false);
-						clearAuthAndCapabilitiesQueries(queryClient);
+						resetLocalAuthState(queryClient, { setToken, setUser, setIsAuthenticated });
 						throw new Error('PLATFORM_ACCESS_DENIED');
 					}
 
@@ -212,7 +186,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 					setAuthToken(result.accessToken);
 					setIsAuthenticated(true);
 
-					// Extract user info from token (basic JWT decode)
 					try {
 						const payload = JSON.parse(atob(result.accessToken.split('.')[1]));
 						const userData: User = {
@@ -222,7 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 							lastName: payload.family_name || payload.lastName,
 						};
 						setUser(userData);
-						localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
+						persistStoredUserJson(JSON.stringify(userData));
 					} catch (e) {
 						logger.warn('Failed to decode token, using username as email', { error: String(e) });
 						const userData: User = {
@@ -230,7 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 							email: username,
 						};
 						setUser(userData);
-						localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
+						persistStoredUserJson(JSON.stringify(userData));
 					}
 
 					logger.info('Login successful', { username });
@@ -241,8 +214,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				setToken(null);
 				setUser(null);
 				setAuthToken(null);
-
-				// Toast will be shown in LoginPage component
 				throw error;
 			} finally {
 				setIsLoading(false);
@@ -251,43 +222,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		[loginMutation, queryClient]
 	);
 
-	/**
-	 * Logout function - uses React Query mutation
-	 */
 	const logout = useCallback(async () => {
 		try {
 			setIsLoading(true);
 			logger.info('Logging out');
-
-			// Use React Query mutation
 			await logoutMutation.mutateAsync();
-
-			// Clear local storage
-			localStorage.removeItem(STORAGE_KEYS.TOKEN);
-			localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-			localStorage.removeItem(STORAGE_KEYS.USER);
-
-			// Clear local state
-			setAuthToken(null);
+			clearAuthStorage();
 			setToken(null);
 			setIsAuthenticated(false);
 			setUser(null);
-
 			logger.info('Logout successful');
 			toast.success(t('pages.logout.successMessage') || 'Logged out successfully');
 		} catch (error) {
 			logger.error('Logout failed', error);
-
-			// Clear state even if API call fails
-			localStorage.removeItem(STORAGE_KEYS.TOKEN);
-			localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-			localStorage.removeItem(STORAGE_KEYS.USER);
-			setAuthToken(null);
+			clearAuthStorage();
 			setToken(null);
 			setIsAuthenticated(false);
 			setUser(null);
-
-			// Show error toast
 			const errorMessage =
 				error instanceof Error ? error.message : t('pages.logout.errorMessage') || 'Logout failed';
 			toast.error(errorMessage);
@@ -296,9 +247,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		}
 	}, [logoutMutation, t]);
 
-	/**
-	 * Refresh authentication token - uses React Query mutation
-	 */
 	const refreshAuth = useCallback(async () => {
 		try {
 			const result = await refreshTokenMutation.mutateAsync();
@@ -306,14 +254,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			if (result?.accessToken) {
 				const allowed = await assertAdminAppAccessAllowed(result.accessToken);
 				if (!allowed) {
-					localStorage.removeItem(STORAGE_KEYS.TOKEN);
-					localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-					localStorage.removeItem(STORAGE_KEYS.USER);
-					setAuthToken(null);
-					setToken(null);
-					setUser(null);
-					setIsAuthenticated(false);
-					clearAuthAndCapabilitiesQueries(queryClient);
+					resetLocalAuthState(queryClient, { setToken, setUser, setIsAuthenticated });
 					throw new Error('PLATFORM_ACCESS_DENIED');
 				}
 
@@ -352,9 +293,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	);
 }
 
-/**
- * Hook to access authentication context
- */
 export function useAuth() {
 	const context = useContext(AuthContext);
 	if (context === undefined) {

@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { buildAdminMessengerHubConnection } from '@/api/signalr/buildAdminMessengerHubConnection';
+import { resolveHubAccessToken } from '@/utils/authStorage';
 import type { InfiniteData } from '@tanstack/react-query';
 import type { OperatorUserChatHistoryPage } from '@/api/operatorUserChatApiClient';
 import { useOperatorUserDetail } from '@/hooks/api/useOperatorUsersApi';
@@ -27,7 +28,7 @@ import {
 	replaceOptimisticUserChatMessage,
 	type UiUserChatMessage,
 } from '@/utils/userChatMessageMerge';
-import { isSuperAdminFromToken } from '@/utils/contentModeration';
+import { isSuperAdminFromToken } from '@/utils/platformAccess';
 import { formatOperatorUserDisplayName } from '@/utils/operatorUserDetailUi';
 import { Button } from '@/components/radix/Button';
 import { useQueryClient } from '@tanstack/react-query';
@@ -201,7 +202,7 @@ export function UserChatPage() {
 		const hubSession = hubSessionRef;
 		const sessionId = ++hubSession.current;
 		let startInFlight = false;
-		const getAccessToken = () => tokenRef.current ?? localStorage.getItem('auth_token');
+		const getAccessToken = () => resolveHubAccessToken(tokenRef.current);
 		const connection = buildAdminMessengerHubConnection(getAccessToken);
 		connectionRef.current = connection;
 		let cancelled = false;

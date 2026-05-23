@@ -1,13 +1,11 @@
-import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'react-toastify';
 import type { PushTestSelfResultDto } from '@/api/models/PushTestSelfResultDto';
 import type { AdminInfraWorkerConfigDto } from '@/api/models/AdminInfraWorkerConfigDto';
 import { adminInfraDevLinks } from '@/config/adminInfraDevLinks';
 import { usePushTestSelf } from '@/hooks/api/useAdminInfraApi';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
+import { useInfraSmokeTest } from '@/hooks/useInfraSmokeTest';
 import { resolveAdminInfraErrorMessage } from '@/utils/resolveAdminInfraErrorMessage';
-import type { InfraLastTestOutcome } from '@/utils/adminInfraStatusStrip';
 import { readPushConfigured, readPushDeviceCount } from '@/utils/adminInfraStatusStrip';
 import { Button } from '@/components/radix/Button';
 import { InfraDevQuickLinks, InfraStatusStrip } from './InfraPanelShared';
@@ -21,33 +19,17 @@ export function PushSmokePanel({ workerConfig, configLoading }: PushSmokePanelPr
 	const { t } = useTranslation('common');
 	const pushTest = usePushTestSelf();
 	const { confirm, ConfirmModalHost } = useConfirmModal();
-	const [lastTest, setLastTest] = useState<InfraLastTestOutcome>({ kind: 'none' });
-	const [lastResult, setLastResult] = useState<PushTestSelfResultDto | null>(null);
-
-	const runTest = useCallback(async () => {
-		await confirm({
-			message: t('pages.settings.infra.push.confirm'),
-			cancelLabel: t('pages.settings.aiSystem.confirm.cancel'),
-			confirmLabel: t('pages.settings.infra.push.send'),
-			confirmAction: async () => {
-				try {
-					const result = await pushTest.mutateAsync();
-					setLastResult(result);
-					setLastTest({
-						kind: 'success',
-						at: new Date(),
-						detail: String(result.sent),
-					});
-					toast.success(t('pages.settings.infra.push.success'));
-				} catch (err) {
-					const message = resolveAdminInfraErrorMessage(t, err);
-					setLastTest({ kind: 'failure', at: new Date(), message });
-					toast.error(message);
-					throw err;
-				}
-			},
-		});
-	}, [confirm, pushTest, t]);
+	const { runTest, lastTest, lastResult } = useInfraSmokeTest<PushTestSelfResultDto>({
+		confirm,
+		t,
+		messageKey: 'pages.settings.infra.push.confirm',
+		cancelLabelKey: 'pages.settings.aiSystem.confirm.cancel',
+		confirmLabelKey: 'pages.settings.infra.push.send',
+		successToastKey: 'pages.settings.infra.push.success',
+		mutateAsync: () => pushTest.mutateAsync(),
+		getSuccessDetail: (result) => String(result.sent),
+		resolveError: resolveAdminInfraErrorMessage,
+	});
 
 	const configured = readPushConfigured(workerConfig);
 	const deviceCount = readPushDeviceCount(workerConfig);

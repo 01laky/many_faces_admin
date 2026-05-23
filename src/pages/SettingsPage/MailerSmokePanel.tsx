@@ -1,12 +1,9 @@
-import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'react-toastify';
-import type { MailerTestSelfResultDto } from '@/api/models/MailerTestSelfResultDto';
 import { adminInfraDevLinks } from '@/config/adminInfraDevLinks';
 import { useMailerTestSelf } from '@/hooks/api/useAdminInfraApi';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
+import { useInfraSmokeTest } from '@/hooks/useInfraSmokeTest';
 import { resolveAdminInfraErrorMessage } from '@/utils/resolveAdminInfraErrorMessage';
-import type { InfraLastTestOutcome } from '@/utils/adminInfraStatusStrip';
 import { readMailConfigured } from '@/utils/adminInfraStatusStrip';
 import type { AdminInfraWorkerConfigDto } from '@/api/models/AdminInfraWorkerConfigDto';
 import { Button } from '@/components/radix/Button';
@@ -21,33 +18,17 @@ export function MailerSmokePanel({ workerConfig, configLoading }: MailerSmokePan
 	const { t } = useTranslation('common');
 	const mailerTest = useMailerTestSelf();
 	const { confirm, ConfirmModalHost } = useConfirmModal();
-	const [lastTest, setLastTest] = useState<InfraLastTestOutcome>({ kind: 'none' });
-	const [lastResult, setLastResult] = useState<MailerTestSelfResultDto | null>(null);
-
-	const runTest = useCallback(async () => {
-		await confirm({
-			message: t('pages.settings.infra.mail.confirm'),
-			cancelLabel: t('pages.settings.aiSystem.confirm.cancel'),
-			confirmLabel: t('pages.settings.infra.mail.send'),
-			confirmAction: async () => {
-				try {
-					const result = await mailerTest.mutateAsync();
-					setLastResult(result);
-					setLastTest({
-						kind: 'success',
-						at: new Date(),
-						detail: result.correlationId,
-					});
-					toast.success(t('pages.settings.infra.mail.success'));
-				} catch (err) {
-					const message = resolveAdminInfraErrorMessage(t, err);
-					setLastTest({ kind: 'failure', at: new Date(), message });
-					toast.error(message);
-					throw err;
-				}
-			},
-		});
-	}, [confirm, mailerTest, t]);
+	const { runTest, lastTest, lastResult } = useInfraSmokeTest({
+		confirm,
+		t,
+		messageKey: 'pages.settings.infra.mail.confirm',
+		cancelLabelKey: 'pages.settings.aiSystem.confirm.cancel',
+		confirmLabelKey: 'pages.settings.infra.mail.send',
+		successToastKey: 'pages.settings.infra.mail.success',
+		mutateAsync: () => mailerTest.mutateAsync(),
+		getSuccessDetail: (result) => result.correlationId ?? '',
+		resolveError: resolveAdminInfraErrorMessage,
+	});
 
 	const configured = readMailConfigured(workerConfig);
 

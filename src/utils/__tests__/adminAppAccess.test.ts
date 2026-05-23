@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { isSuperAdminFromToken } from '../platformAccess';
+import { AUTH_STORAGE_KEYS } from '../authStorage';
 import { assertAdminAppAccessAllowed, forcePlatformAccessDeniedLogout } from '../adminAppAccess';
 import * as meCapabilitiesClient from '../../api/meCapabilitiesClient';
 
@@ -75,9 +76,9 @@ describe('forcePlatformAccessDeniedLogout (ACC-U6)', () => {
 			getItem: (key: string) => store.get(key) ?? null,
 		});
 
-		store.set('auth_token', 'x');
-		store.set('auth_refresh_token', 'y');
-		store.set('auth_user', '{}');
+		store.set(AUTH_STORAGE_KEYS.TOKEN, 'x');
+		store.set(AUTH_STORAGE_KEYS.REFRESH_TOKEN, 'y');
+		store.set(AUTH_STORAGE_KEYS.USER, '{}');
 
 		vi.stubGlobal('window', {
 			location: {
@@ -88,8 +89,8 @@ describe('forcePlatformAccessDeniedLogout (ACC-U6)', () => {
 
 		forcePlatformAccessDeniedLogout('denied');
 
-		expect(store.has('auth_token')).toBe(false);
-		expect(store.has('auth_refresh_token')).toBe(false);
-		expect(store.has('auth_user')).toBe(false);
+		expect(store.has(AUTH_STORAGE_KEYS.TOKEN)).toBe(false);
+		expect(store.has(AUTH_STORAGE_KEYS.REFRESH_TOKEN)).toBe(false);
+		expect(store.has(AUTH_STORAGE_KEYS.USER)).toBe(false);
 	});
 });

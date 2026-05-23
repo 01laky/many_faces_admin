@@ -1,9 +1,6 @@
 /**
  * Auth/session side effects kept outside `useAuthApi` so the same flows are testable with injected
  * `Storage` and without mounting React Query. Mirrors `many_faces_portal/src/hooks/api/authSessionActions.ts`.
- *
- * Keys written to browser storage: `auth_token`, `auth_refresh_token`, and `auth_user` (the latter is
- * cleared when the access token is rejected as expired in `readAuthTokenQueryValue`).
  */
 import { AuthService, OAuth2Service, ApiError } from '../../api';
 import type { OAuth2TokenRequest, RegisterModel } from '../../api';
@@ -12,16 +9,16 @@ import { logger } from '../../utils/logger';
 import { isTokenExpired } from '../../utils/jwtUtils';
 import { env } from '../../config/env';
 import { buildPasswordGrantTokenRequest } from './authTokenRequest';
+import {
+	type AuthWebStorage,
+	clearAuthStorage,
+	getAccessTokenFromStorage,
+	getRefreshTokenFromStorage,
+	persistAccessToken,
+	persistRefreshToken,
+} from '../../utils/authStorage';
 
-/** Minimal storage shape for unit tests (no full `Storage` / jsdom required). */
-export type AuthWebStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
-
-/** Token endpoint may return `accessToken` or a legacy `token` alias depending on codegen / API version. */
-interface TokenResponse {
-	accessToken?: string;
-	refreshToken?: string;
-	token?: string;
-}
+export type { AuthWebStorage } from '../../utils/authStorage';
 
 /** Registration API wrapper; React Query hook decides how to invalidate caches after success. */
 export async function registerUser(data: RegisterModel): Promise<unknown> {
@@ -70,17 +67,20 @@ export async function runPasswordGrantLogin(
 		throw error;
 	}
 
-	const tokenData = response as unknown as TokenResponse;
-	const accessToken = tokenData.accessToken || (tokenData as unknown as { token?: string }).token;
+	const tokenData = response as unknown as {
+		accessToken?: string;
+		refreshToken?: string;
+		token?: string;
+	};
+	const accessToken = tokenData.accessToken || tokenData.token;
 
 	if (!accessToken) {
 		throw new Error('No access token received from server');
 	}
 
-	setAuthToken(accessToken);
-	storage.setItem('auth_token', accessToken);
+	persistAccessToken(accessToken, storage);
 	if (tokenData.refreshToken) {
-		storage.setItem('auth_refresh_token', tokenData.refreshToken);
+		persistRefreshToken(tokenData.refreshToken, storage);
 	}
 
 	return {
@@ -98,13 +98,10 @@ export function readAuthTokenQueryValue(
 	tokenExpired: (jwt: string) => boolean = isTokenExpired,
 	applyAuthToken: (t: string | null) => void = setAuthToken
 ): { accessToken: string } | null {
-	const token = storage.getItem('auth_token');
+	const token = getAccessTokenFromStorage(storage);
 	if (!token || tokenExpired(token)) {
 		if (token) {
-			storage.removeItem('auth_token');
-			storage.removeItem('auth_refresh_token');
-			storage.removeItem('auth_user');
-			applyAuthToken(null);
+			clearAuthStorage(storage, applyAuthToken);
 		}
 		return null;
 	}
@@ -117,21 +114,18 @@ export function clearLocalAuthSession(
 	storage: AuthWebStorage = localStorage,
 	applyAuthToken: (t: string | null) => void = setAuthToken
 ): void {
-	applyAuthToken(null);
-	storage.removeItem('auth_token');
-	storage.removeItem('auth_refresh_token');
-	storage.removeItem('auth_user');
+	clearAuthStorage(storage, applyAuthToken);
 	logger.info('User logged out');
 }
 
 /**
- * Silent refresh: requires `auth_refresh_token`. Persists rotated tokens when the API returns a new
- * refresh token string; callers invalidate capability queries after success.
+ * Silent refresh: requires refresh token in storage. Persists rotated tokens when the API returns a
+ * new refresh token string; callers invalidate capability queries after success.
  */
 export async function runRefreshGrantLogin(
 	storage: AuthWebStorage = localStorage
 ): Promise<{ accessToken: string; refreshToken?: string }> {
-	const refreshToken = storage.getItem('auth_refresh_token');
+	const refreshToken = getRefreshTokenFromStorage(storage);
 	if (!refreshToken) {
 		throw new Error('No refresh token available');
 	}
@@ -149,17 +143,20 @@ export async function runRefreshGrantLogin(
 		requestBody: tokenRequest,
 	});
 
-	const tokenData = response as unknown as TokenResponse;
-	const accessToken = tokenData.accessToken || (tokenData as unknown as { token?: string }).token;
+	const tokenData = response as unknown as {
+		accessToken?: string;
+		refreshToken?: string;
+		token?: string;
+	};
+	const accessToken = tokenData.accessToken || tokenData.token;
 
 	if (!accessToken) {
 		throw new Error('No access token received from server');
 	}
 
-	setAuthToken(accessToken);
-	storage.setItem('auth_token', accessToken);
+	persistAccessToken(accessToken, storage);
 	if (tokenData.refreshToken) {
-		storage.setItem('auth_refresh_token', tokenData.refreshToken);
+		persistRefreshToken(tokenData.refreshToken, storage);
 	}
 
 	return {

@@ -1,8 +1,8 @@
 import { toast } from 'react-toastify';
 import { canSuperAdmin } from '../acl/permissions';
 import { fetchMeCapabilities } from '../api/meCapabilitiesClient';
-import { setAuthToken } from '../api/config';
 import i18n from '../i18n/config';
+import { clearAuthStorage } from './authStorage';
 import { isSuperAdminFromToken } from './platformAccess';
 
 /**
@@ -24,10 +24,7 @@ export async function assertAdminAppAccessAllowed(
 
 /** Clears auth storage and redirects to login (usable outside React tree). */
 export function forcePlatformAccessDeniedLogout(message?: string): void {
-	setAuthToken(null);
-	localStorage.removeItem('auth_token');
-	localStorage.removeItem('auth_refresh_token');
-	localStorage.removeItem('auth_user');
+	clearAuthStorage();
 
 	const langMatch = window.location.pathname.match(/^\/([a-z]{2})\//);
 	const lang = langMatch?.[1] ?? 'en';

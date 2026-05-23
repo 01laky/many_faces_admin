@@ -8,7 +8,7 @@ import {
 	postOperatorUserChatRead,
 	type OperatorUserChatHistoryPage,
 } from '@/api/operatorUserChatApiClient';
-import { isSuperAdminFromToken } from '@/utils/contentModeration';
+import { isSuperAdminFromToken } from '@/utils/platformAccess';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const operatorUserChatConversationsKey = ['operatorUserChat', 'conversations'] as const;

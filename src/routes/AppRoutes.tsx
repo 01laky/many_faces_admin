@@ -32,6 +32,7 @@ import {
 	SettingsPage,
 } from './lazyAdminPages';
 import { RouteLoadingFallback } from './RouteLoadingFallback';
+import { protectedLayoutRoute } from './routeHelpers';
 import { UserEditRedirect } from './UserEditRedirect';
 import { useAdminRoutePaths } from './useAdminRoutePaths';
 import { logger } from '@/utils/logger';
@@ -98,9 +99,7 @@ export function AppRoutes() {
 						<Route
 							key={path}
 							path={path}
-							element={
-								<ProtectedRoute redirectTo="login">{withLayout(<DashboardPage />)}</ProtectedRoute>
-							}
+							element={protectedLayoutRoute(withLayout, <DashboardPage />)}
 						/>
 					))}
 
@@ -108,11 +107,7 @@ export function AppRoutes() {
 						<Route
 							key={path}
 							path={path}
-							element={
-								<ProtectedRoute redirectTo="login">
-									{withLayout(<HomePageProtected />)}
-								</ProtectedRoute>
-							}
+							element={protectedLayoutRoute(withLayout, <HomePageProtected />)}
 						/>
 					))}
 
@@ -120,9 +115,7 @@ export function AppRoutes() {
 						<Route
 							key={path}
 							path={path}
-							element={
-								<ProtectedRoute redirectTo="login">{withLayout(<UsersPage />)}</ProtectedRoute>
-							}
+							element={protectedLayoutRoute(withLayout, <UsersPage />)}
 						/>
 					))}
 
@@ -130,9 +123,7 @@ export function AppRoutes() {
 						<Route
 							key={`${path}/:id`}
 							path={`${path}/:id`}
-							element={
-								<ProtectedRoute redirectTo="login">{withLayout(<UserDetailPage />)}</ProtectedRoute>
-							}
+							element={protectedLayoutRoute(withLayout, <UserDetailPage />)}
 						/>
 					))}
 
@@ -140,9 +131,7 @@ export function AppRoutes() {
 						<Route
 							key={`${path}/create`}
 							path={`${path}/create`}
-							element={
-								<ProtectedRoute redirectTo="login">{withLayout(<CreateUserPage />)}</ProtectedRoute>
-							}
+							element={protectedLayoutRoute(withLayout, <CreateUserPage />)}
 						/>
 					))}
 
@@ -158,9 +147,7 @@ export function AppRoutes() {
 						<Route
 							key={path}
 							path={path}
-							element={
-								<ProtectedRoute redirectTo="login">{withLayout(<FacesPage />)}</ProtectedRoute>
-							}
+							element={protectedLayoutRoute(withLayout, <FacesPage />)}
 						/>
 					))}
 
@@ -168,9 +155,7 @@ export function AppRoutes() {
 						<Route
 							key={`${path}/:id`}
 							path={`${path}/:id`}
-							element={
-								<ProtectedRoute redirectTo="login">{withLayout(<FaceDetailPage />)}</ProtectedRoute>
-							}
+							element={protectedLayoutRoute(withLayout, <FaceDetailPage />)}
 						/>
 					))}
 
@@ -178,9 +163,7 @@ export function AppRoutes() {
 						<Route
 							key={`${path}/create`}
 							path={`${path}/create`}
-							element={
-								<ProtectedRoute redirectTo="login">{withLayout(<CreateFacePage />)}</ProtectedRoute>
-							}
+							element={protectedLayoutRoute(withLayout, <CreateFacePage />)}
 						/>
 					))}
 
@@ -188,9 +171,7 @@ export function AppRoutes() {
 						<Route
 							key={`${path}/:id/edit`}
 							path={`${path}/:id/edit`}
-							element={
-								<ProtectedRoute redirectTo="login">{withLayout(<EditFacePage />)}</ProtectedRoute>
-							}
+							element={protectedLayoutRoute(withLayout, <EditFacePage />)}
 						/>
 					))}
 
@@ -198,11 +179,7 @@ export function AppRoutes() {
 						<Route
 							key={`${path}/:id/wall-tickets`}
 							path={`${path}/:id/wall-tickets`}
-							element={
-								<ProtectedRoute redirectTo="login">
-									{withLayout(<FaceWallTicketsPage />)}
-								</ProtectedRoute>
-							}
+							element={protectedLayoutRoute(withLayout, <FaceWallTicketsPage />)}
 						/>
 					))}
 
@@ -210,11 +187,7 @@ export function AppRoutes() {
 						<Route
 							key={path}
 							path={path}
-							element={
-								<ProtectedRoute redirectTo="login">
-									{withLayout(<ContentModerationPage />)}
-								</ProtectedRoute>
-							}
+							element={protectedLayoutRoute(withLayout, <ContentModerationPage />)}
 						/>
 					))}
 
@@ -222,82 +195,47 @@ export function AppRoutes() {
 						<Route
 							key={`${path}/:faceId/pages/create`}
 							path={`${path}/:faceId/pages/create`}
-							element={
-								<ProtectedRoute redirectTo="login">{withLayout(<CreatePagePage />)}</ProtectedRoute>
-							}
+							element={protectedLayoutRoute(withLayout, <CreatePagePage />)}
 						/>
 					))}
 
-					<Route
-						path="pages/:id"
-						element={
-							<ProtectedRoute redirectTo="login">{withLayout(<PageDetailPage />)}</ProtectedRoute>
-						}
-					/>
+					<Route path="pages/:id" element={protectedLayoutRoute(withLayout, <PageDetailPage />)} />
 
 					<Route
 						path="pages/:id/edit"
-						element={
-							<ProtectedRoute redirectTo="login">{withLayout(<EditPagePage />)}</ProtectedRoute>
-						}
+						element={protectedLayoutRoute(withLayout, <EditPagePage />)}
 					/>
 
 					<Route
 						path="albums/:id"
-						element={
-							<ProtectedRoute redirectTo="login">{withLayout(<AlbumDetailPage />)}</ProtectedRoute>
-						}
+						element={protectedLayoutRoute(withLayout, <AlbumDetailPage />)}
 					/>
-					<Route
-						path="reels/:id"
-						element={
-							<ProtectedRoute redirectTo="login">{withLayout(<ReelDetailPage />)}</ProtectedRoute>
-						}
-					/>
-					<Route
-						path="blogs/:id"
-						element={
-							<ProtectedRoute redirectTo="login">{withLayout(<BlogDetailPage />)}</ProtectedRoute>
-						}
-					/>
+					<Route path="reels/:id" element={protectedLayoutRoute(withLayout, <ReelDetailPage />)} />
+					<Route path="blogs/:id" element={protectedLayoutRoute(withLayout, <BlogDetailPage />)} />
 					<Route
 						path="stories/:id"
-						element={
-							<ProtectedRoute redirectTo="login">{withLayout(<StoryDetailPage />)}</ProtectedRoute>
-						}
+						element={protectedLayoutRoute(withLayout, <StoryDetailPage />)}
 					/>
 
 					{facesPaths.map((path) => (
 						<Route
 							key={`${path}/:faceId/chat-rooms/:roomId`}
 							path={`${path}/:faceId/chat-rooms/:roomId`}
-							element={
-								<ProtectedRoute redirectTo="login">
-									{withLayout(<FaceChatRoomDetailPage />)}
-								</ProtectedRoute>
-							}
+							element={protectedLayoutRoute(withLayout, <FaceChatRoomDetailPage />)}
 						/>
 					))}
 					{facesPaths.map((path) => (
 						<Route
 							key={`${path}/:faceId/video-lounges/:loungeId`}
 							path={`${path}/:faceId/video-lounges/:loungeId`}
-							element={
-								<ProtectedRoute redirectTo="login">
-									{withLayout(<FaceVideoLoungeDetailPage />)}
-								</ProtectedRoute>
-							}
+							element={protectedLayoutRoute(withLayout, <FaceVideoLoungeDetailPage />)}
 						/>
 					))}
 					{facesPaths.map((path) => (
 						<Route
 							key={`${path}/:faceId/profiles/:userId`}
 							path={`${path}/:faceId/profiles/:userId`}
-							element={
-								<ProtectedRoute redirectTo="login">
-									{withLayout(<FaceProfileDetailPage />)}
-								</ProtectedRoute>
-							}
+							element={protectedLayoutRoute(withLayout, <FaceProfileDetailPage />)}
 						/>
 					))}
 
@@ -305,9 +243,7 @@ export function AppRoutes() {
 						<Route
 							key={path}
 							path={path}
-							element={
-								<ProtectedRoute redirectTo="login">{withLayout(<ChatPage />)}</ProtectedRoute>
-							}
+							element={protectedLayoutRoute(withLayout, <ChatPage />)}
 						/>
 					))}
 
@@ -315,9 +251,7 @@ export function AppRoutes() {
 						<Route
 							key={path}
 							path={path}
-							element={
-								<ProtectedRoute redirectTo="login">{withLayout(<UserChatPage />)}</ProtectedRoute>
-							}
+							element={protectedLayoutRoute(withLayout, <UserChatPage />)}
 						/>
 					))}
 
@@ -325,9 +259,7 @@ export function AppRoutes() {
 						<Route
 							key={path}
 							path={path}
-							element={
-								<ProtectedRoute redirectTo="login">{withLayout(<SettingsPage />)}</ProtectedRoute>
-							}
+							element={protectedLayoutRoute(withLayout, <SettingsPage />)}
 						/>
 					))}
 

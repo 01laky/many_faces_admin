@@ -15,7 +15,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
-import { isSuperAdminFromToken } from '@/utils/contentModeration';
+import { isSuperAdminFromToken } from '@/utils/platformAccess';
 import { useOperatorUserChatConversations } from '@/hooks/api/useOperatorUserChatApi';
 import { useOperatorAiSystemSettings } from '@/hooks/api/useOperatorAiApi';
 import { useConfirmModal } from '@/hooks/useConfirmModal';

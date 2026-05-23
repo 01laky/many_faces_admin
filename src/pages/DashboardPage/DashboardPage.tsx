@@ -7,7 +7,7 @@ import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { useStats } from '@/hooks/api/useStatsApi';
 import { useOperatorAiSystemSettings } from '@/hooks/api/useOperatorAiApi';
 import { ApiError } from '@/api/core/ApiError';
-import { isSuperAdminFromToken } from '@/utils/contentModeration';
+import { isSuperAdminFromToken } from '@/utils/platformAccess';
 import { shouldDashboardPrimaryStatLink } from '@/utils/dashboardPrimaryStatLinks';
 import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
 import { DashboardModerationWidget } from '@/components/dashboard/DashboardModerationWidget';

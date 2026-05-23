@@ -1,17 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { ModerationStatusChips } from '@/components/ModerationStatusChips';
 import type { AlbumDetail } from '@/hooks/api/useAlbumsApi';
-
-function formatValue(value: string | number | null | undefined): string {
-	if (value === null || value === undefined || value === '') return '—';
-	return String(value);
-}
-
-function formatDate(value: string | null | undefined): string {
-	if (!value) return '—';
-	const d = new Date(value);
-	return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString();
-}
+import { formatDate, formatValue } from '@/utils/operatorDetailFormat';
 
 export interface AlbumDetailDetailsProps {
 	album: AlbumDetail;

@@ -15,29 +15,15 @@ import { AlbumDeleteReasonDialog } from '@/components/AlbumDeleteReasonDialog/Al
 import { ModerationStatusChips } from '@/components/ModerationStatusChips';
 import { Button } from '@/components/radix/Button';
 import { useAuth } from '@/contexts/AuthContext';
-import { isPendingModeration, isSuperAdminFromToken } from '@/utils/contentModeration';
+import { isPendingModeration } from '@/utils/contentModeration';
+import { isSuperAdminFromToken } from '@/utils/platformAccess';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { buildLocalizedUserChatPath } from '@/utils/userChatPaths';
 import type { ContentMediaItem } from '@/types/contentMedia';
-import '../UserDetailPage/UserDetailPage.scss';
+import { formatDate, formatValue, mutationErrorMessage } from '@/utils/operatorDetailFormat';
+import '@/styles/operatorDetailPage.scss';
 
 type DialogMode = 'deleteAlbum' | 'deleteMedia' | 'reject' | null;
-
-function mutationErrorMessage(error: unknown): string {
-	if (error instanceof Error && error.message) return error.message;
-	return 'Request failed';
-}
-
-function formatValue(value: string | number | null | undefined): string {
-	if (value === null || value === undefined || value === '') return '—';
-	return String(value);
-}
-
-function formatDate(value: string | null | undefined): string {
-	if (!value) return '—';
-	const d = new Date(value);
-	return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString();
-}
 
 export function AlbumDetailPage() {
 	const { id } = useParams<{ id: string }>();
