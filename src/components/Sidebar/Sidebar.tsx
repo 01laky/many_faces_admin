@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { useAuth } from '@/contexts/AuthContext';
@@ -57,22 +57,16 @@ export function Sidebar() {
 		},
 	];
 
-	const sidebarVariants = {
+	const springTransition = { type: 'spring' as const, stiffness: 300, damping: 30 };
+
+	const sidebarVariants: Variants = {
 		open: {
 			width: 250,
-			transition: {
-				type: 'spring',
-				stiffness: 300,
-				damping: 30,
-			},
+			transition: springTransition,
 		},
 		closed: {
 			width: 70,
-			transition: {
-				type: 'spring',
-				stiffness: 300,
-				damping: 30,
-			},
+			transition: springTransition,
 		},
 	};
 
@@ -82,24 +76,16 @@ export function Sidebar() {
 		root.style.setProperty('--sidebar-width', isOpen ? '250px' : '70px');
 	}, [isOpen]);
 
-	const itemVariants = {
+	const itemVariants: Variants = {
 		open: {
 			opacity: 1,
 			x: 0,
-			transition: {
-				type: 'spring',
-				stiffness: 300,
-				damping: 30,
-			},
+			transition: springTransition,
 		},
 		closed: {
 			opacity: 0,
 			x: -20,
-			transition: {
-				type: 'spring',
-				stiffness: 300,
-				damping: 30,
-			},
+			transition: springTransition,
 		},
 	};
 
