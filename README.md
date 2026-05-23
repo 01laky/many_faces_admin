@@ -7,8 +7,10 @@
 | Start here        | Link                                                                                                |
 | ----------------- | --------------------------------------------------------------------------------------------------- |
 | Run in full stack | `../scripts/start-all-dev.sh` from `many_faces_main`                                                |
-| Local app         | `http://localhost:8090` / `https://localhost:8091` via admin proxy                                  |
+| Local app (LAN)   | `http://localhost:8090` / `https://localhost:8091` via admin proxy                                  |
+| Local app (host)  | `https://localhost:8082` (`yarn dev` / Docker admin container) — see [`dev-https.md`](../docs/guides/dev-https.md) |
 | Access policy     | [`docs/guides/admin-superadmin-only-access.md`](../docs/guides/admin-superadmin-only-access.md)     |
+| Performance / Query | [`docs/performance-and-query-appendix.md`](./docs/performance-and-query-appendix.md)              |
 | Design guide      | [`docs/guides/admin-ui-list-and-detail-pages.md`](../docs/guides/admin-ui-list-and-detail-pages.md) |
 | AI dashboard/chat | [`docs/guides/admin-dashboard-metrics.md`](../docs/guides/admin-dashboard-metrics.md)               |
 

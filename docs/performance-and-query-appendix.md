@@ -1,61 +1,45 @@
-# many_faces_admin — performance & data layer appendix
+# Admin — TanStack Query & table performance appendix
 
-Companion to [`docs/prompts/admin-performance-and-refactor-agent-prompt.md`](../../docs/prompts/admin-performance-and-refactor-agent-prompt.md). **`many_faces_portal` mirror:** [`many_faces_portal/docs/performance-and-query-appendix.md`](../../many_faces_portal/docs/performance-and-query-appendix.md). Copy sections into a PR as evidence or waivers.
+**Scope:** `many_faces_admin` only. Canonical monorepo guides: [`docs/guides/admin-ui-list-and-detail-pages.md`](../../docs/guides/admin-ui-list-and-detail-pages.md), [`docs/guides/acl-and-capabilities.md`](../../docs/guides/acl-and-capabilities.md), [`docs/guides/admin-superadmin-only-access.md`](../../docs/guides/admin-superadmin-only-access.md).
 
-## Node / toolchain
+## Global Query defaults
 
-- **Vite 8:** Node **20.19+** or **22.12+** (see `package.json` `engines` and `many_faces_admin/.nvmrc`).
-- Optional: `yarn check-node` before `yarn build` / `yarn validate`.
+Defined in `src/providers/QueryProvider.tsx`:
 
-## TanStack Query — defaults vs hooks
+| Option | Value | Rationale |
+| ------ | ----- | --------- |
+| `refetchOnWindowFocus` | `false` | Operator sessions stay on one screen; avoid refetch storms |
+| `retry` (queries / mutations) | `1` | Fail fast; show toast / error UI |
+| `staleTime` | **5 min** | List/read-mostly data |
+| `gcTime` | **10 min** | Cap inactive cache during long admin sessions |
 
-| Layer                                                                 | `staleTime`                      | `gcTime` / notes                                       |
-| --------------------------------------------------------------------- | -------------------------------- | ------------------------------------------------------ |
-| **Global defaults** (`QueryProvider.tsx`)                             | `5 * 60 * 1000` (5 min)          | `10 * 60 * 1000` — inactive cache cleared after 10 min |
-| **`useMeCapabilities`** (via `createMeCapabilitiesQueryOptions`)      | `60_000` (1 min)                 | inherits default `gcTime`                              |
-| **`useAuthToken`** (`useAuthApi.ts`)                                  | `60_000`                         | session-scoped                                         |
-| **`useUsersApi` / `useFacesApi` / `usePagesApi` / `usePageTypesApi`** | `5 * 60 * 1000` on list + detail | server `page`/`pageSize`/`sortBy`/`sortDir`; `placeholderData: keepPreviousData` (v5) |
-| **`useContentModerationApi`**                                         | list `staleTime` per hook        | paginated envelope; moderation keys include page + sort |
-| **`useWallTicketsAdminApi`**                                            | `45_000`                         | invalidates `['stats']` on ticket mutations            |
-| **`useOperatorAiMessagesInfinite` / `useOperatorUserChatMessagesInfinite`** | `0`                          | `fetchNextPage` for older messages; hub patches first page |
+Per-hook overrides (examples): `useOperatorAiApi` uses `staleTime: 0` for live chat; `useAdminInfraApi` uses 30–60s for worker health.
 
-**Query hook modules (2026-05):** `useWallTicketsAdminApi`; key factories `usersKeys`, `facesKeys`, `pagesKeys`, `wallTicketsKeys`, exported `moderationKeys`.
+## ACL warmup
 
-**`enabled` audit:** list hooks require auth context token where applicable; detail hooks use `enabled: !!id` so no fetch without an entity id. Capabilities query uses `enabled: Boolean(token)`.
+After login, **`GET /admin/api/me/capabilities`** must include **`platform:super`** before the SPA renders protected routes. See `src/utils/adminAppAccess.ts` and [`admin-superadmin-only-access.md`](../../docs/guides/admin-superadmin-only-access.md).
 
-## ACL / `/me/capabilities`
+## TanStack Table
 
-| Consumer                                        | Role                                                                                                                    |
-| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| **`MeCapabilitiesWarmup`** in `AuthContext.tsx` | Single mount-time **`useMeCapabilities(token, Boolean(token))`** — primes React Query cache for the session.            |
-| **`useAuthApi`**                                | **`clearAuthAndCapabilitiesQueries`** removes auth, capabilities, and domain query roots on logout / refresh failure. |
+- Admin data grids use **TanStack Table** via `FaceDetailEntityTableShell` and page-root tables (`UsersTable`, `FacesTable`, …).
+- **Row virtualization** remains **waived** — page sizes are server-driven (default **10**); see `scripts/lint-admin-tanstack-table.mjs`.
 
-No other production components call **`useMeCapabilities`** directly; capability checks read from the warmed cache / ACL helpers as designed.
+## Diagram: read path (list page)
 
-## Session expiry & logout (source of truth)
+```mermaid
+flowchart LR
+  Page[Admin page]
+  Hook[useXxxApi hook]
+  QC[TanStack Query cache]
+  API["/admin/api/..."]
+  Page --> Hook
+  Hook --> QC
+  Hook -->|miss or stale| API
+  API --> QC
+  QC --> Page
+```
 
-1. **`setupAxiosInterceptors`** (`interceptors.ts`): **401** → refresh queue → on failure **`forceLogout`**, redirect to login, **`setAuthToken(null)`**. No `window` `auth:unauthorized` event in many_faces_admin.
-2. **`AuthContext`**: `localStorage` bootstrap, **`setInterval`** expiry check (paused while `document.visibilityState === 'hidden'`, re-check on `visibilitychange`).
-3. **React Query**: **`useAuthToken`**; logout and session expiry call **`clearAuthAndCapabilitiesQueries`** (auth + capabilities + users/faces/pages/chat/moderation/wall tickets/invites, etc.).
+## Related prompts (implemented)
 
-## Phase D — explicit waivers (no code change until product asks)
-
-| Topic                                         | Decision                                                                                                                              |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| **i18n lazy-load**                            | Keep **static JSON** imports in `i18n/config.ts` for predictable admin bundle; lazy HTTP loading deferred (smaller admin locale set). |
-| **Table virtualization**                      | List UIs are moderate size; **@tanstack/react-table** without windowing until row-count SLA is defined.                               |
-| **TanStack Table data grids**                   | All admin tabular list UIs use **`useReactTable`** + Radix `@/components/radix/Table`; enforced via `yarn lint:tables`. Page-private tables: moderation queue, user-detail faces. |
-| **`react-toastify` CSS**                      | Stays in `main.tsx` global entry; **`ToastContainer`** uses **`limit={5}`**. Splitting CSS to an auth-only chunk deferred.            |
-| **Axios face-prefix interceptor**             | No measured hot-path cost; keep current **`applyFacePrefixToRequestUrl`** in the interceptor.                                         |
-| **Lighthouse / Profiler / Performance trace** | Run locally on `yarn build && yarn preview` and attach tables to the PR when benchmarking (not a CI gate here).                       |
-| **`modulePreload`**                           | Vite defaults retained.                                                                                                               |
-
-## Dependencies
-
-- **`react-grid-layout` + `react-resizable`:** required by **`GridLayoutEditor`** / **Edit page** flow (not unused).
-- **`form-data`:** explicit dependency for OpenAPI-generated **`src/api/core/request.ts`** (depcheck “missing” fix).
-- **Depcheck false positives:** tooling such as **Commitlint**, **Husky**, **lint-staged**, **Pnpify**, **@types/jsdom**, **@testing-library/user-event** are used from config / hooks / tests, not always from `src/` imports alone.
-
-## Vite build
-
-- **`manualChunks`** and **`css.preprocessorOptions.scss.silenceDeprecations`** live in **`vite.config.ts`** (vendor split + quieter Bootstrap Sass deprecations).
+- [`docs/prompts/admin-tanstack-query-full-rollout-agent-prompt.md`](../../docs/prompts/admin-tanstack-query-full-rollout-agent-prompt.md)
+- [`docs/prompts/admin-tanstack-table-full-rollout-agent-prompt.md`](../../docs/prompts/admin-tanstack-table-full-rollout-agent-prompt.md)
