@@ -14,27 +14,10 @@ export function ProtectedRoute({
 	children: ReactNode;
 	redirectTo?: string;
 }) {
-	const { isAuthenticated, isLoading } = useAuth();
+	const { isAuthenticated } = useAuth();
 	const location = useLocation();
 	const getLocalizedPath = useLocalizedLink();
 
-	// Show loading state while checking authentication
-	if (isLoading) {
-		return (
-			<div
-				style={{
-					display: 'flex',
-					justifyContent: 'center',
-					alignItems: 'center',
-					height: '100vh',
-				}}
-			>
-				<div>Loading...</div>
-			</div>
-		);
-	}
-
-	// Redirect to login (or specified route) if not authenticated
 	if (!isAuthenticated) {
 		// Save the attempted location to redirect back after login
 		const currentPath = location.pathname;

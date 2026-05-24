@@ -5,6 +5,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { AppProvider } from './contexts/AppContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { AppBootstrapGate } from './components/AppBootstrapGate';
 import { AppRoutes } from './routes';
 import './styles/toast.scss';
 
@@ -12,22 +13,24 @@ function App() {
 	return (
 		<AppProvider>
 			<AuthProvider>
-				<BrowserRouter>
-					<AppRoutes />
-					<ToastContainer
-						position="top-center"
-						autoClose={5000}
-						hideProgressBar={false}
-						newestOnTop={false}
-						closeOnClick
-						rtl={false}
-						pauseOnFocusLoss
-						draggable
-						pauseOnHover
-						theme="light"
-						limit={5}
-					/>
-				</BrowserRouter>
+				<AppBootstrapGate>
+					<BrowserRouter>
+						<AppRoutes />
+						<ToastContainer
+							position="top-center"
+							autoClose={5000}
+							hideProgressBar={false}
+							newestOnTop={false}
+							closeOnClick
+							rtl={false}
+							pauseOnFocusLoss
+							draggable
+							pauseOnHover
+							theme="light"
+							limit={5}
+						/>
+					</BrowserRouter>
+				</AppBootstrapGate>
 			</AuthProvider>
 		</AppProvider>
 	);

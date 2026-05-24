@@ -1,11 +1,6 @@
-import { useTranslation } from 'react-i18next';
+import { GlobalAppPreloader } from '@/components/GlobalAppPreloader';
 
 /** Minimal shell while lazy admin route chunks load. */
 export function RouteLoadingFallback() {
-	const { t } = useTranslation('common');
-	return (
-		<div className="admin-route-loading" role="status" aria-live="polite">
-			{t('common.loading') || 'Loading…'}
-		</div>
-	);
+	return <GlobalAppPreloader variant="route-fallback" accessibilityLabel="Loading page" />;
 }

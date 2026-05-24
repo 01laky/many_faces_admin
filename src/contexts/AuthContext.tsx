@@ -38,6 +38,7 @@ interface User {
 interface AuthContextType {
 	isAuthenticated: boolean;
 	isLoading: boolean;
+	isSessionHydrated: boolean;
 	user: User | null;
 	token: string | null;
 	login: (username: string, password: string, options?: { rememberMe?: boolean }) => Promise<void>;
@@ -74,6 +75,7 @@ function resetLocalAuthState(
 export function AuthProvider({ children }: { children: ReactNode }) {
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
+	const [isSessionHydrated, setIsSessionHydrated] = useState(false);
 	const [user, setUser] = useState<User | null>(null);
 	const [token, setToken] = useState<string | null>(null);
 	const { t } = useTranslation('common');
@@ -115,6 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			} catch (error) {
 				logger.error('Failed to load auth state', error);
 			} finally {
+				setIsSessionHydrated(true);
 				setIsLoading(false);
 			}
 		})();
@@ -276,13 +279,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		() => ({
 			isAuthenticated,
 			isLoading,
+			isSessionHydrated,
 			user,
 			token,
 			login,
 			logout,
 			refreshAuth,
 		}),
-		[isAuthenticated, isLoading, user, token, login, logout, refreshAuth]
+		[isAuthenticated, isLoading, isSessionHydrated, user, token, login, logout, refreshAuth]
 	);
 
 	return (
