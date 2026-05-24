@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import { useAuth } from '@/contexts/AuthContext';
 import { logger } from '@/utils/logger';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
+import { resolveSafeInternalRedirectPath } from '@/utils/safeRedirect';
 import { FormField } from '@/components/radix/FormField';
 import { Input } from '@/components/radix/Input';
 import { Button } from '@/components/radix/Button';
@@ -50,11 +51,13 @@ export function LoginPage() {
 		defaultValues: { rememberMe: false },
 	});
 
-	// Redirect if already authenticated
-	const from = (location.state as { from?: string })?.from || getLocalizedPath('/dashboard');
+	// Redirect if already authenticated (ASH1-A9: safe internal path only)
+	const fallbackPath = getLocalizedPath('/dashboard');
+	const fromRaw = (location.state as { from?: string })?.from;
+	const safeRedirectPath = resolveSafeInternalRedirectPath(fromRaw, fallbackPath);
 
 	if (isAuthenticated) {
-		navigate(from, { replace: true });
+		navigate(safeRedirectPath, { replace: true });
 		return null;
 	}
 
@@ -63,9 +66,7 @@ export function LoginPage() {
 			await login(data.email, data.password, { rememberMe: data.rememberMe });
 			logger.info('Login successful, redirecting', { email: data.email });
 			toast.success(t('pages.login.success') || 'Login successful!');
-			// Redirect to dashboard after successful login
-			const dashboardPath = getLocalizedPath('/dashboard');
-			navigate(dashboardPath, { replace: true });
+			navigate(safeRedirectPath, { replace: true });
 		} catch (error) {
 			logger.error('Login failed', error);
 			if (error instanceof Error && error.message === 'PLATFORM_ACCESS_DENIED') {

@@ -4,8 +4,19 @@
 
 **Sign-in:** **`SUPER_ADMIN` only** — global **`ADMIN`** must use **`many_faces_portal`**. Guide: [`docs/guides/admin-superadmin-only-access.md`](../docs/guides/admin-superadmin-only-access.md).
 
+### Security at a glance
+
+- Super-admin gate: JWT role **and** `platform:super` capability (fail closed).
+- Tokens in `localStorage`; logout clears auth + domain React Query caches.
+- API traffic namespaced under `/admin/api/...`; OAuth and i18n bundle paths exempt.
+- HTTPS required for production API URL; mixed content blocked at startup.
+- SignalR JWT via `accessTokenFactory`, not URL query strings.
+- Moderation previews and grid schema fields sanitized client-side (defense in depth).
+- CI gate: `node scripts/verify-admin-security-tests.mjs` — see [`docs/SECURITY.md`](./docs/SECURITY.md).
+
 | Start here        | Link                                                                                                |
 | ----------------- | --------------------------------------------------------------------------------------------------- |
+| **Security**      | [`docs/SECURITY.md`](./docs/SECURITY.md) — sign-in, tokens, HTTPS, SignalR, production checklist   |
 | Run in full stack | `../scripts/start-all-dev.sh` from `many_faces_main`                                                |
 | Local app (LAN)   | `http://localhost:8090` / `https://localhost:8091` via admin proxy                                  |
 | Local app (host)  | `https://localhost:8082` (`yarn dev` / Docker admin container) — see [`dev-https.md`](../docs/guides/dev-https.md) |

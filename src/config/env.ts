@@ -98,12 +98,26 @@ export const env: EnvConfig = {
 	debugMode: getBoolEnv('VITE_DEBUG_MODE', false),
 };
 
+/** Demo OAuth secret shipped in `.env.example` — must not be used in production builds (ASH1-A7). */
+export const DEMO_OAUTH2_CLIENT_SECRET = 'be-demo-secret-very-strong-key';
+
+export interface EnvValidationOptions {
+	/** When true, enforce HTTPS API URL and non-demo OAuth secret. */
+	production?: boolean;
+}
+
 /** Same contract as many_faces_portal: pure validation list for tests + `validateEnv`. */
-export function collectEnvValidationErrors(cfg: EnvConfig): string[] {
+export function collectEnvValidationErrors(
+	cfg: EnvConfig,
+	options: EnvValidationOptions = {}
+): string[] {
 	const errors: string[] = [];
 
 	try {
-		new URL(cfg.apiUrl);
+		const api = new URL(cfg.apiUrl);
+		if (options.production && api.protocol !== 'https:') {
+			errors.push(`Production builds require HTTPS VITE_API_URL (got ${cfg.apiUrl})`);
+		}
 	} catch {
 		errors.push(`Invalid VITE_API_URL: ${cfg.apiUrl}`);
 	}
@@ -124,12 +138,22 @@ export function collectEnvValidationErrors(cfg: EnvConfig): string[] {
 		errors.push('VITE_OAUTH2_CLIENT_SECRET is required');
 	}
 
+	if (options.production && cfg.oauth2ClientSecret === DEMO_OAUTH2_CLIENT_SECRET) {
+		errors.push(
+			'Production builds must not use the demo VITE_OAUTH2_CLIENT_SECRET — configure a deployment-specific value'
+		);
+	}
+
+	if (!cfg.defaultFacePrefix?.trim()) {
+		errors.push('VITE_DEFAULT_FACE_PREFIX is required');
+	}
+
 	return errors;
 }
 
 /** Logs configuration problems; throws in **production** builds only (mirrors many_faces_portal behavior). */
 export function validateEnv(): void {
-	const errors = collectEnvValidationErrors(env);
+	const errors = collectEnvValidationErrors(env, { production: import.meta.env.PROD });
 
 	if (errors.length > 0) {
 		console.error('❌ Environment configuration errors:');

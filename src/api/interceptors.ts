@@ -27,6 +27,12 @@ import {
 	assertAdminAppAccessAllowed,
 	forcePlatformAccessDeniedLogout,
 } from '../utils/adminAppAccess';
+import {
+	isOAuthTokenEndpoint,
+	isRateLimitResponse,
+	shouldForceLogoutOn403,
+	shouldHandle401Refresh,
+} from './interceptorPolicy';
 
 /* ------------------------------------------------------------------ */
 /*  Internal state                                                     */
@@ -108,19 +114,26 @@ export function setupAxiosInterceptors() {
 				return Promise.reject(error);
 			}
 
+			// ASH1-A3: rate limit on OAuth — do not wipe refresh token; surface retry UX upstream.
+			if (
+				isRateLimitResponse(error.response?.status, error.response?.data) &&
+				isOAuthTokenEndpoint(originalRequest.url)
+			) {
+				const rateLimitError = new Error(
+					'Too many authentication attempts. Please wait a moment and try again.'
+				);
+				rateLimitError.name = 'RateLimitError';
+				return Promise.reject(rateLimitError);
+			}
+
 			// Platform 403 on admin API — session is invalid for this SPA (stale ADMIN JWT, demoted role).
-			if (error.response?.status === 403 && isAdminScopedApiRequest(originalRequest)) {
+			if (shouldForceLogoutOn403(error.response?.status, originalRequest, env.apiUrl)) {
 				forcePlatformAccessDeniedLogout();
 				return Promise.reject(error);
 			}
 
 			// Only act on 401 and only once per request.
-			if (error.response?.status !== 401 || originalRequest._retry) {
-				return Promise.reject(error);
-			}
-
-			// Never intercept the token endpoint itself (prevents infinite loop).
-			if (originalRequest.url?.includes('/oauth2/token')) {
+			if (!shouldHandle401Refresh(error.response?.status, originalRequest)) {
 				return Promise.reject(error);
 			}
 
@@ -194,6 +207,15 @@ export function setupAxiosInterceptors() {
 				return axios(originalRequest as AxiosRequestConfig);
 			} catch (refreshError) {
 				processQueue(refreshError);
+				const axiosRefreshErr = refreshError as AxiosError | undefined;
+				if (
+					isRateLimitResponse(
+						axiosRefreshErr?.response?.status,
+						axiosRefreshErr?.response?.data
+					)
+				) {
+					return Promise.reject(refreshError);
+				}
 				forceLogout();
 				return Promise.reject(refreshError);
 			} finally {

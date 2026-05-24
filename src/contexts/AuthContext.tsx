@@ -21,6 +21,7 @@ import {
 	getStoredUserJson,
 	persistStoredUserJson,
 } from '../utils/authStorage';
+import { setupAuthStorageSync } from '../utils/authSessionSync';
 
 /**
  * User information interface
@@ -165,6 +166,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			document.removeEventListener('visibilitychange', onVisibility);
 		};
 	}, [token, isAuthenticated, t, queryClient]);
+
+	// ASH1-A10: another tab cleared auth storage → fail closed in this tab.
+	useEffect(() => {
+		return setupAuthStorageSync(() => {
+			resetLocalAuthState(queryClient, { setToken, setUser, setIsAuthenticated });
+			toast.info(
+				t('pages.logout.sessionExpired') || 'Your session has expired. Please log in again.'
+			);
+			const langMatch = window.location.pathname.match(/^\/([a-z]{2})\//);
+			const lang = langMatch?.[1] ?? 'en';
+			window.location.href = `/${lang}/login`;
+		});
+	}, [queryClient, t]);
 
 	const login = useCallback(
 		async (username: string, password: string, options?: { rememberMe?: boolean }) => {

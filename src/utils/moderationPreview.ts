@@ -1,6 +1,7 @@
 /**
- * SHV2 PI-8: operator moderation preview helpers — always plain text, never `dangerouslySetInnerHTML`.
+ * SHV2 PI-8 / ASH1-D: operator moderation preview helpers — always plain text, never `dangerouslySetInnerHTML`.
  */
+import { isAllowedHttpsUrl } from './safeUrl';
 
 /** Escapes HTML metacharacters so React text nodes cannot interpret untrusted markup. */
 export function escapeHtmlForTextNode(value: string): string {
@@ -20,5 +21,6 @@ export function formatModerationBodyPreview(bodyPreviewPlainText?: string | null
 
 export function formatModerationMediaPreview(mediaUrlPreview?: string | null): string | null {
 	const trimmed = mediaUrlPreview?.trim();
-	return trimmed && trimmed.length > 0 ? trimmed : null;
+	if (!trimmed) return null;
+	return isAllowedHttpsUrl(trimmed) ? trimmed : null;
 }

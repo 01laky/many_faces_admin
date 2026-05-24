@@ -25,6 +25,7 @@ import {
 	type PageRouteTranslationData,
 } from '@/hooks/api/usePageRouteTranslationsApi';
 import { toast } from 'react-toastify';
+import { sanitizeGridSchemaForSave } from '@/utils/gridSchemaSecurity';
 import '../../styles/forms/PageFormPage.scss';
 
 interface EditPageFormData {
@@ -188,7 +189,7 @@ export function EditPagePage() {
 					gridSchema: isProfileDetailTemplate
 						? serializeProfileDetailGridSchema(profileGridSchema)
 						: gridSchema
-							? JSON.stringify(gridSchema)
+							? JSON.stringify(sanitizeGridSchemaForSave(gridSchema))
 							: null,
 				},
 			},

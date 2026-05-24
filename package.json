@@ -18,6 +18,7 @@
 		"check-node": "node scripts/check-node.mjs",
 		"favicon:generate": "node ../scripts/generate-brand-favicons.mjs",
 		"test": "vitest run",
+		"test:security": "vitest run --passWithNoTests false '**/*.security.test.ts'",
 		"tests": "vitest run",
 		"test:watch": "vitest",
 		"test:ui": "vitest --ui",

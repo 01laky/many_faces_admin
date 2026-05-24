@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { env } from '../config/env';
+import { redactLogProperties, redactSensitiveLogText } from './logRedaction';
 
 /**
  * Log levels matching Seq log levels
@@ -48,12 +49,12 @@ class FrontendLogger {
 		const logEntry = {
 			Timestamp: new Date().toISOString(),
 			Level: level,
-			MessageTemplate: message,
+			MessageTemplate: redactSensitiveLogText(message),
 			Properties: {
 				Source: 'Frontend',
 				UserAgent: navigator.userAgent,
 				Url: window.location.href,
-				...properties,
+				...redactLogProperties(properties),
 			},
 		};
 

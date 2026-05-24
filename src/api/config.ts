@@ -5,11 +5,27 @@ import { applyFacePrefixToRequestUrl } from './faceApiRouting';
 
 let interceptorsSetup = false;
 
+/** ASH1-B4 — HTTPS admin pages must not call plain HTTP API origins (mixed content). */
+export function assertNoMixedContentApi(
+	apiUrl: string,
+	pageProtocol: string = typeof window !== 'undefined' ? window.location.protocol : 'https:'
+): void {
+	if (pageProtocol === 'https:' && apiUrl.startsWith('http://')) {
+		throw new Error(
+			'Mixed content blocked: HTTPS admin page cannot call HTTP API URL. Set VITE_API_URL to https://…'
+		);
+	}
+}
+
 /**
  * Configure API client with base URL from environment variables
  * This should be called once when the app starts
  */
 export function configureApiClient() {
+  if (typeof window !== 'undefined') {
+    assertNoMixedContentApi(env.apiUrl);
+  }
+
   // Configure OpenAPI client
   OpenAPI.BASE = env.apiUrl;
   OpenAPI.WITH_CREDENTIALS = false;
