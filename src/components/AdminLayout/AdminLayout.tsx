@@ -20,6 +20,7 @@ import { useOperatorUserChatConversations } from '@/hooks/api/useOperatorUserCha
 import { useOperatorAiSystemSettings } from '@/hooks/api/useOperatorAiApi';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
 import { filterAdminSidebarNavItemsForAiSystem } from '@/utils/adminSidebarNavAi';
+import { AppBrandTitle } from '@/components/AppBrandTitle/AppBrandTitle';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import './AdminLayout.scss';
 
@@ -147,7 +148,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 							<span />
 						</span>
 					</button>
-					<span className="admin-header__title">Many Faces Admin</span>
+					<AppBrandTitle className="admin-header__title">Many Faces Admin</AppBrandTitle>
 				</div>
 
 				<div className="admin-header__right">
@@ -218,7 +219,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 				className={`admin-sidebar ${sidebarOpen ? 'admin-sidebar--open' : 'admin-sidebar--closed'} ${isMobile ? 'admin-sidebar--mobile' : 'admin-sidebar--desktop'}`}
 			>
 				<div className="admin-sidebar__header">
-					<span className="admin-sidebar__logo">Many Faces Admin</span>
+					<AppBrandTitle className="admin-sidebar__logo">Many Faces Admin</AppBrandTitle>
 					{isMobile && (
 						<button
 							className="admin-sidebar__close"
