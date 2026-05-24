@@ -61,13 +61,7 @@ export function AppRoutes() {
 	const withLayout = useCallback((page: ReactNode) => <AdminLayout>{page}</AdminLayout>, []);
 
 	return (
-		<Suspense
-			fallback={
-				<div className="admin-route-loading-wrap" style={{ padding: '2rem', textAlign: 'center' }}>
-					<RouteLoadingFallback />
-				</div>
-			}
-		>
+		<Suspense fallback={<RouteLoadingFallback />}>
 			<Routes>
 				<Route path="/" element={<Navigate to={`/${supportedLanguages[0]}`} replace />} />
 

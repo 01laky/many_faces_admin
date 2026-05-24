@@ -8,10 +8,15 @@ vi.mock('react-loading-indicators', () => ({
 }));
 
 describe('GlobalAppPreloader GPL', () => {
-	it('GPL-8: renders logo and spinner', () => {
+	it('GPL-8: renders logo and CSS dots in bootstrap mode', () => {
 		render(<GlobalAppPreloader />);
 		expect(screen.getByTestId('global-app-preloader')).toBeTruthy();
-		expect(document.querySelector('.main-logo')).toBeTruthy();
+		expect(document.querySelector('.main-logo img')).toBeTruthy();
+		expect(document.querySelectorAll('.global-app-preloader__dot')).toHaveLength(3);
+	});
+
+	it('GPL-8b: route fallback still uses ThreeDot', () => {
+		render(<GlobalAppPreloader variant="route-fallback" />);
 		expect(screen.getByTestId('three-dot')).toBeTruthy();
 	});
 
