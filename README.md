@@ -4,6 +4,16 @@
 
 **Sign-in:** **`SUPER_ADMIN` only** — global **`ADMIN`** must use **`many_faces_portal`**. Guide: [`docs/guides/admin-superadmin-only-access.md`](../docs/guides/admin-superadmin-only-access.md).
 
+> **First visit?** This is the **control plane** — grid layouts edited here render on the portal; AI chat and infra settings configured here drive backend behaviour.
+
+### Three pillars
+
+| Pillar | Highlights |
+| ------ | ----------- |
+| **Security (ASH1)** | Super-admin gate: JWT role **and** `platform:super` capability (fail closed). HTTPS-only production API; SignalR JWT via `accessTokenFactory`; sanitized moderation previews. CI: `node ../scripts/verify-admin-security-tests.mjs`. Full guide: [`docs/SECURITY.md`](./docs/SECURITY.md). |
+| **AI** | **Operator AI chat** (SignalR, threaded conversations); stats modes **off / inline / live** (platform KPIs attached to prompts); **live map-reduce** parallel cap + Redis TTL in Settings. Dashboard: [`../docs/guides/admin-dashboard-metrics.md`](../docs/guides/admin-dashboard-metrics.md). |
+| **Configuration** | **Grid layout editor** (`gridSchema` → portal/mobile); **Settings → Infrastructure** — mail worker (SMTP/From in DB), push/search smoke, AI options; faces, pages, roles, route translations; global search autocomplete. Mail: [`../docs/guides/admin-mailer-configuration.md`](../docs/guides/admin-mailer-configuration.md). |
+
 ### Security at a glance
 
 - Super-admin gate: JWT role **and** `platform:super` capability (fail closed).
