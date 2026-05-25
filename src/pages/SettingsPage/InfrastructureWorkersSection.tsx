@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useInfraWorkerConfig } from '@/hooks/api/useAdminInfraApi';
-import { MailerSmokePanel } from './MailerSmokePanel';
+import { MailerConfigPanel } from './MailerConfigPanel';
 import { PushSmokePanel } from './PushSmokePanel';
 import { SearchHealthPanel } from './SearchHealthPanel';
 
@@ -18,7 +18,7 @@ export function InfrastructureWorkersSection() {
 				<p className="settings-page__section-desc">{t('pages.settings.infra.description')}</p>
 			</div>
 			<div className="settings-page__section-body settings-page__infra">
-				<MailerSmokePanel workerConfig={workerConfig} configLoading={configLoading} />
+				<MailerConfigPanel workerConfig={workerConfig} configLoading={configLoading} />
 				<PushSmokePanel workerConfig={workerConfig} configLoading={configLoading} />
 				<SearchHealthPanel />
 			</div>

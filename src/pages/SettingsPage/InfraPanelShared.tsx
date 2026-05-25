@@ -4,27 +4,53 @@ import {
 	resolveInfraConfiguredBadge,
 	resolveInfraStatusModifier,
 } from '@/utils/adminInfraStatusStrip';
+import {
+	resolveMailEffectiveStatusBadge,
+	resolveMailEffectiveStatusModifier,
+} from '@/utils/adminMailEffectiveStatus';
 
 type InfraStatusStripProps = {
-	configured: boolean | undefined;
+	configured?: boolean | undefined;
+	/** When set, mail panel uses pages.settings.infra.mail.config.status.* badges (AMC-U5). */
+	effectiveStatus?: string;
 	deviceCount?: number;
 	lastTest?: InfraLastTestOutcome;
+	updatedAtUtc?: string;
 };
 
-/** Read-only configured / last-test strip shared by mail and push panels. */
-export function InfraStatusStrip({ configured, deviceCount, lastTest }: InfraStatusStripProps) {
+/** Read-only configured / effective-status / last-test strip shared by mail and push panels. */
+export function InfraStatusStrip({
+	configured,
+	effectiveStatus,
+	deviceCount,
+	lastTest,
+	updatedAtUtc,
+}: InfraStatusStripProps) {
 	const { t } = useTranslation('common');
-	const badge = resolveInfraConfiguredBadge(configured);
-	const modifier = resolveInfraStatusModifier(configured, { deviceCount, lastTest });
+	const usesMailEffectiveStatus = effectiveStatus != null;
+	const badge = usesMailEffectiveStatus
+		? resolveMailEffectiveStatusBadge(effectiveStatus, configured)
+		: resolveInfraConfiguredBadge(configured);
+	const modifier = usesMailEffectiveStatus
+		? resolveMailEffectiveStatusModifier(effectiveStatus, { lastTest })
+		: resolveInfraStatusModifier(configured, { deviceCount, lastTest });
+	const badgeKeyPrefix = usesMailEffectiveStatus
+		? 'pages.settings.infra.mail.config.status'
+		: 'pages.settings.infra.status';
 
 	return (
 		<div className={`settings-page__infra-status settings-page__infra-status--${modifier}`}>
-			<span className="settings-page__infra-badge">
-				{t(`pages.settings.infra.status.${badge}`)}
-			</span>
-			{deviceCount != null && configured && (
+			<span className="settings-page__infra-badge">{t(`${badgeKeyPrefix}.${badge}`)}</span>
+			{deviceCount != null && configured && !usesMailEffectiveStatus && (
 				<span className="settings-page__infra-meta">
 					{t('pages.settings.infra.push.deviceCount', { count: deviceCount })}
+				</span>
+			)}
+			{updatedAtUtc && usesMailEffectiveStatus && (
+				<span className="settings-page__infra-meta settings-page__infra-meta--muted">
+					{t('pages.settings.infra.mail.config.status.updatedAt', {
+						value: new Date(updatedAtUtc).toLocaleString(),
+					})}
 				</span>
 			)}
 			{lastTest?.kind === 'none' || !lastTest ? (

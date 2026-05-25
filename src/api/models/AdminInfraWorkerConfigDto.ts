@@ -1,4 +1,4 @@
 export type AdminInfraWorkerConfigDto = {
-	mail: { configured: boolean };
+	mail: { configured: boolean; effectiveStatus?: string | null };
 	push: { configured: boolean; registeredDeviceCount: number };
 };

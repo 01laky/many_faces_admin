@@ -26,6 +26,7 @@ export function clearLocalizationBundleCache(app: 'admin' = 'admin'): void {
 function bundleHasRequiredAdminKeys(body: LocalizationBundleResponse): boolean {
 	const storyDetail = body.resources?.en?.common?.pages?.storyDetail;
 	const infra = body.resources?.en?.common?.pages?.settings?.infra;
+	const mail = infra?.mail as { title?: string; config?: { save?: string } } | undefined;
 	return (
 		typeof storyDetail === 'object' &&
 		storyDetail !== null &&
@@ -34,9 +35,10 @@ function bundleHasRequiredAdminKeys(body: LocalizationBundleResponse): boolean {
 		typeof infra === 'object' &&
 		infra !== null &&
 		typeof infra.sectionTitle === 'string' &&
-		typeof infra.mail === 'object' &&
-		infra.mail !== null &&
-		typeof (infra.mail as { title?: string }).title === 'string'
+		typeof mail === 'object' &&
+		mail !== null &&
+		typeof mail.title === 'string' &&
+		typeof mail.config?.save === 'string'
 	);
 }
 

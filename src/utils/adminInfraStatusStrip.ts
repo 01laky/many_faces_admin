@@ -29,6 +29,12 @@ export function readMailConfigured(
 	return config?.mail.configured;
 }
 
+export function readMailEffectiveStatus(
+	config: AdminInfraWorkerConfigDto | undefined
+): string | undefined {
+	return config?.mail.effectiveStatus ?? undefined;
+}
+
 export function readPushConfigured(
 	config: AdminInfraWorkerConfigDto | undefined
 ): boolean | undefined {
