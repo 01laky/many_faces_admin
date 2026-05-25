@@ -3,6 +3,5 @@
 /* tslint:disable */
 /* eslint-disable */
 export type FaceProfileCommentDto = {
-    body?: string | null;
+	body?: string | null;
 };
-

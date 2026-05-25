@@ -3,9 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export type OperatorAiModelStatusDto = {
-    ready?: boolean;
-    loading?: boolean;
-    unavailable?: boolean;
-    modelName?: string | null;
+	ready?: boolean;
+	loading?: boolean;
+	unavailable?: boolean;
+	modelName?: string | null;
 };
-

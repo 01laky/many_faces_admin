@@ -4,8 +4,7 @@
 /* eslint-disable */
 import type { StatsTimeseriesBucketDto } from './StatsTimeseriesBucketDto';
 export type StatsTimeseriesResponseDto = {
-    metric?: string | null;
-    bucket?: string | null;
-    buckets?: Array<StatsTimeseriesBucketDto> | null;
+	metric?: string | null;
+	bucket?: string | null;
+	buckets?: Array<StatsTimeseriesBucketDto> | null;
 };
-

@@ -13,7 +13,9 @@ import {
 
 describe('admin faceApiRouting — ACL capabilities path', () => {
 	it('prepends admin segment to /api/me/capabilities', () => {
-		expect(prependFaceBeforeApi('/api/me/capabilities', 'admin')).toBe('/admin/api/me/capabilities');
+		expect(prependFaceBeforeApi('/api/me/capabilities', 'admin')).toBe(
+			'/admin/api/me/capabilities'
+		);
 	});
 
 	it('scopePathForCurrentFace uses defaultFacePrefix from env', () => {
@@ -27,6 +29,8 @@ describe('admin faceApiRouting — ACL capabilities path', () => {
 
 	it('pathAlreadyHasFaceApiPrefix avoids double prefix', () => {
 		expect(pathAlreadyHasFaceApiPrefix('/admin/api/me/capabilities')).toBe(true);
-		expect(prependFaceBeforeApi('/admin/api/me/capabilities', 'admin')).toBe('/admin/api/me/capabilities');
+		expect(prependFaceBeforeApi('/admin/api/me/capabilities', 'admin')).toBe(
+			'/admin/api/me/capabilities'
+		);
 	});
 });

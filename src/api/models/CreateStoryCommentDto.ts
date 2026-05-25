@@ -3,6 +3,5 @@
 /* tslint:disable */
 /* eslint-disable */
 export type CreateStoryCommentDto = {
-    content?: string | null;
+	content?: string | null;
 };
-

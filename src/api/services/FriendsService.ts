@@ -6,14 +6,14 @@ import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class FriendsService {
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
-    public static getApiFriends(): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/Friends',
-        });
-    }
+	/**
+	 * @returns any OK
+	 * @throws ApiError
+	 */
+	public static getApiFriends(): CancelablePromise<any> {
+		return __request(OpenAPI, {
+			method: 'GET',
+			url: '/api/Friends',
+		});
+	}
 }

@@ -41,7 +41,9 @@ export async function fetchAdminMeProfile(): Promise<AdminMeProfile> {
 	});
 }
 
-export async function updateAdminMeProfile(body: UpdateAdminMeProfileBody): Promise<AdminMeProfile> {
+export async function updateAdminMeProfile(
+	body: UpdateAdminMeProfileBody
+): Promise<AdminMeProfile> {
 	return __request(OpenAPI, {
 		method: 'PUT',
 		url: '/api/admin/me/profile',

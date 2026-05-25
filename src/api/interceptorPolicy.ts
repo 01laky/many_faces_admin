@@ -30,7 +30,7 @@ export function shouldForceLogoutOn403(
 
 export function shouldHandle401Refresh(
 	status: number | undefined,
-	config: AxiosRequestConfig & { _retry?: boolean },
+	config: AxiosRequestConfig & { _retry?: boolean }
 ): boolean {
 	if (status !== 401) return false;
 	if (config._retry) return false;

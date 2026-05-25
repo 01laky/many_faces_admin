@@ -3,6 +3,5 @@
 /* tslint:disable */
 /* eslint-disable */
 export type UpdateOperatorAiConversationRequest = {
-    title?: string | null;
+	title?: string | null;
 };
-

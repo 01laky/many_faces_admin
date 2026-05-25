@@ -2,4 +2,11 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type AiReviewStatus = 'NotQueued' | 'Queued' | 'InProgress' | 'RecommendedApprove' | 'RecommendedReject' | 'NeedsHumanReview' | 'Failed';
+export type AiReviewStatus =
+	| 'NotQueued'
+	| 'Queued'
+	| 'InProgress'
+	| 'RecommendedApprove'
+	| 'RecommendedReject'
+	| 'NeedsHumanReview'
+	| 'Failed';

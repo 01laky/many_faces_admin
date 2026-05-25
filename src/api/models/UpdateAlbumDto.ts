@@ -5,10 +5,9 @@
 import type { AlbumTypeEnum } from './AlbumTypeEnum';
 import type { MediaTypeEnum } from './MediaTypeEnum';
 export type UpdateAlbumDto = {
-    title?: string | null;
-    description?: string | null;
-    albumType?: AlbumTypeEnum;
-    mediaType?: MediaTypeEnum;
-    faceIds?: Array<number> | null;
+	title?: string | null;
+	description?: string | null;
+	albumType?: AlbumTypeEnum;
+	mediaType?: MediaTypeEnum;
+	faceIds?: Array<number> | null;
 };
-

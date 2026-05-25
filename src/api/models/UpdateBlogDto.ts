@@ -3,9 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export type UpdateBlogDto = {
-    title?: string | null;
-    content?: string | null;
-    faceId?: number | null;
-    imageUrls?: Array<string> | null;
+	title?: string | null;
+	content?: string | null;
+	faceId?: number | null;
+	imageUrls?: Array<string> | null;
 };
-

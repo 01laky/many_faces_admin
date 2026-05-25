@@ -6,12 +6,12 @@
 
 Defined in `src/providers/QueryProvider.tsx`:
 
-| Option | Value | Rationale |
-| ------ | ----- | --------- |
-| `refetchOnWindowFocus` | `false` | Operator sessions stay on one screen; avoid refetch storms |
-| `retry` (queries / mutations) | `1` | Fail fast; show toast / error UI |
-| `staleTime` | **5 min** | List/read-mostly data |
-| `gcTime` | **10 min** | Cap inactive cache during long admin sessions |
+| Option                        | Value      | Rationale                                                  |
+| ----------------------------- | ---------- | ---------------------------------------------------------- |
+| `refetchOnWindowFocus`        | `false`    | Operator sessions stay on one screen; avoid refetch storms |
+| `retry` (queries / mutations) | `1`        | Fail fast; show toast / error UI                           |
+| `staleTime`                   | **5 min**  | List/read-mostly data                                      |
+| `gcTime`                      | **10 min** | Cap inactive cache during long admin sessions              |
 
 Per-hook overrides (examples): `useOperatorAiApi` uses `staleTime: 0` for live chat; `useAdminInfraApi` uses 30–60s for worker health.
 

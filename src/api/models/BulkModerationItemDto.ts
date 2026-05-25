@@ -4,7 +4,6 @@
 /* eslint-disable */
 import type { ModeratedContentType } from './ModeratedContentType';
 export type BulkModerationItemDto = {
-    contentType?: ModeratedContentType;
-    contentId?: number;
+	contentType?: ModeratedContentType;
+	contentId?: number;
 };
-

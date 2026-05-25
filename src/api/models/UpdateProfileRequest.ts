@@ -3,7 +3,6 @@
 /* tslint:disable */
 /* eslint-disable */
 export type UpdateProfileRequest = {
-    firstName?: string | null;
-    lastName?: string | null;
+	firstName?: string | null;
+	lastName?: string | null;
 };
-

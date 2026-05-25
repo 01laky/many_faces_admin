@@ -3,7 +3,6 @@
 /* tslint:disable */
 /* eslint-disable */
 export type StatsTimeseriesBucketDto = {
-    periodStartUtc?: string;
-    count?: number;
+	periodStartUtc?: string;
+	count?: number;
 };
-

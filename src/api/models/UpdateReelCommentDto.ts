@@ -3,6 +3,5 @@
 /* tslint:disable */
 /* eslint-disable */
 export type UpdateReelCommentDto = {
-    content?: string | null;
+	content?: string | null;
 };
-

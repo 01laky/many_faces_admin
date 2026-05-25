@@ -3,7 +3,6 @@
 /* tslint:disable */
 /* eslint-disable */
 export type PageRouteTranslationModel = {
-    languageCode?: string | null;
-    translatedRoute?: string | null;
+	languageCode?: string | null;
+	translatedRoute?: string | null;
 };
-

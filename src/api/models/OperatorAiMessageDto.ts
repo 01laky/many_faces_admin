@@ -3,13 +3,12 @@
 /* tslint:disable */
 /* eslint-disable */
 export type OperatorAiMessageDto = {
-    id?: number;
-    role?: string | null;
-    content?: string | null;
-    statsMode?: string | null;
-    createdByUserId?: string | null;
-    authorEmail?: string | null;
-    responseLocale?: string | null;
-    createdAt?: string;
+	id?: number;
+	role?: string | null;
+	content?: string | null;
+	statsMode?: string | null;
+	createdByUserId?: string | null;
+	authorEmail?: string | null;
+	responseLocale?: string | null;
+	createdAt?: string;
 };
-

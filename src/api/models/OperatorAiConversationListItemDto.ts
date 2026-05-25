@@ -3,11 +3,10 @@
 /* tslint:disable */
 /* eslint-disable */
 export type OperatorAiConversationListItemDto = {
-    id?: number;
-    title?: string | null;
-    createdByUserId?: string | null;
-    createdByDisplayName?: string | null;
-    createdAt?: string;
-    updatedAt?: string;
+	id?: number;
+	title?: string | null;
+	createdByUserId?: string | null;
+	createdByDisplayName?: string | null;
+	createdAt?: string;
+	updatedAt?: string;
 };
-

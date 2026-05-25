@@ -3,6 +3,5 @@
 /* tslint:disable */
 /* eslint-disable */
 export type SendFriendRequestDto = {
-    receiverId?: string | null;
+	receiverId?: string | null;
 };
-

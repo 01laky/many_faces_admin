@@ -3,8 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type CreateFaceChatRoomDto = {
-    title?: string | null;
-    description?: string | null;
-    isPublic?: boolean;
+	title?: string | null;
+	description?: string | null;
+	isPublic?: boolean;
 };
-

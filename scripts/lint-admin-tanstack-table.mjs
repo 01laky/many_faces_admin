@@ -41,7 +41,7 @@ const rawTable = execSync("grep -rn '<table' src/pages --include='*.tsx' || true
 });
 
 const bootstrapTable = execSync(
-	"grep -rn \"Table\" src/pages --include='*.tsx' | grep react-bootstrap || true",
+	'grep -rn "Table" src/pages --include=\'*.tsx\' | grep react-bootstrap || true',
 	{ cwd: root, encoding: 'utf8' }
 );
 
@@ -83,9 +83,7 @@ for (const absPath of tableFiles) {
 	if (SERVER_LIST_HOOKS.test(content) && !/manualPagination:\s*true/.test(content)) {
 		// Server manual* flags live in FaceDetailEntityTableShell (shared chrome).
 		if (/FaceDetailEntityTableShell/.test(content)) continue;
-		violations.push(
-			`${rel}: list hook (useUsers/useFaces/usePages) without manualPagination:true`
-		);
+		violations.push(`${rel}: list hook (useUsers/useFaces/usePages) without manualPagination:true`);
 	}
 }
 

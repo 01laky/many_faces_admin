@@ -3,9 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export type CreateReelDto = {
-    title?: string | null;
-    description?: string | null;
-    videoUrl?: string | null;
-    faceIds?: Array<number> | null;
+	title?: string | null;
+	description?: string | null;
+	videoUrl?: string | null;
+	faceIds?: Array<number> | null;
 };
-

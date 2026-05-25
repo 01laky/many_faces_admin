@@ -3,10 +3,9 @@
 /* tslint:disable */
 /* eslint-disable */
 export type RegisterRequestDto = {
-    email?: string | null;
-    firstName?: string | null;
-    lastName?: string | null;
-    locale?: string | null;
-    platform?: string | null;
+	email?: string | null;
+	firstName?: string | null;
+	lastName?: string | null;
+	locale?: string | null;
+	platform?: string | null;
 };
-

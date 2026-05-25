@@ -11,25 +11,17 @@ const API_BASE = 'https://api.example.com';
 
 describe('interceptorPolicy (ASH1-T-A08…A10)', () => {
 	it('ASH1-T-A08: 403 on /admin/api/users → forced logout', () => {
-		expect(
-			shouldForceLogoutOn403(403, { url: '/admin/api/users' }, API_BASE)
-		).toBe(true);
+		expect(shouldForceLogoutOn403(403, { url: '/admin/api/users' }, API_BASE)).toBe(true);
 	});
 
 	it('ASH1-T-A09: 403 on /api/oauth2/token → no forced logout', () => {
-		expect(
-			shouldForceLogoutOn403(403, { url: '/api/oauth2/token' }, API_BASE)
-		).toBe(false);
+		expect(shouldForceLogoutOn403(403, { url: '/api/oauth2/token' }, API_BASE)).toBe(false);
 	});
 
 	it('ASH1-T-A09b: 403 outside env.apiUrl host → no logout', () => {
-		expect(
-			shouldForceLogoutOn403(
-				403,
-				{ url: 'https://evil.example/other' },
-				API_BASE
-			)
-		).toBe(false);
+		expect(shouldForceLogoutOn403(403, { url: 'https://evil.example/other' }, API_BASE)).toBe(
+			false
+		);
 	});
 
 	it('ASH1-T-A10: 429 / rate_limit detected', () => {

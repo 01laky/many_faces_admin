@@ -3,7 +3,6 @@
 /* tslint:disable */
 /* eslint-disable */
 export type CreateStoryDto = {
-    title?: string | null;
-    faceIds?: Array<number> | null;
+	title?: string | null;
+	faceIds?: Array<number> | null;
 };
-

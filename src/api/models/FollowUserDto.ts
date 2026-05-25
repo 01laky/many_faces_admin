@@ -3,6 +3,5 @@
 /* tslint:disable */
 /* eslint-disable */
 export type FollowUserDto = {
-    followedId?: string | null;
+	followedId?: string | null;
 };
-

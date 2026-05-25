@@ -3,8 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type RegisterPushTokenRequestDto = {
-    registrationToken?: string | null;
-    platform?: string | null;
-    installationId?: string | null;
+	registrationToken?: string | null;
+	platform?: string | null;
+	installationId?: string | null;
 };
-

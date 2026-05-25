@@ -3,7 +3,6 @@
 /* tslint:disable */
 /* eslint-disable */
 export type ModerationDecisionDto = {
-    reason?: string | null;
-    userMessage?: string | null;
+	reason?: string | null;
+	userMessage?: string | null;
 };
-

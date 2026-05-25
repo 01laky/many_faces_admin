@@ -3,6 +3,5 @@
 /* tslint:disable */
 /* eslint-disable */
 export type BlockUserDto = {
-    blockedId?: string | null;
+	blockedId?: string | null;
 };
-

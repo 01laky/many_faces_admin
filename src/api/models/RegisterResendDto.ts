@@ -3,8 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type RegisterResendDto = {
-    email?: string | null;
-    locale?: string | null;
-    platform?: string | null;
+	email?: string | null;
+	locale?: string | null;
+	platform?: string | null;
 };
-

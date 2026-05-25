@@ -3,13 +3,12 @@
 /* tslint:disable */
 /* eslint-disable */
 export type RegisterCompleteDto = {
-    hash?: string | null;
-    code?: string | null;
-    password?: string | null;
-    firstName?: string | null;
-    lastName?: string | null;
-    clientId?: string | null;
-    clientSecret?: string | null;
-    rememberMe?: boolean | null;
+	hash?: string | null;
+	code?: string | null;
+	password?: string | null;
+	firstName?: string | null;
+	lastName?: string | null;
+	clientId?: string | null;
+	clientSecret?: string | null;
+	rememberMe?: boolean | null;
 };
-

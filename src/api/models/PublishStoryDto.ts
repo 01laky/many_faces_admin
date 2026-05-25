@@ -3,6 +3,5 @@
 /* tslint:disable */
 /* eslint-disable */
 export type PublishStoryDto = {
-    scheduledPublishAt?: string | null;
+	scheduledPublishAt?: string | null;
 };
-

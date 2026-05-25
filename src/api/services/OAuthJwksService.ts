@@ -6,14 +6,14 @@ import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class OAuthJwksService {
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
-    public static getApiOauth2Jwks(): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/oauth2/jwks',
-        });
-    }
+	/**
+	 * @returns any OK
+	 * @throws ApiError
+	 */
+	public static getApiOauth2Jwks(): CancelablePromise<any> {
+		return __request(OpenAPI, {
+			method: 'GET',
+			url: '/api/oauth2/jwks',
+		});
+	}
 }

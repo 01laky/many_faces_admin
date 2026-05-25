@@ -3,6 +3,5 @@
 /* tslint:disable */
 /* eslint-disable */
 export type SetMyFaceRoleModel = {
-    userRoleId?: number;
+	userRoleId?: number;
 };
-

@@ -32,12 +32,8 @@ describe('hubStartPolicy (ASH1-T-C02…C04)', () => {
 
 	it('ASH1-T-C04: messenger hub skipped without super-admin', () => {
 		const adminToken = jwt({ role: 'ADMIN' });
-		expect(
-			shouldConnectMessengerHub({ isAuthenticated: true, token: adminToken })
-		).toBe(false);
+		expect(shouldConnectMessengerHub({ isAuthenticated: true, token: adminToken })).toBe(false);
 		const superToken = jwt({ role: 'SUPER_ADMIN' });
-		expect(
-			shouldConnectMessengerHub({ isAuthenticated: true, token: superToken })
-		).toBe(true);
+		expect(shouldConnectMessengerHub({ isAuthenticated: true, token: superToken })).toBe(true);
 	});
 });

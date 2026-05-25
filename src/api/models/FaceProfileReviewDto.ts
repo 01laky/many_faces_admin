@@ -3,8 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type FaceProfileReviewDto = {
-    title?: string | null;
-    text?: string | null;
-    stars?: number | null;
+	title?: string | null;
+	text?: string | null;
+	stars?: number | null;
 };
-

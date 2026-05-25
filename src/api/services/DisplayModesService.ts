@@ -6,31 +6,27 @@ import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class DisplayModesService {
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
-    public static getApiDisplayModes(): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/DisplayModes',
-        });
-    }
-    /**
-     * @returns any OK
-     * @throws ApiError
-     */
-    public static getApiDisplayModes1({
-        id,
-    }: {
-        id: number,
-    }): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/DisplayModes/{id}',
-            path: {
-                'id': id,
-            },
-        });
-    }
+	/**
+	 * @returns any OK
+	 * @throws ApiError
+	 */
+	public static getApiDisplayModes(): CancelablePromise<any> {
+		return __request(OpenAPI, {
+			method: 'GET',
+			url: '/api/DisplayModes',
+		});
+	}
+	/**
+	 * @returns any OK
+	 * @throws ApiError
+	 */
+	public static getApiDisplayModes1({ id }: { id: number }): CancelablePromise<any> {
+		return __request(OpenAPI, {
+			method: 'GET',
+			url: '/api/DisplayModes/{id}',
+			path: {
+				id: id,
+			},
+		});
+	}
 }

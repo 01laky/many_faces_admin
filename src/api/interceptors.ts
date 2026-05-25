@@ -179,8 +179,7 @@ export function setupAxiosInterceptors() {
 				);
 
 				const tokenData = response.data;
-				const newAccessToken: string | undefined =
-					tokenData?.accessToken ?? tokenData?.token;
+				const newAccessToken: string | undefined = tokenData?.accessToken ?? tokenData?.token;
 
 				if (!newAccessToken) {
 					throw new Error('No access token in refresh response');
@@ -209,10 +208,7 @@ export function setupAxiosInterceptors() {
 				processQueue(refreshError);
 				const axiosRefreshErr = refreshError as AxiosError | undefined;
 				if (
-					isRateLimitResponse(
-						axiosRefreshErr?.response?.status,
-						axiosRefreshErr?.response?.data
-					)
+					isRateLimitResponse(axiosRefreshErr?.response?.status, axiosRefreshErr?.response?.data)
 				) {
 					return Promise.reject(refreshError);
 				}
