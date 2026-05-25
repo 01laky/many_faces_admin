@@ -21,6 +21,7 @@ import { useOperatorAiSystemSettings } from '@/hooks/api/useOperatorAiApi';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
 import { filterAdminSidebarNavItemsForAiSystem } from '@/utils/adminSidebarNavAi';
 import { AppBrandTitle } from '@/components/AppBrandTitle/AppBrandTitle';
+import { GlobalSearchAutocomplete } from '@/components/GlobalSearch';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import './AdminLayout.scss';
 
@@ -150,6 +151,12 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 					</button>
 					<AppBrandTitle className="admin-header__title">Many Faces Admin</AppBrandTitle>
 				</div>
+
+				{isSuperAdmin && (
+					<div className="admin-header__center">
+						<GlobalSearchAutocomplete />
+					</div>
+				)}
 
 				<div className="admin-header__right">
 					{user && (
