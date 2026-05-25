@@ -1,16 +1,18 @@
 # Many Faces AI (MFAI) - admin panel application
 
+**Version:** [`1.0.0`](./VERSION) · [Changelog](./CHANGELOG.md)
+
 **Operator cockpit for Many Faces AI.** This React app is where **platform super-admins** manage faces, pages, users, moderation, operator AI chat, dashboard metrics, and settings that shape the user-facing portal.
 
 **Sign-in:** **`SUPER_ADMIN` only** — global **`ADMIN`** must use **`many_faces_portal`**. Guide: [`docs/guides/admin-superadmin-only-access.md`](../docs/guides/admin-superadmin-only-access.md). Grid layouts, AI chat, and infra settings configured here drive portal and backend behaviour.
 
 ### Three pillars
 
-| Pillar | Highlights |
-| ------ | ----------- |
-| **Security (ASH1)** | Super-admin gate: JWT role **and** `platform:super` capability (fail closed). HTTPS-only production API; SignalR JWT via `accessTokenFactory`; sanitized moderation previews. CI: `node ../scripts/verify-admin-security-tests.mjs`. Full guide: [`docs/SECURITY.md`](./docs/SECURITY.md). |
-| **AI** | **Operator AI chat** (SignalR, threaded conversations); stats modes **off / inline / live** (platform KPIs attached to prompts); **live map-reduce** parallel cap + Redis TTL in Settings. Dashboard: [`../docs/guides/admin-dashboard-metrics.md`](../docs/guides/admin-dashboard-metrics.md). |
-| **Configuration** | **Grid layout editor** (`gridSchema` → portal/mobile); **Settings → Infrastructure** — mail worker (SMTP/From in DB), push/search smoke, AI options; faces, pages, roles, route translations; global search autocomplete. Mail: [`../docs/guides/admin-mailer-configuration.md`](../docs/guides/admin-mailer-configuration.md). |
+| Pillar              | Highlights                                                                                                                                                                                                                                                                                                                      |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Security (ASH1)** | Super-admin gate: JWT role **and** `platform:super` capability (fail closed). HTTPS-only production API; SignalR JWT via `accessTokenFactory`; sanitized moderation previews. CI: `node ../scripts/verify-admin-security-tests.mjs`. Full guide: [`docs/SECURITY.md`](./docs/SECURITY.md).                                      |
+| **AI**              | **Operator AI chat** (SignalR, threaded conversations); stats modes **off / inline / live** (platform KPIs attached to prompts); **live map-reduce** parallel cap + Redis TTL in Settings. Dashboard: [`../docs/guides/admin-dashboard-metrics.md`](../docs/guides/admin-dashboard-metrics.md).                                 |
+| **Configuration**   | **Grid layout editor** (`gridSchema` → portal/mobile); **Settings → Infrastructure** — mail worker (SMTP/From in DB), push/search smoke, AI options; faces, pages, roles, route translations; global search autocomplete. Mail: [`../docs/guides/admin-mailer-configuration.md`](../docs/guides/admin-mailer-configuration.md). |
 
 ### Security at a glance
 
@@ -22,16 +24,16 @@
 - Moderation previews and grid schema fields sanitized client-side (defense in depth).
 - CI gate: `node scripts/verify-admin-security-tests.mjs` — see [`docs/SECURITY.md`](./docs/SECURITY.md).
 
-| Start here        | Link                                                                                                |
-| ----------------- | --------------------------------------------------------------------------------------------------- |
-| **Security**      | [`docs/SECURITY.md`](./docs/SECURITY.md) — sign-in, tokens, HTTPS, SignalR, production checklist   |
-| Run in full stack | `../scripts/start-all-dev.sh` from `many_faces_main`                                                |
-| Local app (LAN)   | `http://localhost:8090` / `https://localhost:8091` via admin proxy                                  |
-| Local app (host)  | `https://localhost:8082` (`yarn dev` / Docker admin container) — see [`dev-https.md`](../docs/guides/dev-https.md) |
-| Access policy     | [`docs/guides/admin-superadmin-only-access.md`](../docs/guides/admin-superadmin-only-access.md)     |
-| Performance / Query | [`docs/performance-and-query-appendix.md`](./docs/performance-and-query-appendix.md)              |
-| Design guide      | [`docs/guides/admin-ui-list-and-detail-pages.md`](../docs/guides/admin-ui-list-and-detail-pages.md) |
-| AI dashboard/chat | [`docs/guides/admin-dashboard-metrics.md`](../docs/guides/admin-dashboard-metrics.md)               |
+| Start here          | Link                                                                                                               |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **Security**        | [`docs/SECURITY.md`](./docs/SECURITY.md) — sign-in, tokens, HTTPS, SignalR, production checklist                   |
+| Run in full stack   | `../scripts/start-all-dev.sh` from `many_faces_main`                                                               |
+| Local app (LAN)     | `http://localhost:8090` / `https://localhost:8091` via admin proxy                                                 |
+| Local app (host)    | `https://localhost:8082` (`yarn dev` / Docker admin container) — see [`dev-https.md`](../docs/guides/dev-https.md) |
+| Access policy       | [`docs/guides/admin-superadmin-only-access.md`](../docs/guides/admin-superadmin-only-access.md)                    |
+| Performance / Query | [`docs/performance-and-query-appendix.md`](./docs/performance-and-query-appendix.md)                               |
+| Design guide        | [`docs/guides/admin-ui-list-and-detail-pages.md`](../docs/guides/admin-ui-list-and-detail-pages.md)                |
+| AI dashboard/chat   | [`docs/guides/admin-dashboard-metrics.md`](../docs/guides/admin-dashboard-metrics.md)                              |
 
 ```mermaid
 flowchart LR
