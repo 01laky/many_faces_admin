@@ -30,6 +30,7 @@ import {
 	ChatPage,
 	UserChatPage,
 	SettingsPage,
+	AdminProfilePage,
 } from './lazyAdminPages';
 import { RouteLoadingFallback } from './RouteLoadingFallback';
 import { protectedLayoutRoute } from './routeHelpers';
@@ -50,6 +51,7 @@ export function AppRoutes() {
 		chat: chatPaths,
 		userChat: userChatPaths,
 		settings: settingsPaths,
+		profile: profilePaths,
 	} = useAdminRoutePaths();
 
 	useEffect(() => {
@@ -254,6 +256,14 @@ export function AppRoutes() {
 							key={path}
 							path={path}
 							element={protectedLayoutRoute(withLayout, <SettingsPage />)}
+						/>
+					))}
+
+					{profilePaths.map((path) => (
+						<Route
+							key={path}
+							path={path}
+							element={protectedLayoutRoute(withLayout, <AdminProfilePage />)}
 						/>
 					))}
 

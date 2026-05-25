@@ -17,6 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { isSuperAdminFromToken } from '@/utils/platformAccess';
 import { useOperatorUserChatConversations } from '@/hooks/api/useOperatorUserChatApi';
+import { useAdminMeProfile } from '@/hooks/api/useAdminMeProfileApi';
 import { useOperatorAiSystemSettings } from '@/hooks/api/useOperatorAiApi';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
 import { filterAdminSidebarNavItemsForAiSystem } from '@/utils/adminSidebarNavAi';
@@ -49,6 +50,12 @@ const SETTINGS_NAV_ITEM: NavItem = {
 	icon: '⚙️',
 };
 
+const ADMIN_PROFILE_NAV_ITEM: NavItem = {
+	path: '/profile',
+	labelKey: 'pages.adminProfile.title',
+	icon: '👤',
+};
+
 const DESKTOP_BREAKPOINT = 1024;
 
 interface AdminLayoutProps {
@@ -61,7 +68,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 	const location = useLocation();
 	const navigate = useNavigate();
 	const { t } = useTranslation('common');
-	const { user, logout, token } = useAuth();
+	const { user, logout, token, isAuthenticated } = useAuth();
 	const getLocalizedPath = useLocalizedLink();
 	const { confirm, ConfirmModalHost } = useConfirmModal();
 	const reduceMotion = useReducedMotion();
@@ -74,8 +81,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 		: 0;
 
 	const baseNavItems = isSuperAdmin
-		? [...NAV_ITEMS, ...SUPER_ADMIN_NAV_ITEMS, SETTINGS_NAV_ITEM]
-		: [...NAV_ITEMS, SETTINGS_NAV_ITEM];
+		? [...NAV_ITEMS, ...SUPER_ADMIN_NAV_ITEMS, ADMIN_PROFILE_NAV_ITEM, SETTINGS_NAV_ITEM]
+		: [...NAV_ITEMS, ADMIN_PROFILE_NAV_ITEM, SETTINGS_NAV_ITEM];
 	const navItems = filterAdminSidebarNavItemsForAiSystem(baseNavItems, operatorAiGloballyEnabled);
 
 	// Detect screen size
@@ -112,6 +119,12 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 		}
 	};
 
+	const { data: meProfile } = useAdminMeProfile(isAuthenticated);
+
+	const goToProfile = () => {
+		navigate(getLocalizedPath('/profile'));
+	};
+
 	const goToSettings = () => {
 		navigate(getLocalizedPath('/settings'));
 	};
@@ -127,7 +140,22 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 		}
 	};
 
+	const headerAvatarUrl = meProfile?.globalAvatarUrl ?? null;
+	const headerAvatarInitial = (
+		user?.firstName?.charAt(0) ||
+		user?.email?.charAt(0) ||
+		'?'
+	).toUpperCase();
 	const sidebarWidth = sidebarOpen && !isMobile ? 260 : 0;
+
+	const renderAvatar = (className: string) =>
+		headerAvatarUrl ? (
+			<img src={headerAvatarUrl} alt="" className={className} />
+		) : (
+			<span className={className} aria-hidden>
+				{headerAvatarInitial}
+			</span>
+		);
 
 	return (
 		<div className="admin-layout">
@@ -168,13 +196,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 										className="admin-header__avatar-trigger"
 										aria-label={t('common.userMenu', { defaultValue: 'User menu' })}
 									>
-										<span className="admin-header__avatar" aria-hidden>
-											{user.email.charAt(0).toUpperCase()}
-										</span>
+										{renderAvatar('admin-header__avatar')}
 									</button>
 								</DropdownMenu.Trigger>
 								<DropdownMenu.Portal>
 									<DropdownMenu.Content className="admin-header__menu" sideOffset={8} align="end">
+										<DropdownMenu.Item className="admin-header__menu-item" onSelect={goToProfile}>
+											{t('pages.adminProfile.title')}
+										</DropdownMenu.Item>
 										<DropdownMenu.Item className="admin-header__menu-item" onSelect={goToSettings}>
 											{t('pages.settings.title') || 'Settings'}
 										</DropdownMenu.Item>
@@ -190,7 +219,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 									</DropdownMenu.Content>
 								</DropdownMenu.Portal>
 							</DropdownMenu.Root>
-							<span className="admin-header__email">{user.email}</span>
 						</div>
 					)}
 				</div>
@@ -263,9 +291,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 				{user && (
 					<div className="admin-sidebar__footer">
 						<div className="admin-sidebar__user-card">
-							<div className="admin-sidebar__user-avatar">{user.email.charAt(0).toUpperCase()}</div>
+							{renderAvatar('admin-sidebar__user-avatar')}
 							<div className="admin-sidebar__user-info">
-								<div className="admin-sidebar__user-email">{user.email}</div>
 								{user.firstName && user.lastName && (
 									<div className="admin-sidebar__user-name">
 										{user.firstName} {user.lastName}

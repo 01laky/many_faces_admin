@@ -12,6 +12,7 @@ const ROUTE_IDS = [
 	'chat',
 	'userChat',
 	'settings',
+	'profile',
 ] as const;
 
 export type AdminRouteId = (typeof ROUTE_IDS)[number];

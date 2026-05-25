@@ -82,3 +82,8 @@ export const UserChatPage = lazy(() =>
 export const SettingsPage = lazy(() =>
 	import('../pages/SettingsPage').then((m) => ({ default: m.SettingsPage }))
 );
+export const AdminProfilePage = lazy(() =>
+	import('../pages/AdminProfilePage/AdminProfilePage').then((m) => ({
+		default: m.AdminProfilePage,
+	}))
+);

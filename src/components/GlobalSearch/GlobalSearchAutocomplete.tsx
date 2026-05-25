@@ -24,7 +24,7 @@ import './GlobalSearchAutocomplete.scss';
 const LISTBOX_ID_SUFFIX = '-listbox';
 
 export function GlobalSearchAutocomplete() {
-	const { token } = useAuth();
+	const { token, user } = useAuth();
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
 	const { t } = useTranslation('common');
@@ -108,12 +108,12 @@ export function GlobalSearchAutocomplete() {
 
 	const selectHit = useCallback(
 		(hit: AdminSearchHitDto) => {
-			const path = buildAdminSearchDetailPath(hit.routeParams, getLocalizedPath);
+			const path = buildAdminSearchDetailPath(hit.routeParams, getLocalizedPath, user?.id);
 			if (!path) return;
 			collapse();
 			navigate(path);
 		},
-		[collapse, getLocalizedPath, navigate]
+		[collapse, getLocalizedPath, navigate, user?.id]
 	);
 
 	const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -134,7 +134,7 @@ export function GlobalSearchAutocomplete() {
 		} else if (event.key === 'Enter' && activeIndex >= 0) {
 			event.preventDefault();
 			const hit = hits[activeIndex];
-			if (hit && isAdminSearchHitNavigable(hit.routeParams, getLocalizedPath)) {
+			if (hit && isAdminSearchHitNavigable(hit.routeParams, getLocalizedPath, user?.id)) {
 				selectHit(hit);
 			}
 		}
@@ -169,116 +169,124 @@ export function GlobalSearchAutocomplete() {
 			</button>
 
 			{expanded && (
-				<div className="global-search__field-wrap">
-					<input
-						ref={inputRef}
-						type="search"
-						className="global-search__input"
-						role="combobox"
-						aria-expanded={showDropdown}
-						aria-controls={showDropdown ? listboxId : undefined}
-						aria-autocomplete="list"
-						aria-activedescendant={
-							activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined
-						}
-						placeholder={t('globalSearch.placeholder')}
-						value={query}
-						onChange={(event) => handleQueryChange(event.target.value)}
-						onKeyDown={handleKeyDown}
-						autoComplete="off"
-						data-testid="global-search-input"
-					/>
-					{isLoading && <span className="global-search__spinner" aria-hidden="true" />}
-
-					<div className="global-search__filters" data-testid="global-search-type-filters">
-						{ADMIN_SEARCH_ENTITY_TYPES.map((entityType) => {
-							const active = selectedTypes.includes(entityType);
-							return (
-								<button
-									key={entityType}
-									type="button"
-									className={`global-search__filter-chip ${active ? 'global-search__filter-chip--active' : ''}`}
-									aria-pressed={active}
-									onClick={() => toggleEntityType(entityType)}
-								>
-									{t(adminSearchEntityTypeKey(entityType), { defaultValue: entityType })}
-								</button>
-							);
-						})}
+				<>
+					<div className="global-search__field-wrap">
+						<input
+							ref={inputRef}
+							type="search"
+							className="global-search__input"
+							role="combobox"
+							aria-expanded={showDropdown}
+							aria-controls={showDropdown ? listboxId : undefined}
+							aria-autocomplete="list"
+							aria-activedescendant={
+								activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined
+							}
+							placeholder={t('globalSearch.placeholder')}
+							value={query}
+							onChange={(event) => handleQueryChange(event.target.value)}
+							onKeyDown={handleKeyDown}
+							autoComplete="off"
+							data-testid="global-search-input"
+						/>
+						{isLoading && <span className="global-search__spinner" aria-hidden="true" />}
 					</div>
 
-					{showDropdown && (
-						<div className="global-search__dropdown">
-							{!searchAvailable && (
-								<p className="global-search__message global-search__message--error">
-									{t('globalSearch.unavailable')}
-									{message ? `: ${message}` : ''}
-								</p>
-							)}
-
-							{searchAvailable && status === 'ready' && hits.length === 0 && (
-								<p className="global-search__message">
-									{t('globalSearch.noResults', { query: debouncedQuery })}
-								</p>
-							)}
-
-							{hits.length > 0 && (
-								<ul
-									ref={listRef}
-									id={listboxId}
-									className="global-search__list"
-									role="listbox"
-									aria-busy={status === 'loadingMore'}
-								>
-									{hits.map((hit, index) => {
-										const navigable = isAdminSearchHitNavigable(hit.routeParams, getLocalizedPath);
-										const label = pickSearchHighlightLabel(hit);
-										return (
-											<li key={`${hit.entityType}-${hit.entityId}-${index}`} role="presentation">
-												<button
-													type="button"
-													id={`${listboxId}-option-${index}`}
-													role="option"
-													aria-selected={index === activeIndex}
-													className={`global-search__option ${index === activeIndex ? 'global-search__option--active' : ''} ${!navigable ? 'global-search__option--disabled' : ''}`}
-													disabled={!navigable}
-													onMouseEnter={() => setActiveIndex(index)}
-													onClick={() => navigable && selectHit(hit)}
-												>
-													<span className="global-search__badge">
-														{t(adminSearchEntityTypeKey(hit.entityType), {
-															defaultValue: hit.entityType,
-														})}
-													</span>
-													<span className="global-search__label">
-														<span className="global-search__title">
-															{label.isHtml ? renderSafeSearchHighlight(label.text) : label.text}
-														</span>
-														{hit.subtitle && (
-															<span className="global-search__subtitle">{hit.subtitle}</span>
-														)}
-													</span>
-												</button>
-											</li>
-										);
-									})}
-									{hasMore && (
-										<li className="global-search__load-more" aria-live="polite">
-											{status === 'loadingMore' ? t('globalSearch.loadingMore') : null}
-										</li>
-									)}
-									<li aria-hidden="true">
-										<div ref={sentinelRef} className="global-search__sentinel" />
-									</li>
-								</ul>
-							)}
-
-							{searchAvailable && queryValid && status === 'loading' && (
-								<p className="global-search__message">{t('globalSearch.loading')}</p>
-							)}
+					<div className="global-search__popover">
+						<div className="global-search__filters" data-testid="global-search-type-filters">
+							{ADMIN_SEARCH_ENTITY_TYPES.map((entityType) => {
+								const active = selectedTypes.includes(entityType);
+								return (
+									<button
+										key={entityType}
+										type="button"
+										className={`global-search__filter-chip ${active ? 'global-search__filter-chip--active' : ''}`}
+										aria-pressed={active}
+										onClick={() => toggleEntityType(entityType)}
+									>
+										{t(adminSearchEntityTypeKey(entityType), { defaultValue: entityType })}
+									</button>
+								);
+							})}
 						</div>
-					)}
-				</div>
+
+						{showDropdown && (
+							<div className="global-search__dropdown">
+								{!searchAvailable && (
+									<p className="global-search__message global-search__message--error">
+										{t('globalSearch.unavailable')}
+										{message ? `: ${message}` : ''}
+									</p>
+								)}
+
+								{searchAvailable && status === 'ready' && hits.length === 0 && (
+									<p className="global-search__message">
+										{t('globalSearch.noResults', { query: debouncedQuery })}
+									</p>
+								)}
+
+								{hits.length > 0 && (
+									<ul
+										ref={listRef}
+										id={listboxId}
+										className="global-search__list"
+										role="listbox"
+										aria-busy={status === 'loadingMore'}
+									>
+										{hits.map((hit, index) => {
+											const navigable = isAdminSearchHitNavigable(
+												hit.routeParams,
+												getLocalizedPath,
+												user?.id
+											);
+											const label = pickSearchHighlightLabel(hit);
+											return (
+												<li key={`${hit.entityType}-${hit.entityId}-${index}`} role="presentation">
+													<button
+														type="button"
+														id={`${listboxId}-option-${index}`}
+														role="option"
+														aria-selected={index === activeIndex}
+														className={`global-search__option ${index === activeIndex ? 'global-search__option--active' : ''} ${!navigable ? 'global-search__option--disabled' : ''}`}
+														disabled={!navigable}
+														onMouseEnter={() => setActiveIndex(index)}
+														onClick={() => navigable && selectHit(hit)}
+													>
+														<span className="global-search__badge">
+															{t(adminSearchEntityTypeKey(hit.entityType), {
+																defaultValue: hit.entityType,
+															})}
+														</span>
+														<span className="global-search__label">
+															<span className="global-search__title">
+																{label.isHtml ? renderSafeSearchHighlight(label.text) : label.text}
+															</span>
+															{hit.subtitle && (
+																<span className="global-search__subtitle">{hit.subtitle}</span>
+															)}
+														</span>
+													</button>
+												</li>
+											);
+										})}
+										{hasMore && (
+											<li className="global-search__load-more" aria-live="polite">
+												{status === 'loadingMore' ? t('globalSearch.loadingMore') : null}
+											</li>
+										)}
+										<li aria-hidden="true">
+											<div ref={sentinelRef} className="global-search__sentinel" />
+										</li>
+									</ul>
+								)}
+
+								{searchAvailable && queryValid && status === 'loading' && (
+									<p className="global-search__message">{t('globalSearch.loading')}</p>
+								)}
+							</div>
+						)}
+					</div>
+				</>
 			)}
 		</div>
 	);

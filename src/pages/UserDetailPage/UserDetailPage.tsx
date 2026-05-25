@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Container, Row, Col } from 'react-bootstrap';
 import { toast } from 'react-toastify';
@@ -32,8 +32,9 @@ export function UserDetailPage() {
 	const getLocalizedPath = useLocalizedLink();
 	const { confirm, ConfirmModalHost } = useConfirmModal();
 
-	const { token } = useAuth();
-	const { data: user, isLoading, error } = useOperatorUserDetail(userId);
+	const { token, user: authUser } = useAuth();
+	const isSelf = Boolean(authUser?.id && userId && authUser.id === userId);
+	const { data: user, isLoading, error } = useOperatorUserDetail(userId, { enabled: !isSelf });
 	const { data: faceRoles = [] } = useFaceRoles();
 	const { globalBan, globalUnban, faceBan, faceUnban, setFaceRole } =
 		useOperatorUserMutations(userId);
@@ -132,6 +133,10 @@ export function UserDetailPage() {
 			toast.error(mutationErrorMessage(e));
 		}
 	};
+
+	if (isSelf) {
+		return <Navigate to={getLocalizedPath('/profile')} replace />;
+	}
 
 	if (isLoading) {
 		return (

@@ -24,6 +24,7 @@ const routeKeys: Record<string, string> = {
 	userChat: 'routes.userChat',
 	'user-chat': 'routes.userChat',
 	settings: 'routes.settings',
+	profile: 'routes.profile',
 };
 
 // Map of route keys to English route names (reverse lookup)
@@ -37,6 +38,7 @@ const routeKeyToEnglish: Record<string, string> = {
 	'routes.chat': 'chat',
 	'routes.userChat': 'user-chat',
 	'routes.settings': 'settings',
+	'routes.profile': 'profile',
 };
 
 /**

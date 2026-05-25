@@ -42,11 +42,11 @@ export interface FaceRoleOption {
 
 const operatorUserDetailKey = (id: string) => ['operator-user-detail', id] as const;
 
-export function useOperatorUserDetail(userId: string) {
+export function useOperatorUserDetail(userId: string, options?: { enabled?: boolean }) {
 	return useQuery({
 		queryKey: operatorUserDetailKey(userId),
 		queryFn: async () => (await fetchOperatorUserDetail(userId)) as OperatorUserDetail,
-		enabled: !!userId,
+		enabled: !!userId && (options?.enabled ?? true),
 	});
 }
 

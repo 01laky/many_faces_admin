@@ -116,6 +116,7 @@ $transition-speed: 0.3s;
 		font-size: 0.9rem;
 		flex-shrink: 0;
 		border: 1px solid rgba(255, 255, 255, 0.3);
+		object-fit: cover;
 		transition:
 			background 0.2s,
 			border-color 0.2s;
@@ -396,6 +397,7 @@ $transition-speed: 0.3s;
 		font-weight: 600;
 		font-size: 0.9rem;
 		flex-shrink: 0;
+		object-fit: cover;
 	}
 
 	&__user-info {

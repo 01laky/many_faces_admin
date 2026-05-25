@@ -1,0 +1,61 @@
+.admin-profile-page {
+	.admin-profile-email-banner {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 1rem;
+		padding: 0.75rem 1rem;
+		margin-bottom: 1rem;
+		border-radius: 8px;
+		background: #fff3cd;
+		border: 1px solid #ffecb5;
+		color: #664d03;
+
+		p {
+			margin: 0;
+			flex: 1;
+			min-width: 200px;
+		}
+	}
+
+	.admin-profile-section-title {
+		font-size: 1.1rem;
+		margin: 0 0 1rem;
+	}
+
+	.admin-profile-actions {
+		margin-top: 1rem;
+	}
+
+	.admin-profile-avatar-row {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.admin-profile-avatar-image,
+	.admin-profile-avatar-fallback {
+		width: 64px;
+		height: 64px;
+		border-radius: 50%;
+		object-fit: cover;
+	}
+
+	.admin-profile-avatar-fallback {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		background: rgba(13, 110, 253, 0.15);
+		font-weight: 600;
+		font-size: 1.5rem;
+	}
+
+	.admin-profile-avatar-input {
+		display: none;
+	}
+
+	.admin-profile-empty-faces {
+		color: #64748b;
+		margin: 0;
+	}
+}

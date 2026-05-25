@@ -8,7 +8,8 @@ export type LocalizedPathBuilder = (englishPath: string) => string;
  */
 export function buildAdminSearchDetailPath(
 	routeParams: AdminSearchRouteParams | null | undefined,
-	getLocalizedPath: LocalizedPathBuilder
+	getLocalizedPath: LocalizedPathBuilder,
+	currentUserId?: string | null
 ): string | null {
 	if (!routeParams?.type) return null;
 
@@ -18,6 +19,9 @@ export function buildAdminSearchDetailPath(
 		case 'user': {
 			const userId = ids.userId ?? ids.entityId;
 			if (!userId) return null;
+			if (currentUserId && userId === currentUserId) {
+				return getLocalizedPath('/profile');
+			}
 			return getLocalizedPath(`/users/${userId}`);
 		}
 		case 'face': {
@@ -83,7 +87,8 @@ export function buildAdminSearchDetailPath(
 /** True when the hit has enough routing data to navigate safely. */
 export function isAdminSearchHitNavigable(
 	routeParams: AdminSearchRouteParams | null | undefined,
-	getLocalizedPath: LocalizedPathBuilder
+	getLocalizedPath: LocalizedPathBuilder,
+	currentUserId?: string | null
 ): boolean {
-	return buildAdminSearchDetailPath(routeParams, getLocalizedPath) !== null;
+	return buildAdminSearchDetailPath(routeParams, getLocalizedPath, currentUserId) !== null;
 }

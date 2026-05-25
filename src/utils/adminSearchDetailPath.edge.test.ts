@@ -58,4 +58,14 @@ describe('adminSearchDetailPath (GSH1-T-U05, GSH1-T-U06)', () => {
 			)
 		).toBe(false);
 	});
+
+	it('SAP-U8: self user search hit routes to profile', () => {
+		expect(
+			buildAdminSearchDetailPath(
+				{ type: 'user', ids: { userId: 'me-1' } },
+				getLocalizedPath,
+				'me-1'
+			)
+		).toBe('/en/profile');
+	});
 });

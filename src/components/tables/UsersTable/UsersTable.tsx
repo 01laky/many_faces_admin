@@ -6,6 +6,8 @@ import { useUsers, type User } from '@/hooks/api/useUsersApi';
 import { Button } from '@/components/radix/Button';
 import { Input } from '@/components/radix/Input';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
+import { useAuth } from '@/contexts/AuthContext';
+import { resolveAdminUserDetailPath } from '@/utils/resolveAdminUserDetailPath';
 import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
 import { sortingStateToApi } from '@/utils/adminListQuery';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
@@ -14,6 +16,7 @@ export function UsersTable() {
 	const { t } = useTranslation('common');
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
+	const { user: authUser } = useAuth();
 	const [sorting, setSorting] = useState<SortingState>([{ id: 'createdAt', desc: true }]);
 	const [search, setSearch] = useState('');
 	const [pagination, setPagination] = useState<PaginationState>({
@@ -106,7 +109,9 @@ export function UsersTable() {
 			pagination={pagination}
 			onPaginationChange={setPagination}
 			headerActions={headerToolbar}
-			onRowClick={(user) => navigate(getLocalizedPath(`/users/${user.id}`))}
+			onRowClick={(rowUser) =>
+				navigate(resolveAdminUserDetailPath(rowUser.id, authUser?.id, getLocalizedPath))
+			}
 		/>
 	);
 }
