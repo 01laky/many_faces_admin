@@ -2,9 +2,7 @@
 
 **Operator cockpit for Many Faces AI.** This React app is where **platform super-admins** manage faces, pages, users, moderation, operator AI chat, dashboard metrics, and settings that shape the user-facing portal.
 
-**Sign-in:** **`SUPER_ADMIN` only** — global **`ADMIN`** must use **`many_faces_portal`**. Guide: [`docs/guides/admin-superadmin-only-access.md`](../docs/guides/admin-superadmin-only-access.md).
-
-> **First visit?** This is the **control plane** — grid layouts edited here render on the portal; AI chat and infra settings configured here drive backend behaviour.
+**Sign-in:** **`SUPER_ADMIN` only** — global **`ADMIN`** must use **`many_faces_portal`**. Guide: [`docs/guides/admin-superadmin-only-access.md`](../docs/guides/admin-superadmin-only-access.md). Grid layouts, AI chat, and infra settings configured here drive portal and backend behaviour.
 
 ### Three pillars
 
