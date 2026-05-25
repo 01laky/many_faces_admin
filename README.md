@@ -2,6 +2,8 @@
 
 **Version:** [`1.0.0`](./VERSION) · [Changelog](./CHANGELOG.md)
 
+**Author:** Ladislav Kostolny · [01laky@gmail.com](mailto:01laky@gmail.com)
+
 **Operator cockpit for Many Faces AI.** This React app is where **platform super-admins** manage faces, pages, users, moderation, operator AI chat, dashboard metrics, and settings that shape the user-facing portal.
 
 **Sign-in:** **`SUPER_ADMIN` only** — global **`ADMIN`** must use **`many_faces_portal`**. Guide: [`docs/guides/admin-superadmin-only-access.md`](../docs/guides/admin-superadmin-only-access.md). Grid layouts, AI chat, and infra settings configured here drive portal and backend behaviour.
