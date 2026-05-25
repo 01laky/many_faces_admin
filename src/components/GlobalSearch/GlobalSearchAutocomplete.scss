@@ -184,6 +184,35 @@
 	&__sentinel {
 		height: 1px;
 	}
+
+	&__filters {
+		position: absolute;
+		top: calc(100% + 0.25rem);
+		left: 0;
+		right: 0;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem;
+		z-index: 12;
+		max-height: 4.5rem;
+		overflow-y: auto;
+	}
+
+	&__filter-chip {
+		font-size: 0.65rem;
+		padding: 0.15rem 0.45rem;
+		border-radius: 999px;
+		border: 1px solid rgba(255, 255, 255, 0.25);
+		background: rgba(15, 23, 42, 0.85);
+		color: #e2e8f0;
+		cursor: pointer;
+		white-space: nowrap;
+
+		&--active {
+			background: rgba(59, 130, 246, 0.35);
+			border-color: rgba(147, 197, 253, 0.8);
+		}
+	}
 }
 
 @keyframes global-search-spin {

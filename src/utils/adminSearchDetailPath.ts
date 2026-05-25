@@ -26,27 +26,27 @@ export function buildAdminSearchDetailPath(
 			return getLocalizedPath(`/faces/${faceId}`);
 		}
 		case 'page': {
-			const pageId = ids.pageId ?? ids.entityId;
+			const pageId = ids.pageId ?? ids.id ?? ids.entityId;
 			if (!pageId) return null;
 			return getLocalizedPath(`/pages/${pageId}`);
 		}
 		case 'album': {
-			const albumId = ids.albumId ?? ids.entityId;
+			const albumId = ids.albumId ?? ids.id ?? ids.entityId;
 			if (!albumId) return null;
 			return getLocalizedPath(`/albums/${albumId}`);
 		}
 		case 'blog': {
-			const blogId = ids.blogId ?? ids.entityId;
+			const blogId = ids.blogId ?? ids.id ?? ids.entityId;
 			if (!blogId) return null;
 			return getLocalizedPath(`/blogs/${blogId}`);
 		}
 		case 'reel': {
-			const reelId = ids.reelId ?? ids.entityId;
+			const reelId = ids.reelId ?? ids.id ?? ids.entityId;
 			if (!reelId) return null;
 			return getLocalizedPath(`/reels/${reelId}`);
 		}
 		case 'story': {
-			const storyId = ids.storyId ?? ids.entityId;
+			const storyId = ids.storyId ?? ids.id ?? ids.entityId;
 			if (!storyId) return null;
 			return getLocalizedPath(`/stories/${storyId}`);
 		}

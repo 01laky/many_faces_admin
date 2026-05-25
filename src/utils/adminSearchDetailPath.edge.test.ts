@@ -38,6 +38,12 @@ describe('adminSearchDetailPath (GSH1-T-U05, GSH1-T-U06)', () => {
 		expect(buildAdminSearchDetailPath({ type, ids }, getLocalizedPath)).toBe(expected);
 	});
 
+	it('GSH1-T-U15: legacy id key maps to CMS detail path', () => {
+		expect(buildAdminSearchDetailPath({ type: 'album', ids: { id: 'a1' } }, getLocalizedPath)).toBe(
+			'/en/albums/a1'
+		);
+	});
+
 	it('GSH1-T-U06: missing faceId on scoped entity returns null', () => {
 		expect(
 			buildAdminSearchDetailPath(

@@ -6,6 +6,7 @@ export type AdminSearchAutocompleteParams = {
 	q: string;
 	offset?: number;
 	pageSize?: number;
+	types?: string[];
 };
 
 /** GET /admin/api/search/autocomplete — Bearer token on admin face prefix. */
@@ -18,6 +19,9 @@ export async function getAdminSearchAutocomplete(
 	url.searchParams.set('q', params.q);
 	url.searchParams.set('offset', String(params.offset ?? 0));
 	url.searchParams.set('pageSize', String(params.pageSize ?? ADMIN_SEARCH_PAGE_SIZE));
+	if (params.types?.length) {
+		url.searchParams.set('types', params.types.join(','));
+	}
 
 	const response = await fetch(url.toString(), {
 		method: 'GET',

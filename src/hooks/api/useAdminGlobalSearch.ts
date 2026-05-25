@@ -8,6 +8,7 @@ import {
 	ADMIN_SEARCH_DEBOUNCE_MS,
 	ADMIN_SEARCH_MIN_QUERY_LENGTH,
 	ADMIN_SEARCH_PAGE_SIZE,
+	type AdminSearchEntityType,
 } from '@/constants/adminGlobalSearchConstants';
 
 export type AdminGlobalSearchStatus = 'idle' | 'loading' | 'loadingMore' | 'ready' | 'error';
@@ -16,6 +17,9 @@ export type UseAdminGlobalSearchResult = {
 	query: string;
 	setQuery: (value: string) => void;
 	debouncedQuery: string;
+	selectedTypes: AdminSearchEntityType[];
+	setSelectedTypes: (types: AdminSearchEntityType[]) => void;
+	toggleEntityType: (type: AdminSearchEntityType) => void;
 	hits: AdminSearchHitDto[];
 	hasMore: boolean;
 	nextOffset: number;
@@ -72,6 +76,7 @@ export function useAdminGlobalSearch({
 }: UseAdminGlobalSearchOptions): UseAdminGlobalSearchResult {
 	const [query, setQueryState] = useState('');
 	const [debouncedQuery, setDebouncedQuery] = useState('');
+	const [selectedTypes, setSelectedTypes] = useState<AdminSearchEntityType[]>([]);
 	const [hits, setHits] = useState<AdminSearchHitDto[]>([]);
 	const [hasMore, setHasMore] = useState(false);
 	const [nextOffset, setNextOffset] = useState(0);
@@ -97,6 +102,7 @@ export function useAdminGlobalSearch({
 		cancelInFlight();
 		setQueryState('');
 		setDebouncedQuery('');
+		setSelectedTypes([]);
 		setHits([]);
 		setHasMore(false);
 		setNextOffset(0);
@@ -107,6 +113,12 @@ export function useAdminGlobalSearch({
 
 	const setQuery = useCallback((value: string) => {
 		setQueryState(value);
+	}, []);
+
+	const toggleEntityType = useCallback((type: AdminSearchEntityType) => {
+		setSelectedTypes((prev) =>
+			prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+		);
 	}, []);
 
 	useEffect(() => {
@@ -129,7 +141,12 @@ export function useAdminGlobalSearch({
 			try {
 				const response = await getAdminSearchAutocomplete(
 					token,
-					{ q, offset, pageSize: ADMIN_SEARCH_PAGE_SIZE },
+					{
+						q,
+						offset,
+						pageSize: ADMIN_SEARCH_PAGE_SIZE,
+						types: selectedTypes.length > 0 ? [...selectedTypes] : undefined,
+					},
 					controller.signal
 				);
 
@@ -157,7 +174,7 @@ export function useAdminGlobalSearch({
 				loadMoreInFlightRef.current = false;
 			}
 		},
-		[token, enabled, cancelInFlight]
+		[token, enabled, cancelInFlight, selectedTypes]
 	);
 
 	useEffect(() => {
@@ -184,8 +201,8 @@ export function useAdminGlobalSearch({
 		}
 
 		void fetchPage(debouncedQuery, 0, 'replace');
-		// eslint-disable-next-line react-hooks/exhaustive-deps -- reset page 0 on debounced query change only
-	}, [debouncedQuery, token, enabled]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- reset page 0 on debounced query or type filter change
+	}, [debouncedQuery, selectedTypes, token, enabled]);
 
 	const loadMore = useCallback(() => {
 		if (!shouldFetchAdminSearch(debouncedQuery)) return;
@@ -198,6 +215,9 @@ export function useAdminGlobalSearch({
 		query,
 		setQuery,
 		debouncedQuery,
+		selectedTypes,
+		setSelectedTypes,
+		toggleEntityType,
 		hits,
 		hasMore,
 		nextOffset,

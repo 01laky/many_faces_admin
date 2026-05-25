@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { useAdminGlobalSearch } from '@/hooks/api/useAdminGlobalSearch';
 import {
+	ADMIN_SEARCH_ENTITY_TYPES,
 	ADMIN_SEARCH_LOAD_MORE_THRESHOLD_PX,
 	ADMIN_SEARCH_MIN_QUERY_LENGTH,
 } from '@/constants/adminGlobalSearchConstants';
@@ -70,8 +71,18 @@ export function GlobalSearchAutocomplete() {
 		}
 	}, [expanded]);
 
-	const { debouncedQuery, hits, hasMore, status, loadMore, searchAvailable, message, query } =
-		search;
+	const {
+		debouncedQuery,
+		hits,
+		hasMore,
+		status,
+		loadMore,
+		searchAvailable,
+		message,
+		query,
+		selectedTypes = [],
+		toggleEntityType,
+	} = search;
 
 	useEffect(() => {
 		if (!expanded || !hasMore || status === 'loadingMore') return;
@@ -178,6 +189,23 @@ export function GlobalSearchAutocomplete() {
 						data-testid="global-search-input"
 					/>
 					{isLoading && <span className="global-search__spinner" aria-hidden="true" />}
+
+					<div className="global-search__filters" data-testid="global-search-type-filters">
+						{ADMIN_SEARCH_ENTITY_TYPES.map((entityType) => {
+							const active = selectedTypes.includes(entityType);
+							return (
+								<button
+									key={entityType}
+									type="button"
+									className={`global-search__filter-chip ${active ? 'global-search__filter-chip--active' : ''}`}
+									aria-pressed={active}
+									onClick={() => toggleEntityType(entityType)}
+								>
+									{t(adminSearchEntityTypeKey(entityType), { defaultValue: entityType })}
+								</button>
+							);
+						})}
+					</div>
 
 					{showDropdown && (
 						<div className="global-search__dropdown">
