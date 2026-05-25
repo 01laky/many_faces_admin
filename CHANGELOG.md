@@ -28,6 +28,22 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 ---
 
+## [1.0.2]
+
+### Added
+
+- Add README shield badges (version, CI, stack tech) via sync-readme-badges.py.
+
+### Added
+
+- Add README shield badges (version, CI, stack tech) via sync-readme-badges.py.
+
+### Changed
+
+### Fixed
+
+---
+
 ## [1.0.1]
 
 ### Changed
@@ -115,7 +131,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 - Admin SPA foundation with OAuth2 and Docker dev scripts.
 
-[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/01laky/many_faces_admin/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/01laky/many_faces_admin/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/01laky/many_faces_admin/compare/v0.8.0...v1.0.0
 [0.8.0]: https://github.com/01laky/many_faces_admin/compare/v0.7.0...v0.8.0
