@@ -22,11 +22,16 @@ export function clearLocalizationBundleCache(app: 'admin' = 'admin'): void {
 	void app;
 }
 
-/** Sentinel keys for post-.resx deploy sanity (story detail + settings infra smoke panel). */
+/** Sentinel keys for post-.resx deploy sanity (story detail + settings infra panels). */
 function bundleHasRequiredAdminKeys(body: LocalizationBundleResponse): boolean {
 	const storyDetail = body.resources?.en?.common?.pages?.storyDetail;
 	const infra = body.resources?.en?.common?.pages?.settings?.infra;
 	const mail = infra?.mail as { title?: string; config?: { save?: string } } | undefined;
+	const push = infra?.push as
+		| {
+				config?: { save?: string; platform?: { sectionTitle?: string } };
+		  }
+		| undefined;
 	return (
 		typeof storyDetail === 'object' &&
 		storyDetail !== null &&
@@ -38,7 +43,11 @@ function bundleHasRequiredAdminKeys(body: LocalizationBundleResponse): boolean {
 		typeof mail === 'object' &&
 		mail !== null &&
 		typeof mail.title === 'string' &&
-		typeof mail.config?.save === 'string'
+		typeof mail.config?.save === 'string' &&
+		typeof push === 'object' &&
+		push !== null &&
+		typeof push.config?.save === 'string' &&
+		typeof push.config?.platform?.sectionTitle === 'string'
 	);
 }
 
@@ -78,7 +87,7 @@ export async function fetchLocalizationBundle(app: 'admin'): Promise<Localizatio
 	const body = (await response.json()) as LocalizationBundleResponse;
 	if (!bundleHasRequiredAdminKeys(body)) {
 		throw new Error(
-			'Admin localization bundle is missing required keys (story detail or settings infra). Rebuild and restart BeDemo.Api, then hard-reload the admin app.'
+			'Admin localization bundle is missing required keys (story detail, mail config, or push config). Rebuild and restart BeDemo.Api, then hard-reload the admin app.'
 		);
 	}
 	if (typeof localStorage !== 'undefined') {

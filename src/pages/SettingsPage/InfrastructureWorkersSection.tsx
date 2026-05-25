@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useInfraWorkerConfig } from '@/hooks/api/useAdminInfraApi';
 import { MailerConfigPanel } from './MailerConfigPanel';
-import { PushSmokePanel } from './PushSmokePanel';
+import { PushConfigPanel } from './PushConfigPanel';
 import { SearchHealthPanel } from './SearchHealthPanel';
 
 /** Settings section: smoke-test mail, push, and search workers (independent of global AI switch). */
@@ -19,7 +19,7 @@ export function InfrastructureWorkersSection() {
 			</div>
 			<div className="settings-page__section-body settings-page__infra">
 				<MailerConfigPanel workerConfig={workerConfig} configLoading={configLoading} />
-				<PushSmokePanel workerConfig={workerConfig} configLoading={configLoading} />
+				<PushConfigPanel workerConfig={workerConfig} configLoading={configLoading} />
 				<SearchHealthPanel />
 			</div>
 		</section>

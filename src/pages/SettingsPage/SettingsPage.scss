@@ -607,4 +607,75 @@
 			margin-top: 0.65rem;
 		}
 	}
+
+	&__push-config {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+		margin-top: 1rem;
+	}
+
+	&__push-config-section {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		padding-top: 1rem;
+		border-top: 1px solid rgba(0, 0, 0, 0.06);
+	}
+
+	&__push-config-heading {
+		margin: 0;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: rgba(0, 0, 0, 0.55);
+	}
+
+	&__push-config-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+		gap: 0.85rem 1rem;
+		max-width: 48rem;
+	}
+
+	&__push-config-row {
+		max-width: 48rem;
+	}
+
+	&__push-config-secret-row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+
+		.radix-input {
+			flex: 1 1 12rem;
+			min-width: 0;
+		}
+	}
+
+	&__push-config-file-input {
+		display: none;
+	}
+
+	&__push-config-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.65rem;
+
+		button[type='button'] {
+			margin-top: 0;
+		}
+	}
+
+	&__push-config-smoke {
+		margin-top: 1.25rem;
+		padding-top: 1.25rem;
+		border-top: 1px solid rgba(0, 0, 0, 0.06);
+
+		button[type='button'] {
+			margin-top: 0.65rem;
+		}
+	}
 }

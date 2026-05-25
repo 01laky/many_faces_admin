@@ -46,3 +46,9 @@ export function readPushDeviceCount(
 ): number | undefined {
 	return config?.push.registeredDeviceCount;
 }
+
+export function readPushEffectiveStatus(
+	config: AdminInfraWorkerConfigDto | undefined
+): string | undefined {
+	return config?.push.effectiveStatus ?? undefined;
+}
