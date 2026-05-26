@@ -11,14 +11,7 @@ import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { useCreateUser, type CreateUserData } from '@/hooks/api/useUsersApi';
 import { toast } from 'react-toastify';
 import '../../styles/forms/UserFormPage.scss';
-
-interface CreateUserFormData {
-	email: string;
-	password: string;
-	confirmPassword: string;
-	firstName?: string;
-	lastName?: string;
-}
+import type { CreateUserFormData } from './types';
 
 export function CreateUserPage() {
 	const { t } = useTranslation('common');

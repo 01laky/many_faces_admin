@@ -6,12 +6,7 @@ import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { isSuperAdminFromToken } from '@/utils/platformAccess';
 import './Sidebar.scss';
-
-interface NavItem {
-	path: string;
-	labelKey: string;
-	icon?: string;
-}
+import type { NavItem } from './types';
 
 export function Sidebar() {
 	const [isOpen, setIsOpen] = useState(true);

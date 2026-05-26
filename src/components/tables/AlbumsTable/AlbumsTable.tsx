@@ -9,10 +9,7 @@ import { sortingStateToApi } from '@/utils/adminListQuery';
 import { getModerationQueueLabel } from '@/utils/contentModeration';
 import { stopAdminTableRowNavigation } from '@/utils/adminTableRowClick';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
-
-interface AlbumsTableProps {
-	faceId: number;
-}
+import type { AlbumsTableProps } from './types';
 
 export function AlbumsTable({ faceId }: AlbumsTableProps) {
 	const { t } = useTranslation('common');

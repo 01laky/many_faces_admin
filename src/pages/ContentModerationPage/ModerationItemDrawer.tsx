@@ -1,8 +1,6 @@
 import { Button, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import type { ModerationItem } from '@/hooks/api/useContentModerationApi';
-import type { useModerationEvents } from '@/hooks/api/useContentModerationApi';
 import { formatOptionalDate, parseModerationFlags } from '@/utils/contentModeration';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import {
@@ -11,14 +9,7 @@ import {
 } from '@/utils/moderationPreview';
 import { ModerationPlainTextPreview } from '@/components/moderation/ModerationPlainTextPreview';
 
-type ModerationEvents = NonNullable<ReturnType<typeof useModerationEvents>['data']>;
-
-interface ModerationItemDrawerProps {
-	item: ModerationItem;
-	events: ModerationEvents | undefined;
-	eventsLoading: boolean;
-	onClose: () => void;
-}
+import type { ModerationItemDrawerProps } from './types';
 
 export function ModerationItemDrawer({
 	item,

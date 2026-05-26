@@ -4,7 +4,7 @@
 
 ## Global Query defaults
 
-Defined in `src/providers/QueryProvider.tsx`:
+Defined in `src/providers/QueryProvider/QueryProvider.tsx`:
 
 | Option                        | Value      | Rationale                                                  |
 | ----------------------------- | ---------- | ---------------------------------------------------------- |

@@ -11,7 +11,7 @@ import { Input } from '@/components/radix/Input';
 import { GridLayoutEditor } from '@/components/page-editor/GridLayoutEditor';
 import type { GridSchema } from '@/components/page-editor/GridLayoutEditor';
 import { ProfileDetailGridLayoutEditor } from '@/components/page-editor/profileDetail/ProfileDetailGridLayoutEditor';
-import type { ProfileDetailGridSchema } from '@/components/page-editor/profileDetail/profileDetailGridTypes';
+import type { ProfileDetailGridSchema } from '@/components/page-editor/profileDetail/types';
 import {
 	parseProfileDetailGridSchema,
 	serializeProfileDetailGridSchema,
@@ -27,14 +27,7 @@ import {
 import { toast } from 'react-toastify';
 import { sanitizeGridSchemaForSave } from '@/utils/gridSchemaSecurity';
 import '../../styles/forms/PageFormPage.scss';
-
-interface EditPageFormData {
-	pageTypeId: number;
-	name: string;
-	description?: string;
-	path: string;
-	index: number;
-}
+import type { EditPageFormData } from './types';
 
 export function EditPagePage() {
 	const { id } = useParams<{ id: string }>();

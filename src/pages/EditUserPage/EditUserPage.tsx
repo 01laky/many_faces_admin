@@ -12,14 +12,7 @@ import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { useUser, useUpdateUser } from '@/hooks/api/useUsersApi';
 import { toast } from 'react-toastify';
 import '../../styles/forms/UserFormPage.scss';
-
-interface EditUserFormData {
-	email: string;
-	password?: string;
-	confirmPassword?: string;
-	firstName?: string;
-	lastName?: string;
-}
+import type { EditUserFormData } from './types';
 
 export function EditUserPage() {
 	const { id } = useParams<{ id: string }>();

@@ -1,18 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import type { SearchHealthDto } from '@/api/models/SearchHealthDto';
 import { adminInfraDevLinks } from '@/config/adminInfraDevLinks';
 import { useRefreshSearchHealth, useSearchHealth } from '@/hooks/api/useAdminInfraApi';
 import { resolveSearchHealthUiState } from '@/utils/adminInfraSearchHealth';
 import { Button } from '@/components/radix/Button';
 import { InfraDevQuickLinks } from './InfraPanelShared';
 
-type SearchHealthPanelProps = {
-	data?: SearchHealthDto;
-	isLoading?: boolean;
-	isError?: boolean;
-	onRefresh?: () => void;
-	refreshPending?: boolean;
-};
+import type { SearchHealthPanelProps } from './types';
 
 export function SearchHealthPanelBody({
 	data,

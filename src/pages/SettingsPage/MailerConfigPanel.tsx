@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import type { AdminInfraWorkerConfigDto } from '@/api/models/AdminInfraWorkerConfigDto';
 import type { MailerTestSelfResultDto } from '@/api/models/MailerTestSelfResultDto';
 import { adminInfraDevLinks } from '@/config/adminInfraDevLinks';
 import { useMailerTestSelf } from '@/hooks/api/useAdminInfraApi';
@@ -34,10 +33,7 @@ import { FormField } from '@/components/radix/FormField';
 import { Input } from '@/components/radix/Input';
 import { InfraDevQuickLinks, InfraStatusStrip } from './InfraPanelShared';
 
-type MailerConfigPanelProps = {
-	workerConfig?: AdminInfraWorkerConfigDto;
-	configLoading?: boolean;
-};
+import type { MailerConfigPanelProps } from './types';
 
 function validationMessageKey(
 	field:

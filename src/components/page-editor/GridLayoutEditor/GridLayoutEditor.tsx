@@ -7,70 +7,8 @@ import { ComponentPickerModal } from '../ComponentPickerModal';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import './GridLayoutEditor.scss';
-
-export type GridComponentType =
-	| 'album'
-	| 'albumGrid'
-	| 'albumCarousel'
-	| 'ad'
-	| 'adGrid'
-	| 'adCarousel'
-	| 'blog'
-	| 'blogGrid'
-	| 'blogCarousel'
-	| 'chatRoom'
-	| 'chatRoomGrid'
-	| 'chatRoomCarousel'
-	| 'videoLounge'
-	| 'videoLoungeGrid'
-	| 'videoLoungeCarousel'
-	| 'userProfile'
-	| 'userProfileGrid'
-	| 'userProfileCarousel'
-	| 'reel'
-	| 'reelGrid'
-	| 'reelCarousel'
-	| 'story'
-	| 'storyGrid'
-	| 'storyCarousel';
-
-export interface GridItem {
-	i: string;
-	x: number;
-	y: number;
-	w: number;
-	h: number;
-	minW?: number;
-	minH?: number;
-	label?: string;
-	componentType?: GridComponentType;
-	title?: string | null;
-	icon?: string | null;
-	boundChatRoomId?: number;
-	boundVideoLoungeId?: number;
-	boundAlbumId?: number;
-	boundBlogId?: number;
-	boundAdId?: number;
-	boundUserProfileId?: string;
-	boundReelId?: number;
-	boundStoryId?: number;
-}
-
-export interface GridSchema {
-	items: GridItem[];
-	breakpoints: Record<string, number>;
-	cols: Record<string, number>;
-	rowHeight: number;
-}
-
-const DEFAULT_BREAKPOINTS = { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 };
-const DEFAULT_COLS = { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 };
-const DEFAULT_ROW_HEIGHT = 80;
-
-interface GridLayoutEditorProps {
-	value: GridSchema | null;
-	onChange: (schema: GridSchema) => void;
-}
+import type { GridComponentType, GridSchema, GridLayoutEditorProps } from './types';
+import { DEFAULT_BREAKPOINTS, DEFAULT_COLS, DEFAULT_ROW_HEIGHT } from './constants';
 
 let itemCounter = 0;
 

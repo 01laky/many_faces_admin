@@ -1,28 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import './GradientPicker.scss';
-
-export interface GradientSettings {
-	type: 'linear' | 'radial';
-	colors: string[];
-	angle: number;
-	animation: 'none' | 'rotate' | 'shift' | 'pulse';
-	animationSpeed: number;
-}
-
-const DEFAULT_GRADIENT: GradientSettings = {
-	type: 'linear',
-	colors: ['#667eea', '#764ba2'],
-	angle: 135,
-	animation: 'shift',
-	animationSpeed: 3,
-};
-
-interface GradientPickerProps {
-	value?: string | null;
-	onChange: (value: string) => void;
-	disabled?: boolean;
-}
+import type { GradientSettings, GradientPickerProps } from './types';
+import { DEFAULT_GRADIENT } from './constants';
 
 function parseGradientSettings(value?: string | null): GradientSettings {
 	if (!value) return { ...DEFAULT_GRADIENT };

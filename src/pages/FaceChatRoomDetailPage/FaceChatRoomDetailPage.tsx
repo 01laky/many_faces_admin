@@ -24,8 +24,7 @@ import { FaceChatRoomDetailMessagesTable } from './FaceChatRoomDetailMessagesTab
 import { FaceChatRoomDetailMembersTable } from './FaceChatRoomDetailMembersTable';
 import { formatDate, formatValue, mutationErrorMessage } from '@/utils/operatorDetailFormat';
 import '@/styles/operatorDetailPage.scss';
-
-type DialogMode = 'deleteChatRoom' | null;
+import type { DialogMode } from './types';
 
 export function FaceChatRoomDetailPage() {
 	const { faceId: faceIdParam, roomId: roomIdParam } = useParams<{
@@ -203,7 +202,7 @@ export function FaceChatRoomDetailPage() {
 							{t('pages.chatRoomDetail.descriptionSection')}
 						</h2>
 						{data.description?.trim() ? (
-							<ModerationPlainTextPreview text={data.description} />
+							<ModerationPlainTextPreview label="" value={data.description} />
 						) : (
 							<p className="text-muted">{t('pages.chatRoomDetail.descriptionEmpty')}</p>
 						)}

@@ -1,10 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
-
-interface GuestRouteProps {
-	children: React.ReactNode;
-}
+import type { GuestRouteProps } from './types';
 
 /**
  * GuestRoute - Redirects authenticated users to homepage

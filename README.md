@@ -2,7 +2,7 @@
 
 <!-- readme-badges:start -->
 
-[![version](https://img.shields.io/badge/version-1.0.2-blue)](./VERSION)
+[![version](https://img.shields.io/badge/version-1.0.3-blue)](./VERSION)
 ![React](https://img.shields.io/badge/React-19-61DAFB)
 ![Vite](https://img.shields.io/badge/Vite-8-646CFF)
 ![Node](https://img.shields.io/badge/Node-22+-339933)

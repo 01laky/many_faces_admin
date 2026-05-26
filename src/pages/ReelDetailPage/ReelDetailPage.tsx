@@ -16,8 +16,7 @@ import { buildLocalizedUserChatPath } from '@/utils/userChatPaths';
 import { reelToPreviewItem } from '@/utils/reelDetailMedia';
 import { formatDate, formatValue, mutationErrorMessage } from '@/utils/operatorDetailFormat';
 import '@/styles/operatorDetailPage.scss';
-
-type DialogMode = 'deleteReel' | 'reject' | 'approveOverride' | null;
+import type { DialogMode } from './types';
 
 export function ReelDetailPage() {
 	const { id } = useParams<{ id: string }>();

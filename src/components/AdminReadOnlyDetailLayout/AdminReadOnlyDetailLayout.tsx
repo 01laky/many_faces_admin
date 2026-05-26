@@ -1,28 +1,10 @@
-import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/radix/Button';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import './AdminReadOnlyDetailLayout.scss';
-
-export interface DetailField {
-	label: string;
-	value: ReactNode;
-}
-
-interface AdminReadOnlyDetailLayoutProps {
-	title: string;
-	backFaceId: number;
-	fields?: DetailField[];
-	beforeFields?: ReactNode;
-	/** When true, only the back control is shown (page supplies its own title in beforeFields). */
-	hideTitle?: boolean;
-	className?: string;
-	isLoading?: boolean;
-	isError?: boolean;
-	errorMessage?: string;
-}
+import type { AdminReadOnlyDetailLayoutProps } from './types';
 
 export function AdminReadOnlyDetailLayout({
 	title,

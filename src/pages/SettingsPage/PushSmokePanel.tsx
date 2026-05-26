@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next';
 import type { PushTestSelfResultDto } from '@/api/models/PushTestSelfResultDto';
-import type { AdminInfraWorkerConfigDto } from '@/api/models/AdminInfraWorkerConfigDto';
 import { adminInfraDevLinks } from '@/config/adminInfraDevLinks';
 import { usePushTestSelf } from '@/hooks/api/useAdminInfraApi';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
@@ -10,10 +9,7 @@ import { readPushConfigured, readPushDeviceCount } from '@/utils/adminInfraStatu
 import { Button } from '@/components/radix/Button';
 import { InfraDevQuickLinks, InfraStatusStrip } from './InfraPanelShared';
 
-type PushSmokePanelProps = {
-	workerConfig?: AdminInfraWorkerConfigDto;
-	configLoading?: boolean;
-};
+import type { PushSmokePanelProps } from './types';
 
 export function PushSmokePanel({ workerConfig, configLoading }: PushSmokePanelProps) {
 	const { t } = useTranslation('common');

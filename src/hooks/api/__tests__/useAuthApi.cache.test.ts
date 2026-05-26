@@ -9,14 +9,18 @@ describe('clearAuthAndCapabilitiesQueries', () => {
 		const qc = new QueryClient();
 		qc.setQueryData(authKeys.token(), { accessToken: 'x' });
 		qc.setQueryData(meCapabilitiesKeys.all, { caps: true });
-		qc.setQueryData(wallTicketsKeys.list(1, 1, 20, ''), { items: [] });
+		qc.setQueryData(wallTicketsKeys.list(1, { page: 1, pageSize: 20, status: '' }), {
+			items: [],
+		});
 		qc.setQueryData(['users', {}], { users: [] });
 
 		clearAuthAndCapabilitiesQueries(qc);
 
 		expect(qc.getQueryData(authKeys.token())).toBeUndefined();
 		expect(qc.getQueryData(meCapabilitiesKeys.all)).toBeUndefined();
-		expect(qc.getQueryData(wallTicketsKeys.list(1, 1, 20, ''))).toBeUndefined();
+		expect(
+			qc.getQueryData(wallTicketsKeys.list(1, { page: 1, pageSize: 20, status: '' }))
+		).toBeUndefined();
 		expect(qc.getQueryData(['users', {}])).toBeUndefined();
 	});
 });

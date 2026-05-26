@@ -5,14 +5,10 @@ import { useConfirmModal } from '@/hooks/useConfirmModal';
 import { useInfraSmokeTest } from '@/hooks/useInfraSmokeTest';
 import { resolveAdminInfraErrorMessage } from '@/utils/resolveAdminInfraErrorMessage';
 import { readMailConfigured } from '@/utils/adminInfraStatusStrip';
-import type { AdminInfraWorkerConfigDto } from '@/api/models/AdminInfraWorkerConfigDto';
 import { Button } from '@/components/radix/Button';
 import { InfraDevQuickLinks, InfraStatusStrip } from './InfraPanelShared';
 
-type MailerSmokePanelProps = {
-	workerConfig?: AdminInfraWorkerConfigDto;
-	configLoading?: boolean;
-};
+import type { MailerSmokePanelProps } from './types';
 
 export function MailerSmokePanel({ workerConfig, configLoading }: MailerSmokePanelProps) {
 	const { t } = useTranslation('common');

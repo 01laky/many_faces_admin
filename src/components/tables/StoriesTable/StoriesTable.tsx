@@ -9,12 +9,7 @@ import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
 import { sortingStateToApi } from '@/utils/adminListQuery';
 import { stopAdminTableRowNavigation } from '@/utils/adminTableRowClick';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
-
-interface StoriesTableProps {
-	faceId: number;
-}
-
-type PublishedFilter = 'all' | 'published' | 'draft';
+import type { StoriesTableProps, PublishedFilter } from './types';
 
 export function StoriesTable({ faceId }: StoriesTableProps) {
 	const { t } = useTranslation('common');

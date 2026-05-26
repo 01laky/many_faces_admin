@@ -9,10 +9,7 @@ import { sortingStateToApi } from '@/utils/adminListQuery';
 import { getModerationQueueLabel } from '@/utils/contentModeration';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
 
-export interface UserDetailAlbumsTableProps {
-	creatorId: string;
-	userFaceIds: number[];
-}
+import type { UserDetailAlbumsTableProps } from './types';
 
 function resolveAlbumDetailFaceId(row: AlbumListItem, userFaceIds: number[]): number {
 	const albumFaceIds = row.faces?.map((f) => f.faceId) ?? [];

@@ -10,10 +10,7 @@ import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
 import { sortingStateToApi } from '@/utils/adminListQuery';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
-
-interface FaceVideoLoungesTableProps {
-	faceId: number;
-}
+import type { FaceVideoLoungesTableProps } from './types';
 
 function formatCellValue(value: number | undefined): string {
 	if (value === null || value === undefined) return '—';

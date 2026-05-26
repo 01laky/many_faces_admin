@@ -11,13 +11,7 @@ import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { useCreateFace, type CreateFaceData } from '@/hooks/api/useFacesApi';
 import { toast } from 'react-toastify';
 import '../../styles/forms/FaceFormPage.scss';
-
-interface CreateFaceFormData {
-	index: string;
-	title: string;
-	description?: string;
-	isPublic: boolean;
-}
+import type { CreateFaceFormData } from './types';
 
 export function CreateFacePage() {
 	const { t } = useTranslation('common');

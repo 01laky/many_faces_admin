@@ -24,8 +24,7 @@ import { resolveBlogBodyPlainText } from '@/utils/blogContentPreview';
 import { blogImagesToMediaItems } from '@/utils/blogDetailMedia';
 import { formatDate, formatValue, mutationErrorMessage } from '@/utils/operatorDetailFormat';
 import '@/styles/operatorDetailPage.scss';
-
-type DialogMode = 'deleteBlog' | 'deleteImage' | 'reject' | 'approveOverride' | null;
+import type { DialogMode } from './types';
 
 function formatConfidence(value: number | null | undefined): string {
 	if (value == null || Number.isNaN(value)) return '—';

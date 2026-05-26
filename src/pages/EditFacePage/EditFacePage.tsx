@@ -15,18 +15,7 @@ import { PagesTable } from '@/components/tables/PagesTable';
 import { toast } from 'react-toastify';
 import { isAdminScopeFace } from '@/utils/adminScopeFace';
 import '../../styles/forms/FaceFormPage.scss';
-
-interface EditFaceFormData {
-	index: string;
-	title: string;
-	description?: string;
-	gradientSettings?: string;
-	isPublic: boolean;
-	visibility: FaceVisibility;
-	allowRecensions: boolean;
-	chatRoomsCreate: boolean;
-	videoLoungesCreate: boolean;
-}
+import type { EditFaceFormData } from './types';
 
 export function EditFacePage() {
 	const { id } = useParams<{ id: string }>();

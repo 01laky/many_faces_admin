@@ -8,15 +8,10 @@ import {
 import type {
 	ModerationFacePending,
 	ModerationFlagCount,
-	useModerationMetrics,
 } from '@/hooks/api/useContentModerationApi';
 import { ModerationMetricsBreakdownTable } from './ModerationMetricsBreakdownTable';
 
-type MetricsData = NonNullable<ReturnType<typeof useModerationMetrics>['data']>;
-
-interface ModerationMetricsPanelProps {
-	metrics: MetricsData | undefined;
-}
+import type { ModerationMetricsPanelProps } from './types';
 
 export function ModerationMetricsPanel({ metrics }: ModerationMetricsPanelProps) {
 	const flagColumns = useMemo<ColumnDef<ModerationFlagCount, unknown>[]>(

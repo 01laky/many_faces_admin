@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import type { ReactNode } from 'react';
 import { setAuthToken } from '../api/config';
 import { logger } from '../utils/logger';
 import { isTokenExpired } from '../utils/jwtUtils';
@@ -23,33 +22,16 @@ import {
 } from '../utils/authStorage';
 import { setupAuthStorageSync } from '../utils/authSessionSync';
 
-/**
- * User information interface
- */
-interface User {
-	id: string;
-	email: string;
-	firstName?: string;
-	lastName?: string;
-}
-
-/**
- * Authentication context type
- */
-interface AuthContextType {
-	isAuthenticated: boolean;
-	isLoading: boolean;
-	isSessionHydrated: boolean;
-	user: User | null;
-	token: string | null;
-	login: (username: string, password: string, options?: { rememberMe?: boolean }) => Promise<void>;
-	logout: () => Promise<void>;
-	refreshAuth: () => Promise<void>;
-}
+import type {
+	AuthContextType,
+	AuthProviderProps,
+	AuthUser,
+	MeCapabilitiesWarmupProps,
+} from './types';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-function MeCapabilitiesWarmup({ token }: { token: string | null }) {
+function MeCapabilitiesWarmup({ token }: MeCapabilitiesWarmupProps) {
 	useMeCapabilities(token, Boolean(token));
 	return null;
 }
@@ -58,7 +40,7 @@ function resetLocalAuthState(
 	queryClient: ReturnType<typeof useQueryClient>,
 	setters: {
 		setToken: (t: string | null) => void;
-		setUser: (u: User | null) => void;
+		setUser: (u: AuthUser | null) => void;
 		setIsAuthenticated: (v: boolean) => void;
 	}
 ): void {
@@ -73,11 +55,11 @@ function resetLocalAuthState(
  * Authentication Provider component
  * Manages authentication state and provides auth methods
  */
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: AuthProviderProps) {
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSessionHydrated, setIsSessionHydrated] = useState(false);
-	const [user, setUser] = useState<User | null>(null);
+	const [user, setUser] = useState<AuthUser | null>(null);
 	const [token, setToken] = useState<string | null>(null);
 	const { t } = useTranslation('common');
 	const queryClient = useQueryClient();
@@ -205,7 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 					try {
 						const payload = JSON.parse(atob(result.accessToken.split('.')[1]));
-						const userData: User = {
+						const userData: AuthUser = {
 							id: payload.sub || payload.nameid || '',
 							email: payload.email || username,
 							firstName: payload.given_name || payload.firstName,
@@ -215,7 +197,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 						persistStoredUserJson(JSON.stringify(userData));
 					} catch (e) {
 						logger.warn('Failed to decode token, using username as email', { error: String(e) });
-						const userData: User = {
+						const userData: AuthUser = {
 							id: username,
 							email: username,
 						};

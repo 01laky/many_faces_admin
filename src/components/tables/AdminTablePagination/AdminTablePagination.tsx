@@ -1,16 +1,7 @@
-import type { Table } from '@tanstack/react-table';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/radix/Button';
 import './AdminTablePagination.scss';
-
-export interface AdminTablePaginationProps<T> {
-	table: Table<T>;
-	/** Total row count (all pages). */
-	totalItems: number;
-	/** Noun shown after the count, e.g. "users" or "faces". */
-	itemLabel: string;
-	className?: string;
-}
+import type { AdminTablePaginationProps } from './types';
 
 /**
  * Shared first/prev/next/last controls for TanStack admin tables (10 rows per page by default).

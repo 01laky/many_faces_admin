@@ -11,10 +11,7 @@ import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
 import { sortingStateToApi } from '@/utils/adminListQuery';
 import { stopAdminTableRowNavigation } from '@/utils/adminTableRowClick';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
-
-interface PagesTableProps {
-	faceId: number;
-}
+import type { PagesTableProps } from './types';
 
 export function PagesTable({ faceId }: PagesTableProps) {
 	const { t } = useTranslation('common');

@@ -10,10 +10,7 @@ import { getModerationQueueLabel } from '@/utils/contentModeration';
 import { resolveReelDetailFaceId } from '@/utils/reelDetailPaths';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
 
-export interface UserDetailReelsTableProps {
-	creatorId: string;
-	userFaceIds: number[];
-}
+import type { UserDetailReelsTableProps } from './types';
 
 export function UserDetailReelsTable({ creatorId, userFaceIds }: UserDetailReelsTableProps) {
 	const { t } = useTranslation('common');

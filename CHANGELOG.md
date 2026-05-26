@@ -8,6 +8,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 | Version       | Theme                                    |
 | ------------- | ---------------------------------------- |
+| [1.0.3](#103) | Types/constants colocation rollout       |
 | [1.0.0](#100) | Push config panel                        |
 | [0.8.0](#080) | Mail config, global search, ASH1, i18n   |
 | [0.7.0](#070) | Operator consoles, TanStack, infra smoke |
@@ -25,6 +26,28 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 ### Changed
 
 ### Fixed
+
+---
+
+## [1.0.3]
+
+### Added
+
+- Colocated `types.ts` / `constants.ts` (and optional `enums.ts` / `schemas.ts`) across
+  components, tables, dashboard widgets, pages, hooks, providers, and contexts — props and
+  module-level literals no longer live inline in primary TSX entry files.
+- Vitest colocation regression suite (`*.colocation.edge.test.ts`) with CI gate
+  (`adminTypesColocationCiGate.ts`, monorepo `verify-admin-types-colocation-tests.mjs`).
+- `src/components/README.md` documents split-file convention, audit/verify commands, and
+  types-colocation prompt link.
+
+### Changed
+
+- `hooks/api/**` hooks re-foldered to `useXxxApi/useXxxApi.ts` + `types.ts` + `index.ts`
+  where domain types were extracted; `QueryProvider` moved to folder layout.
+- `ContentModerationPage` filter constants split from legacy `moderationFiltersTypes.ts`
+  into `constants.ts` + `types.ts`; `profileDetailGridTypes.ts` renamed to `types.ts`.
+- Context value types consolidated in `src/contexts/types.ts`.
 
 ---
 
@@ -131,7 +154,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 - Admin SPA foundation with OAuth2 and Docker dev scripts.
 
-[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/01laky/many_faces_admin/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/01laky/many_faces_admin/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/01laky/many_faces_admin/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/01laky/many_faces_admin/compare/v0.8.0...v1.0.0

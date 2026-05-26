@@ -22,8 +22,7 @@ import { buildLocalizedUserChatPath } from '@/utils/userChatPaths';
 import type { ContentMediaItem } from '@/types/contentMedia';
 import { formatDate, formatValue, mutationErrorMessage } from '@/utils/operatorDetailFormat';
 import '@/styles/operatorDetailPage.scss';
-
-type DialogMode = 'deleteAlbum' | 'deleteMedia' | 'reject' | null;
+import type { DialogMode } from './types';
 
 export function AlbumDetailPage() {
 	const { id } = useParams<{ id: string }>();

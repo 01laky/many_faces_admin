@@ -9,10 +9,7 @@ import { sortingStateToApi } from '@/utils/adminListQuery';
 import { resolveStoryDetailFaceId } from '@/utils/storyDetailPaths';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
 
-export interface UserDetailStoriesTableProps {
-	creatorId: string;
-	userFaceIds: number[];
-}
+import type { UserDetailStoriesTableProps } from './types';
 
 export function UserDetailStoriesTable({ creatorId, userFaceIds }: UserDetailStoriesTableProps) {
 	const { t } = useTranslation('common');

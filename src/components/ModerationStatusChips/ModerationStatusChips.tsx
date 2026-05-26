@@ -6,11 +6,7 @@ import {
 	type ContentApprovalStatus,
 } from '@/utils/contentModeration';
 import './ModerationStatusChips.scss';
-
-export interface ModerationStatusChipsProps {
-	approvalStatus?: string | null;
-	aiReviewStatus?: string | null;
-}
+import type { ModerationStatusChipsProps } from './types';
 
 /** Operator-facing moderation status (one summary chip; avoids duplicate raw enum badges). */
 export function ModerationStatusChips({

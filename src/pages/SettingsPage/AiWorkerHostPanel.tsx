@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next';
 import type {
-	OperatorAiWorkerHostDto,
 	OperatorAiWorkerHostProfile,
 	OperatorAiWorkerHostProfileDisk,
 } from '@/api/models/OperatorAiWorkerHostDto';
@@ -15,6 +14,8 @@ import {
 	topWorkerHostDisks,
 } from './aiWorkerHostViewUtils';
 
+import type { AiWorkerHostPanelProps } from './types';
+
 function formatBytes(value?: number): string {
 	return formatWorkerHostBytes(value);
 }
@@ -27,13 +28,7 @@ function topDisks(disks: OperatorAiWorkerHostProfileDisk[] | undefined) {
 	return topWorkerHostDisks(disks);
 }
 
-type PanelProps = {
-	data?: OperatorAiWorkerHostDto;
-	isLoading?: boolean;
-	isError?: boolean;
-};
-
-export function AiWorkerHostPanel({ data, isLoading, isError }: PanelProps) {
+export function AiWorkerHostPanel({ data, isLoading, isError }: AiWorkerHostPanelProps) {
 	const { t } = useTranslation('common');
 
 	if (isLoading) {

@@ -9,7 +9,6 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import type { ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { useTranslation } from 'react-i18next';
@@ -26,11 +25,7 @@ import { GlobalSearchAutocomplete } from '@/components/GlobalSearch';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import './AdminLayout.scss';
 
-interface NavItem {
-	path: string;
-	labelKey: string;
-	icon: string;
-}
+import type { NavItem, AdminLayoutProps } from './types';
 
 const NAV_ITEMS: NavItem[] = [
 	{ path: '/dashboard', labelKey: 'pages.dashboard.title', icon: '📊' },
@@ -57,10 +52,6 @@ const ADMIN_PROFILE_NAV_ITEM: NavItem = {
 };
 
 const DESKTOP_BREAKPOINT = 1024;
-
-interface AdminLayoutProps {
-	children: ReactNode;
-}
 
 export function AdminLayout({ children }: AdminLayoutProps) {
 	const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= DESKTOP_BREAKPOINT);

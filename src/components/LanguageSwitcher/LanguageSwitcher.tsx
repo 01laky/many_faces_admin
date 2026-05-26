@@ -5,13 +5,7 @@ import { useTranslation } from 'react-i18next';
 import type { SupportedLanguage } from '@/i18n/config';
 import { getEnglishRoute, getTranslatedRoute } from '@/utils/routeTranslations';
 import './LanguageSwitcher.scss';
-
-type LanguageSwitcherVariant = 'header' | 'settings';
-
-interface LanguageSwitcherProps {
-	variant?: LanguageSwitcherVariant;
-	id?: string;
-}
+import type { LanguageSwitcherProps } from './types';
 
 export function LanguageSwitcher({ variant = 'header', id }: LanguageSwitcherProps) {
 	const { currentLanguage, changeLanguage, t } = useApp();

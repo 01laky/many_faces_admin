@@ -1,14 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/radix/Button';
-import { handleGridDeleteClick, type ContentMediaItem } from '@/types/contentMedia';
+import { handleGridDeleteClick } from '@/types/contentMedia';
 import './ContentMediaGrid.scss';
-
-export interface ContentMediaGridProps {
-	items: ContentMediaItem[];
-	onOpenPreview: (index: number) => void;
-	onDeleteItem?: (mediaId: number) => void;
-	showDelete?: boolean;
-}
+import type { ContentMediaGridProps } from './types';
 
 export function ContentMediaGrid({
 	items,

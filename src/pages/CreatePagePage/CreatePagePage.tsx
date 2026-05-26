@@ -18,14 +18,7 @@ import {
 } from '@/hooks/api/usePageRouteTranslationsApi';
 import { toast } from 'react-toastify';
 import '../../styles/forms/PageFormPage.scss';
-
-interface CreatePageFormData {
-	pageTypeId: number;
-	name: string;
-	description?: string;
-	path: string;
-	index: number;
-}
+import type { CreatePageFormData } from './types';
 
 export function CreatePagePage() {
 	const { faceId } = useParams<{ faceId: string }>();

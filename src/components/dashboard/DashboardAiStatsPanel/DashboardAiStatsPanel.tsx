@@ -8,11 +8,7 @@ import {
 	normalizeAdminAiPublicStatsMode,
 } from '@/utils/adminAiStatsSettings';
 import './DashboardAiStatsPanel.scss';
-
-type DashboardAiStatsPanelProps = {
-	/** Mirrors backend singleton AI flag — entire panel suppressed when IA is globally off. */
-	operatorAiGloballyEnabled: boolean;
-};
+import type { DashboardAiStatsPanelProps } from './types';
 
 /**
  * Dashboard strip: current AI “public statistics” mode and a peek at anonymous aggregate totals

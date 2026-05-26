@@ -1,12 +1,16 @@
-import { forwardRef, type HTMLAttributes } from 'react';
+import { forwardRef } from 'react';
 import * as Slot from '@radix-ui/react-slot';
 import './Table.scss';
+import type {
+	TableBodyProps,
+	TableCellProps,
+	TableHeaderCellProps,
+	TableHeaderProps,
+	TableProps,
+	TableRowProps,
+} from './types';
 
 // Table Root
-interface TableProps extends HTMLAttributes<HTMLTableElement> {
-	variant?: 'surface' | 'ghost' | 'striped';
-	size?: '1' | '2' | '3';
-}
 
 export const Table = forwardRef<HTMLTableElement, TableProps>(
 	({ variant = 'surface', size = '2', className = '', children, ...props }, ref) => {
@@ -24,9 +28,6 @@ export const Table = forwardRef<HTMLTableElement, TableProps>(
 Table.displayName = 'Table';
 
 // Table Header
-interface TableHeaderProps extends HTMLAttributes<HTMLTableSectionElement> {
-	asChild?: boolean;
-}
 
 export const TableHeader = forwardRef<HTMLTableSectionElement, TableHeaderProps>(
 	({ asChild, className = '', children, ...props }, ref) => {
@@ -41,9 +42,6 @@ export const TableHeader = forwardRef<HTMLTableSectionElement, TableHeaderProps>
 TableHeader.displayName = 'TableHeader';
 
 // Table Body
-interface TableBodyProps extends HTMLAttributes<HTMLTableSectionElement> {
-	asChild?: boolean;
-}
 
 export const TableBody = forwardRef<HTMLTableSectionElement, TableBodyProps>(
 	({ asChild, className = '', children, ...props }, ref) => {
@@ -58,9 +56,6 @@ export const TableBody = forwardRef<HTMLTableSectionElement, TableBodyProps>(
 TableBody.displayName = 'TableBody';
 
 // Table Row
-interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> {
-	asChild?: boolean;
-}
 
 export const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(
 	({ asChild, className = '', children, ...props }, ref) => {
@@ -75,9 +70,6 @@ export const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(
 TableRow.displayName = 'TableRow';
 
 // Table Header Cell
-interface TableHeaderCellProps extends HTMLAttributes<HTMLTableCellElement> {
-	asChild?: boolean;
-}
 
 export const TableHeaderCell = forwardRef<HTMLTableCellElement, TableHeaderCellProps>(
 	({ asChild, className = '', children, ...props }, ref) => {
@@ -92,9 +84,6 @@ export const TableHeaderCell = forwardRef<HTMLTableCellElement, TableHeaderCellP
 TableHeaderCell.displayName = 'TableHeaderCell';
 
 // Table Cell
-interface TableCellProps extends HTMLAttributes<HTMLTableCellElement> {
-	asChild?: boolean;
-}
 
 export const TableCell = forwardRef<HTMLTableCellElement, TableCellProps>(
 	({ asChild, className = '', children, ...props }, ref) => {

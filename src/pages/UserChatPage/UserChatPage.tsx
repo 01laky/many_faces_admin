@@ -34,9 +34,8 @@ import { Button } from '@/components/radix/Button';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import '../ChatPage/ChatPage.scss';
-
-const MAX_MESSAGE_LENGTH = 4000;
-type ConnectionState = 'Connecting' | 'Connected' | 'Disconnected' | 'Reconnecting';
+import type { ConnectionState } from './types';
+import { MAX_MESSAGE_LENGTH } from './constants';
 
 function parseTargetUserId(search: string): string | null {
 	const u = new URLSearchParams(search).get('u');

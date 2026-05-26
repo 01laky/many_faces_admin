@@ -1,5 +1,5 @@
 import { DEFAULT_PROFILE_DETAIL_GRID_SCHEMA } from './defaultProfileDetailSchema';
-import type { ProfileDetailGridSchema } from './profileDetailGridTypes';
+import type { ProfileDetailGridSchema } from './types';
 
 export function parseProfileDetailGridSchema(
 	json: string | null | undefined

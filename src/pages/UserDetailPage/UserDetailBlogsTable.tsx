@@ -9,9 +9,7 @@ import { sortingStateToApi } from '@/utils/adminListQuery';
 import { getModerationQueueLabel } from '@/utils/contentModeration';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
 
-export interface UserDetailBlogsTableProps {
-	creatorId: string;
-}
+import type { UserDetailBlogsTableProps } from './types';
 
 export function UserDetailBlogsTable({ creatorId }: UserDetailBlogsTableProps) {
 	const { t } = useTranslation('common');

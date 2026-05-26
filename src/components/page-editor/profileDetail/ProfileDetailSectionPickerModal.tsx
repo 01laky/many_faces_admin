@@ -1,9 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/radix/Button';
-import {
-	PROFILE_DETAIL_SECTION_TYPES,
-	type ProfileDetailSectionType,
-} from './profileDetailGridTypes';
+import { PROFILE_DETAIL_SECTION_TYPES, type ProfileDetailSectionType } from './types';
 import './ProfileDetailSectionPickerModal.scss';
 
 interface ProfileDetailSectionPickerModalProps {

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useReactTable, getCoreRowModel, flexRender, type ColumnDef } from '@tanstack/react-table';
+import { useReactTable, getCoreRowModel, flexRender } from '@tanstack/react-table';
 import {
 	Table,
 	TableHeader,
@@ -9,12 +9,7 @@ import {
 	TableCell,
 } from '@/components/radix/Table';
 
-export interface ModerationMetricsBreakdownTableProps<T> {
-	rows: T[];
-	columns: ColumnDef<T, unknown>[];
-	getRowId: (row: T) => string;
-	className?: string;
-}
+import type { ModerationMetricsBreakdownTableProps } from './types';
 
 /**
  * Small read-only two-column metrics breakdown (flags, pending-by-face).

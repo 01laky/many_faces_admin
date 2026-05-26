@@ -49,10 +49,8 @@ import { toOperatorAiResponseLocale } from '@/utils/toOperatorAiResponseLocale';
 import { Button } from '@/components/radix/Button';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
 import './ChatPage.scss';
-
-type ConnectionState = 'Connecting' | 'Connected' | 'Disconnected' | 'Reconnecting';
-
-const SEND_TIMEOUT_MS = 360_000;
+import type { ConnectionState } from './types';
+import { SEND_TIMEOUT_MS } from './constants';
 
 export function ChatPage() {
 	const { t, i18n } = useTranslation('common');

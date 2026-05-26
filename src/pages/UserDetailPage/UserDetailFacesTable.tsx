@@ -1,8 +1,7 @@
-import { useMemo, type Dispatch, type SetStateAction } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useReactTable, getCoreRowModel, flexRender, type ColumnDef } from '@tanstack/react-table';
 import type { OperatorUserFaceRow } from '@/hooks/api/useOperatorUsersApi';
-import type { FaceRoleOption } from '@/hooks/api/useOperatorUsersApi';
 import {
 	Table,
 	TableHeader,
@@ -14,18 +13,7 @@ import {
 import { Button } from '@/components/radix/Button';
 import { canSubmitFaceBan, getFaceStatusI18nKey } from '@/utils/operatorUserDetailUi';
 
-export interface UserDetailFacesTableProps {
-	faces: OperatorUserFaceRow[];
-	faceRoles: FaceRoleOption[];
-	faceBanReasonById: Record<number, string>;
-	setFaceBanReasonById: Dispatch<SetStateAction<Record<number, string>>>;
-	onRoleChange: (faceId: number, userRoleId: number) => void;
-	onFaceBan: (faceId: number) => void;
-	onFaceUnban: (faceId: number) => void;
-	roleChangePending: boolean;
-	faceBanPending: boolean;
-	faceUnbanPending: boolean;
-}
+import type { UserDetailFacesTableProps } from './types';
 
 /**
  * Per-face membership grid on the operator user detail console.

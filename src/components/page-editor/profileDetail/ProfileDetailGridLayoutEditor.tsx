@@ -8,7 +8,7 @@ import type {
 	ProfileDetailGridItem,
 	ProfileDetailGridSchema,
 	ProfileDetailSectionType,
-} from './profileDetailGridTypes';
+} from './types';
 import { DEFAULT_PROFILE_DETAIL_GRID_SCHEMA } from './defaultProfileDetailSchema';
 import '../GridLayoutEditor/GridLayoutEditor.scss';
 

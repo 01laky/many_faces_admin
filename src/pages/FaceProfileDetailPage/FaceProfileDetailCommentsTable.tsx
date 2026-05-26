@@ -14,12 +14,7 @@ import { sortingStateToApi } from '@/utils/adminListQuery';
 import { PROFILE_DETAIL_TEST_IDS } from '@/utils/faceProfileDetailUi';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
 
-export interface FaceProfileDetailCommentsTableProps {
-	faceId: number;
-	userId: string;
-	isSuperAdmin: boolean;
-	onDeleteComment: (commentId: number) => void;
-}
+import type { FaceProfileDetailCommentsTableProps } from './types';
 
 function formatDate(value: string | undefined): string {
 	if (!value) return '—';

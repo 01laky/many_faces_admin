@@ -17,27 +17,14 @@ import {
 	YAxis,
 } from 'recharts';
 import { useStatsTimeseries } from '@/hooks/api/useStatsApi';
-import type { AdminDashboardSummary } from '@/types/adminDashboardStats';
 import {
 	contentMixPieData,
 	friendRequestBarData,
 	mergeTimeseriesForMultiLineChart,
 } from '@/utils/dashboardChartData';
 import './DashboardCharts.scss';
-
-const PIE_COLORS = ['#3b82f6', '#8b5cf6', '#f59e0b', '#10b981'];
-const BAR_COLORS = ['#f59e0b', '#22c55e', '#ef4444'];
-
-export interface DashboardChartsProps {
-	/** Full summary payload; charts skip rendering heavy sections if null. */
-	summary: AdminDashboardSummary | undefined;
-	/** Inclusive UTC range start for line chart queries. */
-	fromUtc: Date;
-	/** Inclusive UTC range end for line chart queries. */
-	toUtc: Date;
-	/** When false, timeseries queries stay disabled (e.g. parent still loading auth). */
-	enabled: boolean;
-}
+import type { DashboardChartsProps } from './types';
+import { PIE_COLORS, BAR_COLORS } from './constants';
 
 /**
  * Dashboard chart bundle: registrations vs messages (line), content mix (donut), friend-request outcomes (bar).

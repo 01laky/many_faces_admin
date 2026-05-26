@@ -9,10 +9,7 @@ import { sortingStateToApi } from '@/utils/adminListQuery';
 import { getModerationQueueLabel } from '@/utils/contentModeration';
 import { stopAdminTableRowNavigation } from '@/utils/adminTableRowClick';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
-
-interface ReelsTableProps {
-	faceId: number;
-}
+import type { ReelsTableProps } from './types';
 
 export function ReelsTable({ faceId }: ReelsTableProps) {
 	const { t } = useTranslation('common');

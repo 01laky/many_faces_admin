@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next';
-import type { InfraLastTestOutcome } from '@/utils/adminInfraStatusStrip';
 import {
 	resolveInfraConfiguredBadge,
 	resolveInfraStatusModifier,
@@ -13,15 +12,7 @@ import {
 	resolvePushEffectiveStatusModifier,
 } from '@/utils/adminPushEffectiveStatus';
 
-type InfraStatusStripProps = {
-	configured?: boolean | undefined;
-	/** When set, uses pages.settings.infra.*.config.status.* badges (AMC-U5 / APC-U5). */
-	effectiveStatus?: string;
-	effectiveStatusNamespace?: 'mail' | 'push';
-	deviceCount?: number;
-	lastTest?: InfraLastTestOutcome;
-	updatedAtUtc?: string;
-};
+import type { InfraDevQuickLinksProps, InfraStatusStripProps } from './types';
 
 /** Read-only configured / effective-status / last-test strip shared by mail and push panels. */
 export function InfraStatusStrip({
@@ -88,11 +79,7 @@ export function InfraStatusStrip({
 	);
 }
 
-type DevQuickLinksProps = {
-	links: Array<{ href: string; labelKey: string; external?: boolean }>;
-};
-
-export function InfraDevQuickLinks({ links }: DevQuickLinksProps) {
+export function InfraDevQuickLinks({ links }: InfraDevQuickLinksProps) {
 	const { t } = useTranslation('common');
 	return (
 		<p className="settings-page__infra-links">

@@ -24,8 +24,7 @@ import { storyImagesToMediaItems } from '@/utils/storyDetailMedia';
 import { isStoryLive, mapStoryDetailError, storyStateLabelKey } from '@/utils/storyDetailUi';
 import { formatDate, formatValue } from '@/utils/operatorDetailFormat';
 import '@/styles/operatorDetailPage.scss';
-
-type DialogMode = 'deleteStory' | 'deleteImage' | null;
+import type { DialogMode } from './types';
 
 export function StoryDetailPage() {
 	const { id } = useParams<{ id: string }>();

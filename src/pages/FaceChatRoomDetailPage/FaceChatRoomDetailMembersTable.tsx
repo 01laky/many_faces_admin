@@ -12,12 +12,10 @@ import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
 import { sortingStateToApi } from '@/utils/adminListQuery';
 import { CHAT_ROOM_DETAIL_TEST_IDS } from '@/utils/faceChatRoomDetailUi';
+
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
 
-export interface FaceChatRoomDetailMembersTableProps {
-	faceId: number;
-	roomId: number;
-}
+import type { FaceChatRoomDetailMembersTableProps } from './types';
 
 function formatDate(value: string | undefined): string {
 	if (!value) return '—';

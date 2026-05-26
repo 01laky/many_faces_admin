@@ -6,15 +6,9 @@ import {
 	type ContentApprovalStatus,
 	type ModeratedContentType,
 } from '@/utils/contentModeration';
-import {
-	APPROVAL_FILTERS,
-	CONTENT_TYPES,
-	RISK_FILTERS,
-	type ModerationFilterSetters,
-	type ModerationFilterState,
-} from './moderationFiltersTypes';
+import { APPROVAL_FILTERS, CONTENT_TYPES, RISK_FILTERS } from './constants';
 
-interface ModerationFiltersProps extends ModerationFilterState, ModerationFilterSetters {}
+import type { ModerationFiltersProps } from './types';
 
 function formatEnumLabel(value: string): string {
 	return value.replace(/([a-z])([A-Z])/g, '$1 $2');

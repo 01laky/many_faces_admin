@@ -38,8 +38,7 @@ import { Input } from '@/components/radix/Input';
 import { AiWorkerHostSection } from './AiWorkerHostPanel';
 import { InfrastructureWorkersSection } from './InfrastructureWorkersSection';
 import './SettingsPage.scss';
-
-const MODES: AdminAiPublicStatsMode[] = ['off', 'inline', 'live'];
+import { MODES } from './constants';
 
 function resolvePublicStatsDraft(
 	settings: OperatorAiPublicStatsSettingsDto | undefined,

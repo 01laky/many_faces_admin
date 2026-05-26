@@ -7,10 +7,7 @@ import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
 import { sortingStateToApi } from '@/utils/adminListQuery';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
-
-interface FaceProfilesTableProps {
-	faceId: number;
-}
+import type { FaceProfilesTableProps } from './types';
 
 export function FaceProfilesTable({ faceId }: FaceProfilesTableProps) {
 	const { t } = useTranslation('common');

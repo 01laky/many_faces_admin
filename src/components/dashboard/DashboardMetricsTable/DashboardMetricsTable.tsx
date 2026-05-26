@@ -11,39 +11,12 @@ import {
 	XAxis,
 	YAxis,
 } from 'recharts';
-import type { AdminDashboardSummary } from '@/types/adminDashboardStats';
 import { translateWallTicketStatus, wallStatusSlices } from './dashboardMetricTiles';
-import { buildSectionRows, METRIC_SECTIONS, type MetricSectionConfig } from './metricSections';
+import { buildSectionRows, METRIC_SECTIONS } from './metricSections';
 import { MetricSectionChart } from './MetricSectionChart';
 import './DashboardMetricsTable.scss';
-
-export interface DashboardMetricsTableProps {
-	summary: AdminDashboardSummary | undefined;
-}
-
-const WALL_BAR_COLORS = ['#3b82f6', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444', '#64748b'];
-
-const SECTION_CHIP_COLORS = [
-	'#3b82f6',
-	'#8b5cf6',
-	'#10b981',
-	'#f59e0b',
-	'#ec4899',
-	'#0ea5e9',
-	'#14b8a6',
-];
-
-function sectionChartData(
-	section: MetricSectionConfig,
-	rows: ReturnType<typeof buildSectionRows>,
-	t: (key: string) => string
-) {
-	return rows.map((row, index) => ({
-		name: t(`pages.dashboard.metrics.rows.${row.labelKey}`),
-		value: row.value,
-		fill: SECTION_CHIP_COLORS[index % SECTION_CHIP_COLORS.length]!,
-	}));
-}
+import type { DashboardMetricsTableProps } from './types';
+import { WALL_BAR_COLORS, SECTION_CHIP_COLORS, sectionChartData } from './constants';
 
 /**
  * Platform metrics grouped by domain with one comparison chart per section and compact stat chips.

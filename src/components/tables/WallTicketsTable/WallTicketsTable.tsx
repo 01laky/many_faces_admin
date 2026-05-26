@@ -24,10 +24,7 @@ import {
 	isWallTicketRowSelected,
 	wallTicketApiPageToTablePageIndex,
 } from '@/utils/adminTableUtils';
-
-export interface WallTicketStatusBadgeProps {
-	status: string;
-}
+import type { WallTicketStatusBadgeProps, WallTicketsTableProps } from './types';
 
 /** Status chip for wall ticket list rows (shared with page until fully colocated). */
 export function WallTicketStatusBadge({ status }: WallTicketStatusBadgeProps) {
@@ -46,18 +43,6 @@ export function WallTicketStatusBadge({ status }: WallTicketStatusBadgeProps) {
 				? 'pages.faceWallTickets.statusDenied'
 				: 'pages.faceWallTickets.statusActive';
 	return <span className={`face-wall-tickets-page__badge ${cls}`}>{t(labelKey)}</span>;
-}
-
-export interface WallTicketsTableProps {
-	items: AdminWallTicketRow[];
-	selectedId: number | null | undefined;
-	onSelectRow: (row: AdminWallTicketRow) => void;
-	/** API list query uses 1-based page numbers. */
-	page: number;
-	totalCount: number;
-	totalPages: number;
-	onPageChange: (page: number) => void;
-	disabled?: boolean;
 }
 
 /**

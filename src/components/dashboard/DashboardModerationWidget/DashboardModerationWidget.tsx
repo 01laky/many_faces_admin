@@ -3,11 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { useModerationMetrics } from '@/hooks/api/useContentModerationApi';
 import './DashboardModerationWidget.scss';
-
-export interface DashboardModerationWidgetProps {
-	/** Gate fetches so non-super-admin sessions never hit moderation metrics (would 403). */
-	enabled: boolean;
-}
+import type { DashboardModerationWidgetProps } from './types';
 
 /**
  * Compact SUPER_ADMIN health strip: pending queue depth, AI job failures, link to full moderation console.

@@ -11,13 +11,7 @@ import { sortingStateToApi } from '@/utils/adminListQuery';
 import { PROFILE_DETAIL_TEST_IDS } from '@/utils/faceProfileDetailUi';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
 
-export interface FaceProfileDetailReviewsTableProps {
-	faceId: number;
-	userId: string;
-	faceAllowsRecensions: boolean;
-	isSuperAdmin: boolean;
-	onDeleteReview: (reviewId: number) => void;
-}
+import type { FaceProfileDetailReviewsTableProps } from './types';
 
 function formatDate(value: string | undefined): string {
 	if (!value) return '—';

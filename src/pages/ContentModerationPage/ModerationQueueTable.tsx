@@ -1,13 +1,6 @@
 import { useMemo } from 'react';
 import { Alert, Button, Card, Col, Form, Row, Spinner } from 'react-bootstrap';
-import {
-	useReactTable,
-	getCoreRowModel,
-	flexRender,
-	type ColumnDef,
-	type PaginationState,
-	type SortingState,
-} from '@tanstack/react-table';
+import { useReactTable, getCoreRowModel, flexRender, type ColumnDef } from '@tanstack/react-table';
 import type { ModerationItem } from '@/hooks/api/useContentModerationApi';
 import {
 	Table,
@@ -26,30 +19,7 @@ import {
 } from '@/utils/contentModeration';
 import { AdminTablePagination } from '@/components/tables/AdminTablePagination';
 
-interface ModerationQueueTableProps {
-	items: ModerationItem[];
-	totalCount: number;
-	totalPages: number;
-	pagination: PaginationState;
-	onPaginationChange: React.Dispatch<React.SetStateAction<PaginationState>>;
-	sorting: SortingState;
-	onSortingChange: React.Dispatch<React.SetStateAction<SortingState>>;
-	isLoading: boolean;
-	error: unknown;
-	selectedKeys: string[];
-	reasonByItem: Record<string, string>;
-	bulkActionName: BulkModerationAction;
-	bulkReason: string;
-	bulkResultSummary: string | null;
-	bulkActionPending: boolean;
-	onReasonChange: (key: string, reason: string) => void;
-	onToggleSelected: (item: ModerationItem) => void;
-	onSelectItem: (item: ModerationItem) => void;
-	onRunAction: (item: ModerationItem, actionName: 'approve' | 'reject' | 'remove') => void;
-	onBulkActionNameChange: (action: BulkModerationAction) => void;
-	onBulkReasonChange: (reason: string) => void;
-	onRunBulkAction: () => void;
-}
+import type { ModerationQueueTableProps } from './types';
 
 const COLUMN_COUNT = 10;
 

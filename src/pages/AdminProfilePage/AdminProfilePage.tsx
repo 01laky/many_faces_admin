@@ -20,20 +20,10 @@ import {
 	adminProfilePasswordsMatch,
 } from '@/utils/adminProfileFormValidation';
 import { mutationErrorMessage } from '@/utils/operatorDetailFormat';
-import type { AdminMeProfile } from '@/hooks/api/useAdminMeProfileApi';
 import { AdminProfileFacesTable } from './AdminProfileFacesTable';
 import '../UserDetailPage/UserDetailPage.scss';
 import './AdminProfilePage.scss';
-
-interface AdminProfileIdentityFormProps {
-	profile: AdminMeProfile;
-	saving: boolean;
-	onSave: (body: {
-		email: string;
-		firstName: string | null;
-		lastName: string | null;
-	}) => Promise<void>;
-}
+import type { AdminProfileIdentityFormProps } from './types';
 
 function AdminProfileIdentityForm({ profile, saving, onSave }: AdminProfileIdentityFormProps) {
 	const { t } = useTranslation('common');

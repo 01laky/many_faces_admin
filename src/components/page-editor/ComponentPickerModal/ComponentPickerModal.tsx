@@ -4,19 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { GridComponentType } from '../GridLayoutEditor';
 import './ComponentPickerModal.scss';
 
-interface ComponentOption {
-	type: GridComponentType;
-	labelKey: string;
-	descriptionKey: string;
-	icon: string;
-}
-
-interface ComponentCategory {
-	id: string;
-	labelKey: string;
-	icon: string;
-	options: ComponentOption[];
-}
+import type { ComponentCategory, ComponentPickerModalProps } from './types';
 
 const CATEGORIES: ComponentCategory[] = [
 	{
@@ -227,14 +215,6 @@ function getCategoryForType(type?: GridComponentType): string {
 		if (cat.options.some((o) => o.type === type)) return cat.id;
 	}
 	return CATEGORIES[0].id;
-}
-
-interface ComponentPickerModalProps {
-	open: boolean;
-	currentType?: GridComponentType;
-	onSelect: (type: GridComponentType) => void;
-	onClear: () => void;
-	onClose: () => void;
 }
 
 export function ComponentPickerModal({

@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import type { AdminInfraWorkerConfigDto } from '@/api/models/AdminInfraWorkerConfigDto';
 import type { PushTestSelfResultDto } from '@/api/models/PushTestSelfResultDto';
 import { adminInfraDevLinks } from '@/config/adminInfraDevLinks';
 import { usePushTestSelf } from '@/hooks/api/useAdminInfraApi';
@@ -37,10 +36,7 @@ import { FormField } from '@/components/radix/FormField';
 import { Input } from '@/components/radix/Input';
 import { InfraDevQuickLinks, InfraStatusStrip } from './InfraPanelShared';
 
-type PushConfigPanelProps = {
-	workerConfig?: AdminInfraWorkerConfigDto;
-	configLoading?: boolean;
-};
+import type { PushConfigPanelProps } from './types';
 
 function validationMessageKey(
 	field:

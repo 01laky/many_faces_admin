@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_PROFILE_DETAIL_GRID_SCHEMA } from './defaultProfileDetailSchema';
-import { PROFILE_DETAIL_SECTION_TYPES } from './profileDetailGridTypes';
+import { PROFILE_DETAIL_SECTION_TYPES } from './types';
 import {
 	parseProfileDetailGridSchema,
 	serializeProfileDetailGridSchema,

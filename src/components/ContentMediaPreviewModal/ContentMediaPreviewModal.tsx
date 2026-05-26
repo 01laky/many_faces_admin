@@ -2,19 +2,10 @@ import { useEffect, useRef } from 'react';
 import Modal from 'react-bootstrap/Modal';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/radix/Button';
-import { isVideoMediaItem, type ContentMediaItem } from '@/types/contentMedia';
+import { isVideoMediaItem } from '@/types/contentMedia';
 import { getNextIndex, getPrevIndex } from '@/utils/contentMediaModalIndex';
 import './ContentMediaPreviewModal.scss';
-
-export interface ContentMediaPreviewModalProps {
-	show: boolean;
-	items: ContentMediaItem[];
-	index: number;
-	onIndexChange: (index: number) => void;
-	onClose: () => void;
-	onDeleteCurrent?: () => void;
-	showDelete?: boolean;
-}
+import type { ContentMediaPreviewModalProps } from './types';
 
 export function ContentMediaPreviewModal({
 	show,
