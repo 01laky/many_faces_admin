@@ -6,19 +6,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 ### Release index
 
-| Version       | Theme                                    |
-| ------------- | ---------------------------------------- |
+| Version       | Theme                                       |
+| ------------- | ------------------------------------------- |
 | [1.0.4](#104) | Colocation verify hardening + sibling Props |
-| [1.0.3](#103) | Types/constants colocation rollout       |
-| [1.0.0](#100) | Push config panel                        |
-| [0.8.0](#080) | Mail config, global search, ASH1, i18n   |
-| [0.7.0](#070) | Operator consoles, TanStack, infra smoke |
-| [0.6.0](#060) | Platform DMs, server-driven tables       |
-| [0.5.0](#050) | Operator AI chat and user detail         |
-| [0.4.0](#040) | Stats dashboard, registration invites    |
-| [0.3.0](#030) | Moderation queue, ACL                    |
-| [0.2.0](#020) | Dashboard, wall tickets, face routing    |
-| [0.1.0](#010) | Admin SPA foundation                     |
+| [1.0.3](#103) | Types/constants colocation rollout          |
+| [1.0.0](#100) | Push config panel                           |
+| [0.8.0](#080) | Mail config, global search, ASH1, i18n      |
+| [0.7.0](#070) | Operator consoles, TanStack, infra smoke    |
+| [0.6.0](#060) | Platform DMs, server-driven tables          |
+| [0.5.0](#050) | Operator AI chat and user detail            |
+| [0.4.0](#040) | Stats dashboard, registration invites       |
+| [0.3.0](#030) | Moderation queue, ACL                       |
+| [0.2.0](#020) | Dashboard, wall tickets, face routing       |
+| [0.1.0](#010) | Admin SPA foundation                        |
 
 ## [Unreleased]
 
