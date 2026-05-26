@@ -1,4 +1,6 @@
 import type { AdminMeProfile } from '@/hooks/api/useAdminMeProfileApi';
+import type { AdminMeFaceRow } from '@/api/adminMeProfileApiClient';
+import type { FaceRoleOption } from '@/hooks/api/useOperatorUsersApi';
 
 export interface AdminProfileIdentityFormProps {
 	profile: AdminMeProfile;
@@ -8,4 +10,11 @@ export interface AdminProfileIdentityFormProps {
 		firstName: string | null;
 		lastName: string | null;
 	}) => Promise<void>;
+}
+
+export interface AdminProfileFacesTableProps {
+	faces: AdminMeFaceRow[];
+	faceRoles: FaceRoleOption[];
+	onRoleChange: (faceId: number, userRoleId: number) => void;
+	roleChangePending: boolean;
 }

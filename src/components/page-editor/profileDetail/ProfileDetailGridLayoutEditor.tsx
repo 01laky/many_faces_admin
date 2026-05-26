@@ -6,16 +6,12 @@ import { Button } from '@/components/radix/Button';
 import { ProfileDetailSectionPickerModal } from './ProfileDetailSectionPickerModal';
 import type {
 	ProfileDetailGridItem,
+	ProfileDetailGridLayoutEditorProps,
 	ProfileDetailGridSchema,
 	ProfileDetailSectionType,
 } from './types';
 import { DEFAULT_PROFILE_DETAIL_GRID_SCHEMA } from './defaultProfileDetailSchema';
 import '../GridLayoutEditor/GridLayoutEditor.scss';
-
-interface ProfileDetailGridLayoutEditorProps {
-	value: ProfileDetailGridSchema | null;
-	onChange: (schema: ProfileDetailGridSchema) => void;
-}
 
 let itemCounter = 0;
 

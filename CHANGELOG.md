@@ -8,6 +8,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 | Version       | Theme                                    |
 | ------------- | ---------------------------------------- |
+| [1.0.4](#104) | Colocation verify hardening + sibling Props |
 | [1.0.3](#103) | Types/constants colocation rollout       |
 | [1.0.0](#100) | Push config panel                        |
 | [0.8.0](#080) | Mail config, global search, ASH1, i18n   |
@@ -26,6 +27,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 ### Changed
 
 ### Fixed
+
+---
+
+## [1.0.4]
+
+### Changed
+
+- Extract sibling-panel Props into colocated `types.ts` (profile detail editor,
+  dashboard metric charts, album detail panels, admin profile faces table,
+  AppBootstrapGate error UI).
+- Extend monorepo verify script to scan component siblings and `types.ts` folders.
+
+### Fixed
+
+- README `**Version:**` prose synced with `VERSION` via monorepo badge script.
 
 ---
 

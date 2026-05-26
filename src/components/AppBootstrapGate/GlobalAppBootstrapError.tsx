@@ -1,12 +1,6 @@
 import { MainLogo } from '@/components/MainLogo';
+import type { GlobalAppBootstrapErrorProps } from './types';
 import './globalAppBootstrapError.scss';
-
-export interface GlobalAppBootstrapErrorProps {
-	title: string;
-	message: string;
-	onRetry?: () => void;
-	retryLabel?: string;
-}
 
 export function GlobalAppBootstrapError({
 	title,

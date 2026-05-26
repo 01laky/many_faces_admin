@@ -12,18 +12,10 @@ import {
 	XAxis,
 	YAxis,
 } from 'recharts';
-import type { MetricTileChartKind } from './dashboardMetricTiles';
 import { syntheticSparklinePoints } from './dashboardMetricTiles';
+import type { MetricTileChartProps } from './types';
 
 const CHART_HEIGHT = 72;
-
-export interface MetricTileChartProps {
-	kind: MetricTileChartKind;
-	value: number;
-	scaleMax: number;
-	accentColor: string;
-	labelSeed: string;
-}
 
 export function MetricTileChart({
 	kind,

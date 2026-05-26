@@ -10,20 +10,9 @@ import {
 	XAxis,
 	YAxis,
 } from 'recharts';
-import type { MetricSectionChartLayout } from './metricSections';
+import type { MetricSectionChartProps } from './types';
 
-export interface MetricSectionChartDatum {
-	name: string;
-	value: number;
-	fill: string;
-}
-
-export interface MetricSectionChartProps {
-	layout: MetricSectionChartLayout;
-	data: MetricSectionChartDatum[];
-	accentColor: string;
-	emptyLabel: string;
-}
+export type { MetricSectionChartDatum, MetricSectionChartProps } from './types';
 
 const renderBarLabel = (props: {
 	x?: number | string;

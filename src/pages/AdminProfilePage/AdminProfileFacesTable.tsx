@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useReactTable, getCoreRowModel, flexRender, type ColumnDef } from '@tanstack/react-table';
 import type { AdminMeFaceRow } from '@/api/adminMeProfileApiClient';
-import type { FaceRoleOption } from '@/hooks/api/useOperatorUsersApi';
+import type { AdminProfileFacesTableProps } from './types';
 import {
 	Table,
 	TableHeader,
@@ -11,13 +11,6 @@ import {
 	TableHeaderCell,
 	TableCell,
 } from '@/components/radix/Table';
-
-export interface AdminProfileFacesTableProps {
-	faces: AdminMeFaceRow[];
-	faceRoles: FaceRoleOption[];
-	onRoleChange: (faceId: number, userRoleId: number) => void;
-	roleChangePending: boolean;
-}
 
 /** Per-face role grid on admin self-profile (no ban/moderation controls). */
 export function AdminProfileFacesTable({

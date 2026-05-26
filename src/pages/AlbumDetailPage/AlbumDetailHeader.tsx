@@ -2,15 +2,8 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { ModerationStatusChips } from '@/components/ModerationStatusChips';
-import type { AlbumDetail } from '@/hooks/api/useAlbumsApi';
+import type { AlbumDetailHeaderProps } from './types';
 import './AlbumDetailHeader.scss';
-
-export interface AlbumDetailHeaderProps {
-	album: AlbumDetail;
-	isSuperAdmin: boolean;
-	onOpenChat: () => void;
-	onOpenQueue: () => void;
-}
 
 export function AlbumDetailHeader({
 	album,

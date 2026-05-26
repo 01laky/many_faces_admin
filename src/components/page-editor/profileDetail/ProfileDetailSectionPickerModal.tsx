@@ -1,15 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/radix/Button';
-import { PROFILE_DETAIL_SECTION_TYPES, type ProfileDetailSectionType } from './types';
+import { PROFILE_DETAIL_SECTION_TYPES, type ProfileDetailSectionPickerModalProps } from './types';
 import './ProfileDetailSectionPickerModal.scss';
-
-interface ProfileDetailSectionPickerModalProps {
-	open: boolean;
-	currentType?: ProfileDetailSectionType;
-	onSelect: (type: ProfileDetailSectionType) => void;
-	onClear: () => void;
-	onClose: () => void;
-}
 
 export function ProfileDetailSectionPickerModal({
 	open,

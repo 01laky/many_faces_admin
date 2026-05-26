@@ -1,11 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { ModerationStatusChips } from '@/components/ModerationStatusChips';
-import type { AlbumDetail } from '@/hooks/api/useAlbumsApi';
+import type { AlbumDetailDetailsProps } from './types';
 import { formatDate, formatValue } from '@/utils/operatorDetailFormat';
-
-export interface AlbumDetailDetailsProps {
-	album: AlbumDetail;
-}
 
 /** Grouped metadata panel (moderation, messages, audit) below the media grid. */
 export function AlbumDetailDetails({ album }: AlbumDetailDetailsProps) {

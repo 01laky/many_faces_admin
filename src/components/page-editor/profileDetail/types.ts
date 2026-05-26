@@ -32,6 +32,19 @@ export interface ProfileDetailGridSchema {
 	rowHeight: number;
 }
 
+export interface ProfileDetailGridLayoutEditorProps {
+	value: ProfileDetailGridSchema | null;
+	onChange: (schema: ProfileDetailGridSchema) => void;
+}
+
+export interface ProfileDetailSectionPickerModalProps {
+	open: boolean;
+	currentType?: ProfileDetailSectionType;
+	onSelect: (type: ProfileDetailSectionType) => void;
+	onClear: () => void;
+	onClose: () => void;
+}
+
 export const PROFILE_DETAIL_SECTION_TYPES: ProfileDetailSectionType[] = [
 	'profileBackNav',
 	'profileHero',
