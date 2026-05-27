@@ -8,6 +8,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 | Version       | Theme                                       |
 | ------------- | ------------------------------------------- |
+| [1.0.5](#105) | Admin profile all-faces role grid           |
 | [1.0.4](#104) | Colocation verify hardening + sibling Props |
 | [1.0.3](#103) | Types/constants colocation rollout          |
 | [1.0.0](#100) | Push config panel                           |
@@ -30,7 +31,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 ---
 
-## [1.0.4]
+## [1.0.5]
+
+### Added
+
+- **Admin profile** all-faces role grid: every platform face row with role select, even
+  without prior `UserFaceRole` membership.
+- PATCH upsert creates membership; per-row pending, optimistic query patch, face filter
+  (>8 faces), face detail links, differentiated toasts.
+- Vitest **SAP-U11…U14**; backend **SAP-B15…B20**.
+
+### Changed
+
+- `GET /api/admin/me/profile` returns all `Faces` with `hasMembership` and nullable
+  `userRoleId` (left join).
+- `mapAdminMeProfileDto` normalizes per-face nullable fields.
+
+---
 
 ### Changed
 

@@ -1,11 +1,16 @@
 // @vitest-environment happy-dom
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { AdminProfilePage } from './AdminProfilePage';
 
-vi.mock('react-router-dom', () => ({
-	useNavigate: () => vi.fn(),
-}));
+vi.mock('react-router-dom', async () => {
+	const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
+	return {
+		...actual,
+		useNavigate: () => vi.fn(),
+	};
+});
 
 vi.mock('react-i18next', () => ({
 	useTranslation: () => ({
@@ -34,12 +39,34 @@ vi.mock('react-i18next', () => ({
 				'pages.adminProfile.confirmPassword': 'Confirm',
 				'pages.adminProfile.changePassword': 'Change password',
 				'pages.adminProfile.facesSection': 'Faces',
+				'pages.adminProfile.facesSectionHint': 'All faces listed',
+				'pages.adminProfile.selectFaceRole': 'Select role',
+				'pages.adminProfile.notAssigned': 'Not assigned',
 				'pages.adminProfile.emailConfirm.resend': 'Resend confirmation',
 			};
 			return labels[key] ?? key;
 		},
 	}),
 }));
+
+const profileWithUnassignedFace = {
+	id: 'u1',
+	email: 'pending@test.com',
+	globalRole: { userRoleId: 1, name: 'SUPER_ADMIN' },
+	emailConfirmed: false,
+	faces: [
+		{
+			faceId: 2,
+			faceIndex: 'demo',
+			faceTitle: 'Demo',
+			userRoleId: null,
+			roleName: null,
+			hasMembership: false,
+			isActiveParticipant: false,
+		},
+	],
+	createdAt: new Date().toISOString(),
+};
 
 vi.mock('@/contexts/AuthContext', () => ({
 	useAuth: () => ({
@@ -54,14 +81,7 @@ vi.mock('@/hooks/useLocalizedLink', () => ({
 
 vi.mock('@/hooks/api/useAdminMeProfileApi', () => ({
 	useAdminMeProfile: () => ({
-		data: {
-			id: 'u1',
-			email: 'pending@test.com',
-			globalRole: { userRoleId: 1, name: 'SUPER_ADMIN' },
-			emailConfirmed: false,
-			faces: [],
-			createdAt: new Date().toISOString(),
-		},
+		data: profileWithUnassignedFace,
 		isLoading: false,
 		error: null,
 	}),
@@ -72,13 +92,31 @@ vi.mock('@/hooks/api/useAdminMeProfileApi', () => ({
 		resendEmailConfirmation: { mutateAsync: vi.fn(), isPending: false },
 		uploadAvatar: { mutateAsync: vi.fn(), isPending: false },
 	}),
-	useFaceRoles: () => ({ data: [] }),
+	useFaceRoles: () => ({ data: [{ id: 3, name: 'FACE_USER' }] }),
 }));
 
 describe('SAP-U10 unconfirmed email banner', () => {
 	it('shows banner and resend when emailConfirmed is false', () => {
-		render(<AdminProfilePage />);
+		render(
+			<MemoryRouter>
+				<AdminProfilePage />
+			</MemoryRouter>
+		);
 		expect(screen.getByRole('status')).toHaveTextContent('Confirm pending@test.com');
 		expect(screen.getByRole('button', { name: 'Resend confirmation' })).toBeTruthy();
+	});
+});
+
+describe('SAP-U13 AdminProfilePage all-faces grid', () => {
+	it('renders face role select for unassigned row instead of noFaces copy', () => {
+		render(
+			<MemoryRouter>
+				<AdminProfilePage />
+			</MemoryRouter>
+		);
+		expect(screen.queryByText('pages.adminProfile.noFaces')).toBeNull();
+		expect(screen.getByRole('combobox')).toBeTruthy();
+		expect(screen.getByText('Not assigned')).toBeTruthy();
+		expect(screen.getByText('All faces listed')).toBeTruthy();
 	});
 });

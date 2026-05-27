@@ -15,6 +15,7 @@ export interface AdminProfileIdentityFormProps {
 export interface AdminProfileFacesTableProps {
 	faces: AdminMeFaceRow[];
 	faceRoles: FaceRoleOption[];
-	onRoleChange: (faceId: number, userRoleId: number) => void;
-	roleChangePending: boolean;
+	onRoleChange: (face: AdminMeFaceRow, userRoleId: number) => void;
+	pendingFaceId: number | null;
+	getLocalizedPath: (path: string) => string;
 }

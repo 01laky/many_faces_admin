@@ -11,6 +11,7 @@ import {
 	type UpdateAdminMeProfileBody,
 } from '@/api/adminMeProfileApiClient';
 import { useFaceRoles } from '@/hooks/api/useOperatorUsersApi';
+import { applyOptimisticFaceRolePatch } from '@/utils/applyOptimisticFaceRolePatch';
 import { adminMeProfileQueryKey } from './constants';
 
 export function useAdminMeProfile(enabled = true) {
@@ -38,9 +39,31 @@ export function useAdminMeProfileMutations() {
 	});
 
 	const patchFaceRole = useMutation({
-		mutationFn: ({ faceId, userRoleId }: { faceId: number; userRoleId: number }) =>
-			patchAdminMeFaceRole(faceId, userRoleId),
-		onSuccess: invalidate,
+		mutationFn: ({
+			faceId,
+			userRoleId,
+		}: {
+			faceId: number;
+			userRoleId: number;
+			roleName: string | null;
+		}) => patchAdminMeFaceRole(faceId, userRoleId),
+		onMutate: async ({ faceId, userRoleId, roleName }) => {
+			await queryClient.cancelQueries({ queryKey: adminMeProfileQueryKey });
+			const previous = queryClient.getQueryData<AdminMeProfile>(adminMeProfileQueryKey);
+			if (previous) {
+				queryClient.setQueryData(
+					adminMeProfileQueryKey,
+					applyOptimisticFaceRolePatch(previous, faceId, userRoleId, roleName)
+				);
+			}
+			return { previous };
+		},
+		onError: (_err, _vars, context) => {
+			if (context?.previous) {
+				queryClient.setQueryData(adminMeProfileQueryKey, context.previous);
+			}
+		},
+		onSettled: invalidate,
 	});
 
 	const resendEmailConfirmation = useMutation({

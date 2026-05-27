@@ -23,6 +23,7 @@ import { mutationErrorMessage } from '@/utils/operatorDetailFormat';
 import { AdminProfileFacesTable } from './AdminProfileFacesTable';
 import '../UserDetailPage/UserDetailPage.scss';
 import './AdminProfilePage.scss';
+import type { AdminMeFaceRow } from '@/api/adminMeProfileApiClient';
 import type { AdminProfileIdentityFormProps } from './types';
 
 function AdminProfileIdentityForm({ profile, saving, onSave }: AdminProfileIdentityFormProps) {
@@ -103,6 +104,7 @@ export function AdminProfilePage() {
 	const [currentPassword, setCurrentPassword] = useState('');
 	const [newPassword, setNewPassword] = useState('');
 	const [confirmPassword, setConfirmPassword] = useState('');
+	const [pendingFaceId, setPendingFaceId] = useState<number | null>(null);
 
 	const avatarInputRef = useRef<HTMLInputElement>(null);
 
@@ -150,12 +152,23 @@ export function AdminProfilePage() {
 		}
 	};
 
-	const handleRoleChange = async (faceId: number, userRoleId: number) => {
+	const handleRoleChange = async (face: AdminMeFaceRow, userRoleId: number) => {
+		const wasUnassigned = !face.hasMembership || face.userRoleId == null;
+		const roleName = faceRoles.find((r) => r.id === userRoleId)?.name ?? null;
+		setPendingFaceId(face.faceId);
 		try {
-			await patchFaceRole.mutateAsync({ faceId, userRoleId });
-			toast.success(t('pages.adminProfile.roleSuccess'));
+			await patchFaceRole.mutateAsync({
+				faceId: face.faceId,
+				userRoleId,
+				roleName,
+			});
+			toast.success(
+				t(wasUnassigned ? 'pages.adminProfile.roleAssigned' : 'pages.adminProfile.roleUpdated')
+			);
 		} catch (e) {
 			toast.error(mutationErrorMessage(e));
+		} finally {
+			setPendingFaceId(null);
 		}
 	};
 
@@ -349,8 +362,9 @@ export function AdminProfilePage() {
 						<AdminProfileFacesTable
 							faces={profile.faces}
 							faceRoles={faceRoles}
-							onRoleChange={(faceId, roleId) => void handleRoleChange(faceId, roleId)}
-							roleChangePending={patchFaceRole.isPending}
+							onRoleChange={(face, roleId) => void handleRoleChange(face, roleId)}
+							pendingFaceId={pendingFaceId}
+							getLocalizedPath={getLocalizedPath}
 						/>
 					</div>
 				</div>

@@ -5,8 +5,9 @@ export interface AdminMeFaceRow {
 	faceId: number;
 	faceIndex: string;
 	faceTitle: string;
-	userRoleId: number;
-	roleName: string;
+	userRoleId: number | null;
+	roleName: string | null;
+	hasMembership: boolean;
 	isActiveParticipant: boolean;
 }
 
@@ -35,20 +36,22 @@ export interface UpdateAdminMePasswordBody {
 }
 
 export async function fetchAdminMeProfile(): Promise<AdminMeProfile> {
-	return __request(OpenAPI, {
+	const raw = await __request(OpenAPI, {
 		method: 'GET',
 		url: '/api/admin/me/profile',
 	});
+	return mapAdminMeProfileDto(raw as Record<string, unknown>);
 }
 
 export async function updateAdminMeProfile(
 	body: UpdateAdminMeProfileBody
 ): Promise<AdminMeProfile> {
-	return __request(OpenAPI, {
+	const raw = await __request(OpenAPI, {
 		method: 'PUT',
 		url: '/api/admin/me/profile',
 		body,
 	});
+	return mapAdminMeProfileDto(raw as Record<string, unknown>);
 }
 
 export async function updateAdminMePassword(body: UpdateAdminMePasswordBody): Promise<void> {
@@ -85,8 +88,26 @@ export async function uploadAdminMeAvatar(file: File): Promise<{ avatarUrl: stri
 	});
 }
 
+function mapAdminMeFaceRow(raw: Record<string, unknown>): AdminMeFaceRow {
+	const userRoleIdRaw = raw.userRoleId;
+	return {
+		faceId: Number(raw.faceId),
+		faceIndex: String(raw.faceIndex ?? ''),
+		faceTitle: String(raw.faceTitle ?? ''),
+		userRoleId: userRoleIdRaw == null || userRoleIdRaw === undefined ? null : Number(userRoleIdRaw),
+		roleName: raw.roleName == null ? null : String(raw.roleName),
+		hasMembership: Boolean(raw.hasMembership),
+		isActiveParticipant: Boolean(raw.isActiveParticipant),
+	};
+}
+
 /** Normalizes raw API JSON into {@link AdminMeProfile} (SAP-U1). */
 export function mapAdminMeProfileDto(raw: Record<string, unknown>): AdminMeProfile {
+	const facesRaw = raw.faces;
+	const faces = Array.isArray(facesRaw)
+		? facesRaw.map((row) => mapAdminMeFaceRow(row as Record<string, unknown>))
+		: [];
+
 	return {
 		id: String(raw.id),
 		email: raw.email as string | undefined,
@@ -96,7 +117,7 @@ export function mapAdminMeProfileDto(raw: Record<string, unknown>): AdminMeProfi
 		globalRole: raw.globalRole as AdminMeProfile['globalRole'],
 		emailConfirmed: Boolean(raw.emailConfirmed),
 		globalAvatarUrl: raw.globalAvatarUrl as string | null | undefined,
-		faces: (raw.faces as AdminMeProfile['faces']) ?? [],
+		faces,
 	};
 }
 
