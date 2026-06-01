@@ -17,7 +17,9 @@ const admin = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const gatePath = path.join(admin, 'src/test/adminTypesColocationCiGate.ts');
 const gateSource = readFileSync(gatePath, 'utf8');
 
-const listed = [...gateSource.matchAll(/'([^']+\.colocation\.edge\.test\.[^']+)'/g)].map((m) => m[1]);
+const listed = [...gateSource.matchAll(/'([^']+\.colocation\.edge\.test\.[^']+)'/g)].map(
+	(m) => m[1]
+);
 
 if (listed.length === 0) {
 	console.error('No colocation edge test paths found in adminTypesColocationCiGate.ts');
