@@ -1,5 +1,5 @@
 /**
- * Vitest types-colocation gate — keep aligned with monorepo `verify-admin-types-colocation-tests.mjs`.
+ * Vitest types-colocation gate — keep aligned with `scripts/verify-admin-types-colocation-tests.mjs`.
  */
 export const ADMIN_TYPES_COLOCATION_TEST_FILES = [
 	'src/pages/ContentModerationPage/moderationFiltersConstants.colocation.edge.test.ts',
