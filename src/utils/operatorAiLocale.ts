@@ -14,7 +14,9 @@ export function formatMessageHeader(
 	msg: UiChatMessage,
 	viewerLanguage: string
 ): string {
-	const localeBadge = formatLocaleBadge(t, msg.responseLocale);
+	// RAG retrieval refactor v1 (D10): the operator chat is locale-free — the AI is no longer sent
+	// a language and answers in English only. The per-message locale badge has been dropped from the
+	// header. `formatLocaleBadge` is retained for any callers that still surface legacy locale data.
 	const timestamp = msg.createdAt
 		? new Intl.DateTimeFormat(viewerLanguage, {
 				dateStyle: 'medium',
@@ -29,7 +31,6 @@ export function formatMessageHeader(
 		parts.push(t('pages.chat.ai'));
 	}
 	if (timestamp) parts.push(timestamp);
-	if (localeBadge && localeBadge !== t('pages.chat.localeUnknown')) parts.push(localeBadge);
 
 	return parts.join(' · ');
 }

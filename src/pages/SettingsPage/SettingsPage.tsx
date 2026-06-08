@@ -4,7 +4,6 @@ import { toast } from 'react-toastify';
 import {
 	adminAiPublicStatsDefaults,
 	normalizeAdminAiPublicStatsMode,
-	type AdminAiPublicStatsMode,
 } from '@/utils/adminAiStatsSettings';
 import {
 	adminAiLiveParallelDefaults,
@@ -37,12 +36,19 @@ import { FormField } from '@/components/radix/FormField';
 import { Input } from '@/components/radix/Input';
 import { AiWorkerHostSection } from './AiWorkerHostPanel';
 import { InfrastructureWorkersSection } from './InfrastructureWorkersSection';
+import { KnowledgeReindexPanel } from './KnowledgeReindexPanel';
 import './SettingsPage.scss';
-import { MODES } from './constants';
 
+/**
+ * Resolves the effective "max parallel bundle AI calls" draft from server settings + local edits.
+ *
+ * NOTE (RAG refactor v1, D11): the operator chat is always data-grounded — the `off`/`inline`/`live`
+ * stats-mode selector was removed from this page. We still preserve the server's existing
+ * `publicStatsMode` value verbatim on save (the dashboard strip still reads it), but it is no longer
+ * user-editable here. The only editable control in this group is the parallel-calls count.
+ */
 function resolvePublicStatsDraft(
 	settings: OperatorAiPublicStatsSettingsDto | undefined,
-	localMode: AdminAiPublicStatsMode | null,
 	localParallel: number | null,
 	localParallelDraft: string | null
 ) {
@@ -50,15 +56,14 @@ function resolvePublicStatsDraft(
 		settings?.publicStatsMode ?? adminAiPublicStatsDefaults.DEFAULT_MODE
 	);
 	const serverParallel = normalizeLiveParallelBundleCalls(settings?.liveMaxParallelBundleCalls);
-	const mode = localMode ?? serverMode;
 	const parallel = localParallel ?? serverParallel;
 	const parallelDraft = localParallelDraft ?? String(parallel);
-	return { mode, parallel, parallelDraft };
+	// `mode` is no longer editable — carried through unchanged so the PUT preserves it.
+	return { mode: serverMode, parallel, parallelDraft };
 }
 
 export function SettingsPage() {
 	const { t } = useTranslation('common');
-	const [localMode, setLocalMode] = useState<AdminAiPublicStatsMode | null>(null);
 	const [localParallel, setLocalParallel] = useState<number | null>(null);
 	const [localParallelDraft, setLocalParallelDraft] = useState<string | null>(null);
 	const [saved, setSaved] = useState(false);
@@ -87,7 +92,6 @@ export function SettingsPage() {
 	const parallelRecommendation = recommendLiveParallelBundleCalls(workerHost?.profile);
 	const { mode, parallel, parallelDraft } = resolvePublicStatsDraft(
 		publicStatsSettings,
-		localMode,
 		localParallel,
 		localParallelDraft
 	);
@@ -173,7 +177,6 @@ export function SettingsPage() {
 				publicStatsMode: mode,
 				liveMaxParallelBundleCalls: effective,
 			});
-			setLocalMode(null);
 			setLocalParallel(null);
 			setLocalParallelDraft(null);
 			setSaved(true);
@@ -307,12 +310,21 @@ export function SettingsPage() {
 							)}
 						</div>
 
+						{/* Control 2 (§8.1): Reindex knowledge + read-only index health panel (§17.9). */}
+						<KnowledgeReindexPanel
+							disabled={subSettingsInteractionLocked}
+							aiEnabled={aiGloballyEnabled}
+						/>
+
+						{/* Control 3 (§8.1): Max parallel bundle AI calls. Always shown — the per-bundle
+						    map + stitch is retained (D6), so this knob applies to every grounded turn.
+						    The off/inline/live stats-mode selector was removed (D11). */}
 						<div className="settings-page__subsection">
 							<h3 className="settings-page__subsection-title">
-								{t('pages.settings.aiStats.sectionTitle')}
+								{t('pages.settings.aiStats.liveParallel.sectionTitle')}
 							</h3>
 							<p className="settings-page__subsection-desc">
-								{t('pages.settings.aiStats.description')}
+								{t('pages.settings.aiStats.liveParallel.sectionDesc')}
 							</p>
 							{subSettingsInteractionLocked && (
 								<p className="settings-page__field-hint settings-page__field-hint--muted">
@@ -329,100 +341,67 @@ export function SettingsPage() {
 									{t('pages.settings.aiStats.liveCache.error')}
 								</p>
 							) : (
-								<>
-									<div
-										className="settings-page__options"
-										role="radiogroup"
-										aria-label={t('pages.settings.aiStats.sectionTitle')}
-										aria-disabled={subSettingsInteractionLocked}
+								<div className="settings-page__parallel">
+									<FormField
+										label={t('pages.settings.aiStats.liveParallel.label')}
+										htmlFor="ai-live-parallel"
 									>
-										{MODES.map((m) => (
-											<label
-												key={m}
-												className={`settings-page__option ${mode === m ? 'is-selected' : ''} ${subSettingsInteractionLocked ? 'is-locked' : ''}`}
-											>
-												<input
-													type="radio"
-													name="ai-public-stats-mode"
-													value={m}
-													checked={mode === m}
-													disabled={subSettingsInteractionLocked}
-													onChange={() => setLocalMode(m)}
-												/>
-												<span className="settings-page__option-label">
-													{t(`pages.settings.aiStats.modes.${m}`)}
-												</span>
-												<span className="settings-page__option-hint">
-													{t(`pages.settings.aiStats.hints.${m}`)}
-												</span>
-											</label>
-										))}
-									</div>
-
-									{mode === 'live' && (
-										<div className="settings-page__parallel">
-											<FormField
-												label={t('pages.settings.aiStats.liveParallel.label')}
-												htmlFor="ai-live-parallel"
-											>
-												<Input
-													id="ai-live-parallel"
-													type="text"
-													inputMode="numeric"
-													autoComplete="off"
-													min={adminAiLiveParallelDefaults.MIN}
-													max={adminAiLiveParallelDefaults.MAX}
-													value={parallelDraft}
-													disabled={subSettingsInteractionLocked}
-													onChange={(e) => onParallelChange(e.target.value)}
-													onBlur={onParallelBlur}
-												/>
-											</FormField>
-											<p className="settings-page__field-hint">
-												{t('pages.settings.aiStats.liveParallel.hint', {
-													max: adminAiLiveParallelDefaults.MAX,
+										<Input
+											id="ai-live-parallel"
+											type="text"
+											inputMode="numeric"
+											autoComplete="off"
+											min={adminAiLiveParallelDefaults.MIN}
+											max={adminAiLiveParallelDefaults.MAX}
+											value={parallelDraft}
+											disabled={subSettingsInteractionLocked}
+											onChange={(e) => onParallelChange(e.target.value)}
+											onBlur={onParallelBlur}
+										/>
+									</FormField>
+									<p className="settings-page__field-hint">
+										{t('pages.settings.aiStats.liveParallel.hint', {
+											max: adminAiLiveParallelDefaults.MAX,
+										})}
+									</p>
+									{parallelRecommendation ? (
+										<div className="settings-page__parallel-recommendation">
+											<p className="settings-page__parallel-recommendation-text">
+												{t('pages.settings.aiStats.liveParallel.recommendation', {
+													gpu:
+														parallelRecommendation.basis.gpuName ??
+														t('pages.settings.aiStats.liveParallel.unknownGpu'),
+													vram: parallelRecommendation.basis.vramBytes
+														? formatBytes(parallelRecommendation.basis.vramBytes)
+														: t('pages.settings.aiStats.liveParallel.unknownVram'),
+													ram: parallelRecommendation.basis.ramAvailableBytes
+														? formatBytes(parallelRecommendation.basis.ramAvailableBytes)
+														: t('pages.settings.aiStats.liveParallel.unknownRam'),
+													recommended: parallelRecommendation.recommended,
+													upperBound: parallelRecommendation.upperBound,
 												})}
 											</p>
-											{parallelRecommendation ? (
-												<div className="settings-page__parallel-recommendation">
-													<p className="settings-page__parallel-recommendation-text">
-														{t('pages.settings.aiStats.liveParallel.recommendation', {
-															gpu:
-																parallelRecommendation.basis.gpuName ??
-																t('pages.settings.aiStats.liveParallel.unknownGpu'),
-															vram: parallelRecommendation.basis.vramBytes
-																? formatBytes(parallelRecommendation.basis.vramBytes)
-																: t('pages.settings.aiStats.liveParallel.unknownVram'),
-															ram: parallelRecommendation.basis.ramAvailableBytes
-																? formatBytes(parallelRecommendation.basis.ramAvailableBytes)
-																: t('pages.settings.aiStats.liveParallel.unknownRam'),
-															recommended: parallelRecommendation.recommended,
-															upperBound: parallelRecommendation.upperBound,
-														})}
-													</p>
-													{parallel !== parallelRecommendation.recommended && (
-														<Button
-															type="button"
-															variant="secondary"
-															disabled={subSettingsInteractionLocked}
-															onClick={() =>
-																applyRecommendedParallel(parallelRecommendation.recommended)
-															}
-														>
-															{t('pages.settings.aiStats.liveParallel.applyRecommended', {
-																value: parallelRecommendation.recommended,
-															})}
-														</Button>
-													)}
-												</div>
-											) : (
-												<p className="settings-page__field-hint settings-page__field-hint--muted">
-													{t('pages.settings.aiStats.liveParallel.recommendationFallback')}
-												</p>
+											{parallel !== parallelRecommendation.recommended && (
+												<Button
+													type="button"
+													variant="secondary"
+													disabled={subSettingsInteractionLocked}
+													onClick={() =>
+														applyRecommendedParallel(parallelRecommendation.recommended)
+													}
+												>
+													{t('pages.settings.aiStats.liveParallel.applyRecommended', {
+														value: parallelRecommendation.recommended,
+													})}
+												</Button>
 											)}
 										</div>
+									) : (
+										<p className="settings-page__field-hint settings-page__field-hint--muted">
+											{t('pages.settings.aiStats.liveParallel.recommendationFallback')}
+										</p>
 									)}
-								</>
+								</div>
 							)}
 						</div>
 

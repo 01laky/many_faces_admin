@@ -6,20 +6,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 ### Release index
 
-| Version       | Theme                                       |
-| ------------- | ------------------------------------------- |
-| [1.0.5](#105) | Admin profile all-faces role grid           |
-| [1.0.4](#104) | Colocation verify hardening + sibling Props |
-| [1.0.3](#103) | Types/constants colocation rollout          |
-| [1.0.0](#100) | Push config panel                           |
-| [0.8.0](#080) | Mail config, global search, ASH1, i18n      |
-| [0.7.0](#070) | Operator consoles, TanStack, infra smoke    |
-| [0.6.0](#060) | Platform DMs, server-driven tables          |
-| [0.5.0](#050) | Operator AI chat and user detail            |
-| [0.4.0](#040) | Stats dashboard, registration invites       |
-| [0.3.0](#030) | Moderation queue, ACL                       |
-| [0.2.0](#020) | Dashboard, wall tickets, face routing       |
-| [0.1.0](#010) | Admin SPA foundation                        |
+| Version       | Theme                                        |
+| ------------- | -------------------------------------------- |
+| [1.1.0](#110) | Operator AI RAG retrieval: 3-control AI page |
+| [1.0.5](#105) | Admin profile all-faces role grid            |
+| [1.0.4](#104) | Colocation verify hardening + sibling Props  |
+| [1.0.3](#103) | Types/constants colocation rollout           |
+| [1.0.0](#100) | Push config panel                            |
+| [0.8.0](#080) | Mail config, global search, ASH1, i18n       |
+| [0.7.0](#070) | Operator consoles, TanStack, infra smoke     |
+| [0.6.0](#060) | Platform DMs, server-driven tables           |
+| [0.5.0](#050) | Operator AI chat and user detail             |
+| [0.4.0](#040) | Stats dashboard, registration invites        |
+| [0.3.0](#030) | Moderation queue, ACL                        |
+| [0.2.0](#020) | Dashboard, wall tickets, face routing        |
+| [0.1.0](#010) | Admin SPA foundation                         |
 
 ## [Unreleased]
 
@@ -28,6 +29,43 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 ### Changed
 
 ### Fixed
+
+---
+
+## [1.1.0]
+
+**Operator AI RAG retrieval refactor (v1) — admin SPA slice.** Reshapes Settings → AI to exactly
+three controls and removes the legacy stats-mode + response-locale UI from the operator chat. See
+`docs/prompts/operator-ai-rag-retrieval-refactor-v1-agent-prompt.md` (§8.1, §9, §17.9, D10–D12).
+
+### Added
+
+- **Reindex knowledge** control on Settings → AI (`POST /admin/api/operator-ai/knowledge/reindex`):
+  shows `{ indexedCount, failedCount, embedModelVersion }`, disables while running, and surfaces a
+  distinct "already running" notice on HTTP 409 (single-flight lock, §17.5).
+- **Knowledge-index status panel** (read-only, §17.9): `GET /admin/api/operator-ai/knowledge/status`
+  → active index/alias, doc count vs 61, last-indexed UTC, embed model version, vector dim, and a
+  ready / degraded / not-ready badge.
+- Hand-written typed client `src/api/services/operatorAiKnowledgeApi.ts` + hooks
+  `src/hooks/api/useOperatorAiKnowledgeApi.ts` for the two new endpoints (not yet in the generated
+  OpenAPI client; shapes mirror the spec §5.2/§8.1).
+- Vitest coverage: settings page renders the three controls + status panel and no longer renders the
+  stats-mode selector; reindex panel (result + 409 + error); status panel (fields + degraded/not-ready);
+  the chat send invokes the hub with only `(conversationId, message)`.
+
+### Changed
+
+- **Settings → AI** is now exactly three controls (§8.1): the global AI enable switch, the reindex
+  button (+ status panel), and Max parallel bundle AI calls (now always shown, no longer gated by a
+  stats mode).
+- Operator chat send no longer passes a stats mode or response locale — `SendToAiWithOperatorStats`
+  is invoked with `(conversationId, message)` only (D10/D11). The per-message locale badge was dropped
+  from the chat message header (the chat is locale-free, D10).
+
+### Removed
+
+- The `off` / `inline` / `live` stats-mode selector from Settings → AI (D11).
+- The response-locale argument from the operator chat send path (D10).
 
 ---
 

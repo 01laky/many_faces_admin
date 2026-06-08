@@ -14,7 +14,6 @@ import {
 	useOperatorAiConversations,
 	useOperatorAiMessagesInfinite,
 	useOperatorAiModelStatus,
-	useOperatorAiPublicStatsSettings,
 	useOperatorAiSystemSettings,
 	operatorAiConversationsQueryKey,
 	operatorAiModelStatusQueryKey,
@@ -24,14 +23,6 @@ import {
 	type OperatorAiMessageAppendedEvent,
 	type OperatorAiMessagesPage,
 } from '@/hooks/api/useOperatorAiApi';
-import {
-	adminAiPublicStatsDefaults,
-	normalizeAdminAiPublicStatsMode,
-} from '@/utils/adminAiStatsSettings';
-import {
-	adminAiLiveParallelDefaults,
-	normalizeLiveParallelBundleCalls,
-} from '@/utils/adminAiLiveParallelSettings';
 import {
 	appendExchangeToMessagesPage,
 	conversationTitle,
@@ -45,7 +36,6 @@ import {
 } from '@/utils/operatorAiChatUtils';
 import { mapOperatorAiHubError } from '@/utils/operatorAiHubErrors';
 import { formatMessageHeader } from '@/utils/operatorAiLocale';
-import { toOperatorAiResponseLocale } from '@/utils/toOperatorAiResponseLocale';
 import { Button } from '@/components/radix/Button';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
 import './ChatPage.scss';
@@ -73,7 +63,6 @@ export function ChatPage() {
 
 	const { data: conversations = [], isLoading: listLoading } = useOperatorAiConversations();
 	const { data: modelStatus } = useOperatorAiModelStatus(operatorAiGloballyEnabled);
-	const { data: publicStatsSettings } = useOperatorAiPublicStatsSettings();
 	const {
 		data: infiniteMessages,
 		isLoading: messagesLoading,
@@ -132,9 +121,6 @@ export function ChatPage() {
 
 	const conversationsKey = operatorAiConversationsQueryKey;
 	const { messagesKey } = operatorAiQueryKeys();
-	const statsModeForUi = normalizeAdminAiPublicStatsMode(
-		publicStatsSettings?.publicStatsMode ?? adminAiPublicStatsDefaults.DEFAULT_MODE
-	);
 
 	useEffect(() => {
 		if (conversationId == null) return;
@@ -235,7 +221,6 @@ export function ChatPage() {
 							role: 'user',
 							content: userMessage,
 							authorEmail: user?.email,
-							responseLocale: i18n.language,
 							createdAt: new Date().toISOString(),
 						},
 						{ id: -Date.now() - 1, role: 'ai', content: aiContent },
@@ -368,17 +353,6 @@ export function ChatPage() {
 		const optimisticUserId = -Date.now();
 		setSendingElapsedSec(0);
 		setIsSending(true);
-		const statsMode = normalizeAdminAiPublicStatsMode(
-			publicStatsSettings?.publicStatsMode ?? adminAiPublicStatsDefaults.DEFAULT_MODE
-		);
-		const responseLocale = toOperatorAiResponseLocale(i18n.language);
-		const parallel =
-			statsMode === 'live'
-				? normalizeLiveParallelBundleCalls(
-						publicStatsSettings?.liveMaxParallelBundleCalls,
-						adminAiLiveParallelDefaults.DEFAULT
-					)
-				: undefined;
 		setPendingByConv((map) => ({
 			...map,
 			[conversationId]: [
@@ -387,29 +361,16 @@ export function ChatPage() {
 					role: 'user',
 					content: text,
 					authorEmail: user?.email,
-					responseLocale,
 					createdAt: new Date().toISOString(),
 				},
 			],
 		}));
 		try {
+			// RAG retrieval refactor v1: the operator chat is always data-grounded (D11) and the AI is
+			// locale-free (D10). The SignalR send no longer passes a stats mode or a response locale —
+			// the backend orchestrator selects bundles (retrieve → map → stitch) entirely server-side.
 			await Promise.race([
-				statsMode === 'live'
-					? conn.invoke(
-							'SendToAiWithOperatorStats',
-							conversationId,
-							text,
-							statsMode,
-							responseLocale,
-							parallel
-						)
-					: conn.invoke(
-							'SendToAiWithOperatorStats',
-							conversationId,
-							text,
-							statsMode,
-							responseLocale
-						),
+				conn.invoke('SendToAiWithOperatorStats', conversationId, text),
 				new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), SEND_TIMEOUT_MS)),
 			]);
 		} catch (err) {
@@ -598,11 +559,7 @@ export function ChatPage() {
 									<div className="chat-page__message chat-page__message--ai">
 										<span className="chat-page__message-label">{t('pages.chat.ai')}</span>
 										<div className="chat-page__message-content chat-page__typing">
-											<p className="chat-page__typing-line">
-												{statsModeForUi === 'live'
-													? t('pages.chat.liveLoading')
-													: t('pages.chat.waitingForAi')}
-											</p>
+											<p className="chat-page__typing-line">{t('pages.chat.waitingForAi')}</p>
 											{sendingElapsedSec > 0 && (
 												<p className="chat-page__typing-hint">
 													{t('pages.chat.waitingForAiElapsed', {

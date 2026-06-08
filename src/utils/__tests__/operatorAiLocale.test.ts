@@ -14,7 +14,9 @@ describe('operatorAiLocale', () => {
 		expect(formatLocaleBadge(t, 'en')).toBe('EN');
 	});
 
-	it('formatMessageHeader for user includes email and locale', () => {
+	// RAG retrieval refactor v1 (D10): the chat is locale-free; the header no longer renders the
+	// per-message locale badge, even when legacy persisted messages still carry `responseLocale`.
+	it('formatMessageHeader for user includes email but NOT a locale badge', () => {
 		const header = formatMessageHeader(
 			t,
 			{
@@ -28,10 +30,10 @@ describe('operatorAiLocale', () => {
 			'en'
 		);
 		expect(header).toContain('admin@admin.com');
-		expect(header).toContain('EN');
+		expect(header).not.toContain('EN');
 	});
 
-	it('formatMessageHeader for assistant uses AI label', () => {
+	it('formatMessageHeader for assistant uses AI label without a locale badge', () => {
 		const header = formatMessageHeader(
 			t,
 			{
@@ -44,6 +46,6 @@ describe('operatorAiLocale', () => {
 			'en'
 		);
 		expect(header.startsWith('AI')).toBe(true);
-		expect(header).toContain('SK');
+		expect(header).not.toContain('SK');
 	});
 });
