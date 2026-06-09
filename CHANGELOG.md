@@ -8,6 +8,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 | Version       | Theme                                        |
 | ------------- | -------------------------------------------- |
+| [1.2.0](#120) | Operator AI live token streaming in chat     |
 | [1.1.0](#110) | Operator AI RAG retrieval: 3-control AI page |
 | [1.0.5](#105) | Admin profile all-faces role grid            |
 | [1.0.4](#104) | Colocation verify hardening + sibling Props  |
@@ -27,6 +28,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 ### Added
 
 ### Changed
+
+### Fixed
+
+---
+
+## [1.2.0]
+
+### Added
+
+- live token streaming in the operator AI chat: the chat page subscribes to the new `OperatorAiMessageDelta` SignalR event and renders the assistant answer token-by-token in a transient bubble (with a blinking caret), then reconciles to the persisted message on `OperatorAiMessageAppended`. Falls back cleanly to the previous spinner-until-appended behaviour when no deltas arrive, and clears streaming buffers on conversation switch / delete / unmount.
+- vitest coverage for streaming: deltas accumulate and render live, the final appended event clears the streaming buffer (no duplicate), the no-delta legacy path is unchanged, and deltas for one conversation never leak into another.
 
 ### Fixed
 
@@ -225,7 +237,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 
 - Admin SPA foundation with OAuth2 and Docker dev scripts.
 
-[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.0.3...HEAD
+[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.2.0...HEAD
 [1.0.3]: https://github.com/01laky/many_faces_admin/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/01laky/many_faces_admin/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/01laky/many_faces_admin/compare/v1.0.0...v1.0.1
@@ -238,3 +250,4 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 [0.3.0]: https://github.com/01laky/many_faces_admin/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/01laky/many_faces_admin/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/01laky/many_faces_admin/releases/tag/v0.1.0
+[1.2.0]: https://github.com/01laky/many_faces_admin/compare/v1.1.0...v1.2.0

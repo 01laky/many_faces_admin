@@ -297,6 +297,28 @@ $chat-page-inset: 0.75rem;
 	}
 }
 
+// Blinking caret appended to the live-streaming assistant bubble while tokens are still arriving.
+.chat-page__streaming-caret {
+	display: inline-block;
+	width: 0.4rem;
+	height: 1em;
+	margin-left: 2px;
+	vertical-align: text-bottom;
+	background: #495057;
+	animation: chat-page__caret-blink 1s steps(1) infinite;
+}
+
+@keyframes chat-page__caret-blink {
+	0%,
+	50% {
+		opacity: 1;
+	}
+	50.01%,
+	100% {
+		opacity: 0;
+	}
+}
+
 .chat-page__message--user .chat-page__message-content {
 	background: #cfe2ff;
 	margin-right: 2rem;

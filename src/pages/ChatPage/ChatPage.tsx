@@ -93,6 +93,12 @@ export function ChatPage() {
 		};
 	}, [infiniteMessages, hasNextPage]);
 	const [pendingByConv, setPendingByConv] = useState<Record<number, UiChatMessage[]>>({});
+	// Live token-streaming buffer: conversationId → accumulated assistant text built up from incremental
+	// "OperatorAiMessageDelta" hub events that arrive DURING generation. This is purely transient and is
+	// cleared the moment the authoritative "OperatorAiMessageAppended" terminal event lands (the persisted
+	// assistant message then replaces the streamed text with no flicker). If a backend never emits deltas
+	// (streaming disabled / older server) this map simply stays empty and the legacy spinner path is used.
+	const [streamingByConv, setStreamingByConv] = useState<Record<number, string>>({});
 	const loadingOlder = isFetchingNextPage;
 	const [input, setInput] = useState('');
 	const [connectionState, setConnectionState] = useState<ConnectionState>('Disconnected');
@@ -119,6 +125,9 @@ export function ChatPage() {
 		return [...serverMessages, ...tail];
 	}, [serverMessages, pendingByConv, conversationId]);
 
+	// Accumulated streaming text for the currently open conversation (empty when no deltas have arrived).
+	const streamingText = conversationId != null ? (streamingByConv[conversationId] ?? '') : '';
+
 	const conversationsKey = operatorAiConversationsQueryKey;
 	const { messagesKey } = operatorAiQueryKeys();
 
@@ -134,6 +143,14 @@ export function ChatPage() {
 				return;
 			}
 			setPendingByConv((map) => {
+				if (!(id in map)) return map;
+				const next = { ...map };
+				delete next[id];
+				return next;
+			});
+			// Drop any stale streaming buffer for the thread being opened so half-streamed text from a
+			// previous turn never re-appears when navigating back into a conversation.
+			setStreamingByConv((map) => {
 				if (!(id in map)) return map;
 				const next = { ...map };
 				delete next[id];
@@ -233,6 +250,22 @@ export function ChatPage() {
 			}
 		);
 
+		// Live token streaming: incremental assistant tokens arrive in order during one turn. We append
+		// each `delta` to the per-conversation buffer; the active thread re-renders a transient assistant
+		// bubble showing the running text. This is advisory/UX only — the persisted message still arrives
+		// via OperatorAiMessageAppended, which clears this buffer. Deltas for non-active conversations are
+		// still accumulated (so a background thread shows its full streamed text on switch), but only the
+		// active conversation's buffer is rendered.
+		connection.on('OperatorAiMessageDelta', (evt: { conversationId: number; delta: string }) => {
+			if (evt == null || typeof evt.conversationId !== 'number' || typeof evt.delta !== 'string') {
+				return;
+			}
+			setStreamingByConv((map) => ({
+				...map,
+				[evt.conversationId]: (map[evt.conversationId] ?? '') + evt.delta,
+			}));
+		});
+
 		connection.on('OperatorAiMessageAppended', (evt: OperatorAiMessageAppendedEvent) => {
 			refreshConversationListRef.current(evt.conversation);
 			const cid = conversationIdRef.current;
@@ -252,6 +285,14 @@ export function ChatPage() {
 				delete next[cid];
 				return next;
 			});
+			// Terminal event is authoritative: drop the transient streaming buffer so the persisted
+			// assistantMessage replaces the streamed text with no duplicate/flicker.
+			setStreamingByConv((map) => {
+				if (!(cid in map)) return map;
+				const next = { ...map };
+				delete next[cid];
+				return next;
+			});
 			setIsSending(false);
 		});
 
@@ -264,6 +305,13 @@ export function ChatPage() {
 				conversationsKey,
 				(prev) => (prev ? prev.filter((c) => c.id !== evt.conversationId) : [])
 			);
+			// Discard any streaming buffer for the removed thread so stale text can never resurface.
+			setStreamingByConv((map) => {
+				if (!(evt.conversationId in map)) return map;
+				const next = { ...map };
+				delete next[evt.conversationId];
+				return next;
+			});
 			if (evt.conversationId === conversationIdRef.current) {
 				setActiveConversationIdRef.current(null);
 			}
@@ -297,6 +345,9 @@ export function ChatPage() {
 			connectionRef.current = null;
 			setConnectionState('Disconnected');
 			setIsSending(false);
+			// Drop all streaming buffers when the hub tears down so no stale streamed text survives a
+			// remount/reconnect cycle.
+			setStreamingByConv({});
 		};
 		// token read via tokenRef — omit from deps to avoid hub reconnect loop on refresh
 		// eslint-disable-next-line react-hooks/exhaustive-deps -- messagesKey stable; hub lifetime tied to auth + conversation list key
@@ -555,7 +606,22 @@ export function ChatPage() {
 										<div className="chat-page__message-content">{msg.content}</div>
 									</div>
 								))}
-								{isSending && (
+								{isSending && streamingText !== '' && (
+									// Live streaming bubble: once incremental deltas start arriving we show the running
+									// assistant text (with a subtle blinking caret) in the standard AI bubble styling,
+									// replacing the "waiting" spinner. It is cleared on OperatorAiMessageAppended.
+									<div
+										className="chat-page__message chat-page__message--ai"
+										data-testid="chat-streaming-message"
+									>
+										<span className="chat-page__message-label">{t('pages.chat.ai')}</span>
+										<div className="chat-page__message-content">
+											{streamingText}
+											<span className="chat-page__streaming-caret" aria-hidden="true" />
+										</div>
+									</div>
+								)}
+								{isSending && streamingText === '' && (
 									<div className="chat-page__message chat-page__message--ai">
 										<span className="chat-page__message-label">{t('pages.chat.ai')}</span>
 										<div className="chat-page__message-content chat-page__typing">
