@@ -1,5 +1,6 @@
 import type { AdminPushSettingsDto } from '@/api/models/AdminPushSettingsDto';
 import type { UpdateAdminPushSettingsRequest } from '@/api/models/AdminPushSettingsDto';
+import { isAbsoluteHttpUri } from '@/utils/httpUri';
 
 const LOC_KEY_PATTERN = /^[a-zA-Z0-9_.-]+$/;
 const MAX_FIREBASE_JSON_BYTES = 32 * 1024;
@@ -21,17 +22,6 @@ export type AdminPushWorkerUrlError = 'invalidWorkerUrl';
 export type AdminPushLocKeyError = 'titleLocKeyRequired' | 'bodyLocKeyRequired' | 'invalidLocKey';
 export type AdminPushGrpcDeadlineError = 'grpcDeadlineInvalid';
 export type AdminPushFirebaseJsonError = 'firebaseJsonRequired' | 'firebaseJsonInvalid';
-
-function isAbsoluteHttpUri(value: string): boolean {
-	const trimmed = value.trim();
-	if (!trimmed) return false;
-	try {
-		const uri = new URL(trimmed);
-		return uri.protocol === 'http:' || uri.protocol === 'https:';
-	} catch {
-		return false;
-	}
-}
 
 /** APC-U3 — worker gRPC URL format when push is enabled. */
 export function validateAdminPushWorkerGrpcUrl(

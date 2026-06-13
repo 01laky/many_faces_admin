@@ -52,4 +52,14 @@ describe('userChatMessageMerge', () => {
 		expect(next).toHaveLength(1);
 		expect(next[0]?.id).toBe(42);
 	});
+
+	it('removes only one optimistic row when two identical sends are pending', () => {
+		const first: UiUserChatMessage = { ...optimistic('hi'), id: -1 };
+		const second: UiUserChatMessage = { ...optimistic('hi'), id: -2 };
+		const next = replaceOptimisticUserChatMessage([first, second], persisted(100, 'hi'), 'admin-1');
+		// one optimistic swapped for the persisted echo; the other identical send stays pending
+		expect(next).toHaveLength(2);
+		expect(next.filter((m) => m.pending)).toHaveLength(1);
+		expect(next.some((m) => m.id === 100)).toBe(true);
+	});
 });

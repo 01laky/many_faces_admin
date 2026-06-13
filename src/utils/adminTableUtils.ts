@@ -25,3 +25,11 @@ export function isWallTicketRowSelected(
 ): boolean {
 	return selectedId != null && selectedId === rowId;
 }
+
+/**
+ * Renders a numeric count table cell, showing an em dash for a missing value. Typed as nullable
+ * because TanStack `getValue()` is untyped and can return null at runtime despite a `number` cast.
+ */
+export function formatNullableCount(value: number | null | undefined): string {
+	return value == null ? '—' : String(value);
+}

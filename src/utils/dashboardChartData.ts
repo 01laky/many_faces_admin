@@ -10,9 +10,17 @@ export function mergeTimeseriesForMultiLineChart(
 	labelA: string,
 	labelB: string
 ): Array<Record<string, string | number>> {
+	// The labels become object keys alongside `periodStartUtc`; equal labels (or a label that shadows
+	// `periodStartUtc`) would silently drop one series. Fail fast — these are caller-supplied constants.
+	if (labelA === labelB || labelA === 'periodStartUtc' || labelB === 'periodStartUtc') {
+		throw new Error(
+			`mergeTimeseriesForMultiLineChart: series labels must be distinct and not "periodStartUtc" (got "${labelA}", "${labelB}")`
+		);
+	}
 	const keys = new Set<string>();
 	for (const b of seriesA.buckets) keys.add(b.periodStartUtc);
 	for (const b of seriesB.buckets) keys.add(b.periodStartUtc);
+	// Lexicographic sort is chronological here because periodStartUtc is an ISO-8601 UTC (Z) timestamp.
 	const sorted = [...keys].sort();
 
 	const mapA = new Map(seriesA.buckets.map((b) => [b.periodStartUtc, b.count]));

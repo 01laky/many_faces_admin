@@ -16,9 +16,6 @@ export const UserDetailPage = lazy(() =>
 export const CreateUserPage = lazy(() =>
 	import('../pages/CreateUserPage').then((m) => ({ default: m.CreateUserPage }))
 );
-export const EditUserPage = lazy(() =>
-	import('../pages/EditUserPage').then((m) => ({ default: m.EditUserPage }))
-);
 export const FacesPage = lazy(() =>
 	import('../pages/FacesPage').then((m) => ({ default: m.FacesPage }))
 );

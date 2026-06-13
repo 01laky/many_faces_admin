@@ -1,5 +1,6 @@
 import type { AdminMailSettingsDto } from '@/api/models/AdminMailSettingsDto';
 import type { UpdateAdminMailSettingsRequest } from '@/api/models/AdminMailSettingsDto';
+import { isAbsoluteHttpUri } from '@/utils/httpUri';
 
 /** Locales accepted by backend UpdateAdminMailSettingsValidator (AMC-U2). */
 export const ADMIN_MAIL_SUPPORTED_LOCALES = ['en', 'sk', 'cs', 'de', 'fr', 'it'] as const;
@@ -48,17 +49,6 @@ export function validateAdminMailRegistrationPathTemplate(
 	template: string
 ): AdminMailPathTemplateError | null {
 	return template.includes('{locale}') ? null : 'missingLocalePlaceholder';
-}
-
-function isAbsoluteHttpUri(value: string): boolean {
-	const trimmed = value.trim();
-	if (!trimmed) return false;
-	try {
-		const uri = new URL(trimmed);
-		return uri.protocol === 'http:' || uri.protocol === 'https:';
-	} catch {
-		return false;
-	}
 }
 
 /** AMC-U3 — worker gRPC URL format when mail is enabled. */

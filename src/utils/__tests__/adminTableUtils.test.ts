@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	ADMIN_TABLE_PAGE_SIZE,
+	formatNullableCount,
 	isWallTicketRowSelected,
 	wallTicketApiPageToTablePageIndex,
 	wallTicketTablePageIndexToApiPage,
@@ -37,5 +38,14 @@ describe('isWallTicketRowSelected', () => {
 		expect(isWallTicketRowSelected(null, 5)).toBe(false);
 		expect(isWallTicketRowSelected(undefined, 5)).toBe(false);
 		expect(isWallTicketRowSelected(4, 5)).toBe(false);
+	});
+});
+
+describe('formatNullableCount', () => {
+	it('shows an em dash for null/undefined and the number otherwise (including 0)', () => {
+		expect(formatNullableCount(null)).toBe('—');
+		expect(formatNullableCount(undefined)).toBe('—');
+		expect(formatNullableCount(0)).toBe('0');
+		expect(formatNullableCount(42)).toBe('42');
 	});
 });

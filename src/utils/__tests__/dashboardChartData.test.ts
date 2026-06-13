@@ -31,6 +31,14 @@ describe('mergeTimeseriesForMultiLineChart', () => {
 			{ periodStartUtc: '2026-01-02T00:00:00.000Z', users: 1, messages: 5 },
 		]);
 	});
+
+	it('throws when labels collide or shadow periodStartUtc (would drop a series)', () => {
+		const empty = { metric: 'x', bucket: 'day', buckets: [] };
+		expect(() => mergeTimeseriesForMultiLineChart(empty, empty, 'same', 'same')).toThrow();
+		expect(() =>
+			mergeTimeseriesForMultiLineChart(empty, empty, 'periodStartUtc', 'messages')
+		).toThrow();
+	});
 });
 
 describe('contentMixPieData', () => {

@@ -59,7 +59,11 @@ export function useOperatorAiMessages(conversationId: number | null, enabled: bo
 export function getOperatorAiMessagesNextPageParam(
 	lastPage: OperatorAiMessagesPage
 ): number | undefined {
-	return lastPage.hasMore && lastPage.items[0]?.id ? lastPage.items[0].id : undefined;
+	if (!lastPage.hasMore) return undefined;
+	// Prefer the server-provided oldestId cursor (robust to ordering / an empty-but-hasMore page);
+	// fall back to the first (oldest) item id. `!= null` so a legitimate id 0 doesn't stop pagination.
+	const cursor = lastPage.oldestId ?? lastPage.items?.[0]?.id;
+	return cursor != null ? cursor : undefined;
 }
 
 /** Paginated thread history — latest page first, `fetchNextPage` loads older (`beforeId`). */

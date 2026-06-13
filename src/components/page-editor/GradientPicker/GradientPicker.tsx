@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import './GradientPicker.scss';
 import type { GradientSettings, GradientPickerProps } from './types';
@@ -52,14 +52,29 @@ function buildAnimatedPreviewStyle(settings: GradientSettings): React.CSSPropert
 
 export function GradientPicker({ value, onChange, disabled }: GradientPickerProps) {
 	const { t } = useTranslation('common');
+	// Counter for fresh per-color ids. Only read in event handlers / the effect — never during render
+	// (the repo's react-hooks lint forbids ref access during render).
+	const idCounter = useRef(0);
+	const makeId = useCallback(() => `gc-${idCounter.current++}`, []);
+
 	const [settings, setSettings] = useState<GradientSettings>(() => parseGradientSettings(value));
+	// Stable per-color ids for the list keys. The colors are plain strings that can repeat, and
+	// removeColor deletes by index, so index keys would keep the wrong <input type="color"> mounted.
+	// Seed with deterministic ids (no ref access during render); fresh ids come from makeId later.
+	const [colorIds, setColorIds] = useState<string[]>(() =>
+		parseGradientSettings(value).colors.map((_, i) => `gc-init-${i}`)
+	);
 
 	useEffect(() => {
+		// Defer the state sync out of the synchronous effect body (repo lint: no setState directly in
+		// an effect). Re-parse the controlled value, then re-sync ids by position for a clean key diff.
 		void (async () => {
 			await Promise.resolve();
-			setSettings(parseGradientSettings(value));
+			const parsed = parseGradientSettings(value);
+			setSettings(parsed);
+			setColorIds((prev) => parsed.colors.map((_, i) => prev[i] ?? makeId()));
 		})();
-	}, [value]);
+	}, [value, makeId]);
 
 	const emitChange = useCallback(
 		(updated: GradientSettings) => {
@@ -85,11 +100,13 @@ export function GradientPicker({ value, onChange, disabled }: GradientPickerProp
 
 	const addColor = () => {
 		if (settings.colors.length >= 6) return;
+		setColorIds((prev) => [...prev, makeId()]);
 		emitChange({ ...settings, colors: [...settings.colors, '#000000'] });
 	};
 
 	const removeColor = (index: number) => {
 		if (settings.colors.length <= 2) return;
+		setColorIds((prev) => prev.filter((_, i) => i !== index));
 		const newColors = settings.colors.filter((_, i) => i !== index);
 		emitChange({ ...settings, colors: newColors });
 	};
@@ -153,7 +170,7 @@ export function GradientPicker({ value, onChange, disabled }: GradientPickerProp
 				<label className="gradient-picker__label">{t('pages.editFace.gradient.colors')}</label>
 				<div className="gradient-picker__colors">
 					{settings.colors.map((color, i) => (
-						<div key={i} className="gradient-picker__color-row">
+						<div key={colorIds[i] ?? i} className="gradient-picker__color-row">
 							<input
 								type="color"
 								value={color}

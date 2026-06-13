@@ -7,15 +7,10 @@ import {
 	type FaceVideoLoungeListItem,
 } from '@/hooks/api/useFaceVideoLoungesApi';
 import { useLocalizedLink } from '@/hooks/useLocalizedLink';
-import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
+import { ADMIN_TABLE_PAGE_SIZE, formatNullableCount } from '@/utils/adminTableUtils';
 import { sortingStateToApi } from '@/utils/adminListQuery';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
 import type { FaceVideoLoungesTableProps } from './types';
-
-function formatCellValue(value: number | undefined): string {
-	if (value === null || value === undefined) return '—';
-	return String(value);
-}
 
 export function FaceVideoLoungesTable({ faceId }: FaceVideoLoungesTableProps) {
 	const { t } = useTranslation('common');
@@ -73,7 +68,7 @@ export function FaceVideoLoungesTable({ faceId }: FaceVideoLoungesTableProps) {
 				accessorKey: 'memberCount',
 				header: t('pages.videoLoungesTable.colMembers'),
 				enableSorting: false,
-				cell: ({ getValue }) => formatCellValue(getValue() as number | undefined),
+				cell: ({ getValue }) => formatNullableCount(getValue() as number | null | undefined),
 			},
 			{
 				id: 'live',

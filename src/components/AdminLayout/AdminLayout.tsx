@@ -25,31 +25,8 @@ import { GlobalSearchAutocomplete } from '@/components/GlobalSearch';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import './AdminLayout.scss';
 
-import type { NavItem, AdminLayoutProps } from './types';
-
-const NAV_ITEMS: NavItem[] = [
-	{ path: '/dashboard', labelKey: 'pages.dashboard.title', icon: '📊' },
-	{ path: '/users', labelKey: 'pages.users.title', icon: '👥' },
-	{ path: '/faces', labelKey: 'pages.faces.title', icon: '😀' },
-	{ path: '/chat', labelKey: 'pages.chat.title', icon: '💬' },
-];
-
-const SUPER_ADMIN_NAV_ITEMS: NavItem[] = [
-	{ path: '/moderation', labelKey: 'pages.moderation.title', icon: '🛡' },
-	{ path: '/user-chat', labelKey: 'pages.userChat.title', icon: '📩' },
-];
-
-const SETTINGS_NAV_ITEM: NavItem = {
-	path: '/settings',
-	labelKey: 'pages.settings.title',
-	icon: '⚙️',
-};
-
-const ADMIN_PROFILE_NAV_ITEM: NavItem = {
-	path: '/profile',
-	labelKey: 'pages.adminProfile.title',
-	icon: '👤',
-};
+import type { AdminLayoutProps } from './types';
+import { buildBaseAdminNavItems } from './adminNavItems';
 
 const DESKTOP_BREAKPOINT = 1024;
 
@@ -71,9 +48,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 		? userChatConversations.reduce((sum, c) => sum + c.unreadCount, 0)
 		: 0;
 
-	const baseNavItems = isSuperAdmin
-		? [...NAV_ITEMS, ...SUPER_ADMIN_NAV_ITEMS, ADMIN_PROFILE_NAV_ITEM, SETTINGS_NAV_ITEM]
-		: [...NAV_ITEMS, ADMIN_PROFILE_NAV_ITEM, SETTINGS_NAV_ITEM];
+	const baseNavItems = buildBaseAdminNavItems(isSuperAdmin);
 	const navItems = filterAdminSidebarNavItemsForAiSystem(baseNavItems, operatorAiGloballyEnabled);
 
 	// Detect screen size

@@ -8,6 +8,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 | Version       | Theme                                        |
 | ------------- | -------------------------------------------- |
+| [1.2.2](#122) | Refactor pass: dedup, dead code, stable keys |
 | [1.2.1](#121) | Bug-fix pass: chat header, cache wipe, JWT   |
 | [1.2.0](#120) | Operator AI live token streaming in chat     |
 | [1.1.0](#110) | Operator AI RAG retrieval: 3-control AI page |
@@ -31,6 +32,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 ### Changed
 
 ### Fixed
+
+---
+
+## [1.2.2]
+
+### Changed
+
+- Extracted the sidebar nav order into `AdminLayout/adminNavItems.ts` (`buildBaseAdminNavItems`) so the SAP-U5 "profile immediately before settings" order is unit-tested against the real builder instead of a hand-mirrored copy.
+- Deduplicated shared helpers: `adminMailEffectiveStatus`/`adminPushEffectiveStatus` now re-export a shared `adminEffectiveStatus`; `isAbsoluteHttpUri` moved to a shared `httpUri` util used by both the mail and push settings validators; the duplicated `formatCellValue` in the chat-room/video-lounge tables is now a shared `formatNullableCount` (honestly typed `number | null | undefined`).
+
+### Fixed
+
+- `GradientPicker` colour rows now use stable keys instead of array indices, so removing a middle colour no longer keeps the wrong `<input type="color">` mounted (serialization shape unchanged).
+- `replaceOptimisticUserChatMessage` removes only the first matching optimistic row, so sending two identical messages in a row no longer makes the second one briefly disappear on the first echo.
+- `mergeTimeseriesForMultiLineChart` fails fast when the two series labels collide or shadow `periodStartUtc` (which would have silently dropped a series).
+- Operator AI message pagination prefers the server `oldestId` cursor (falling back to the first item id, id-0 safe) instead of relying on `items[0].id`.
+
+### Removed
+
+- Dead `EditUserPage` (and its lazy export): `/users/:id/edit` already redirects to the user detail page, where operator user management lives.
 
 ---
 
@@ -239,7 +260,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 
 - Admin SPA foundation with OAuth2 and Docker dev scripts.
 
-[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.2.2...HEAD
 [1.0.5]: https://github.com/01laky/many_faces_admin/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/01laky/many_faces_admin/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/01laky/many_faces_admin/compare/v1.0.2...v1.0.3
@@ -254,5 +275,6 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 [0.3.0]: https://github.com/01laky/many_faces_admin/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/01laky/many_faces_admin/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/01laky/many_faces_admin/releases/tag/v0.1.0
+[1.2.2]: https://github.com/01laky/many_faces_admin/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/01laky/many_faces_admin/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/01laky/many_faces_admin/compare/v1.1.0...v1.2.0
