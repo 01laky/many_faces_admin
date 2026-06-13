@@ -38,6 +38,12 @@ export function mapOperatorMessageToUi(m: OperatorAiMessage): UiChatMessage {
 		id: m.id,
 		role: m.role === 'User' ? 'user' : 'ai',
 		content: m.content,
+		// Carry the header metadata so loaded history renders like live messages.
+		// ChatPage → formatMessageHeader reads createdAt + authorEmail; without these,
+		// persisted messages showed no timestamp and fell back to a generic author label.
+		authorEmail: m.authorEmail,
+		responseLocale: m.responseLocale,
+		createdAt: m.createdAt,
 	};
 }
 

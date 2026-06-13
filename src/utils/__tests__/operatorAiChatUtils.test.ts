@@ -43,6 +43,29 @@ describe('operatorAiChatUtils', () => {
 		).toBe('user');
 	});
 
+	it('mapOperatorMessageToUi preserves header metadata (createdAt, authorEmail, responseLocale)', () => {
+		// Regression: these fields were dropped, so loaded history rendered no timestamp/author
+		// (formatMessageHeader reads createdAt + authorEmail).
+		const ui = mapOperatorMessageToUi({
+			id: 7,
+			role: 'User',
+			content: 'hello',
+			statsMode: null,
+			createdByUserId: 'u1',
+			authorEmail: 'op@example.com',
+			responseLocale: 'en',
+			createdAt: '2026-01-02T03:04:05Z',
+		});
+		expect(ui).toEqual({
+			id: 7,
+			role: 'user',
+			content: 'hello',
+			authorEmail: 'op@example.com',
+			responseLocale: 'en',
+			createdAt: '2026-01-02T03:04:05Z',
+		});
+	});
+
 	it('mergeMessagePages prepends without duplicates', () => {
 		const existing = [{ id: 2, role: 'ai' as const, content: 'b' }];
 		const older = [{ id: 1, role: 'user' as const, content: 'a' }];

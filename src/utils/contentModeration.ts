@@ -108,7 +108,12 @@ export function parseModerationRowKey(
 	const colonIndex = key.indexOf(':');
 	if (colonIndex <= 0) return null;
 	const contentType = key.slice(0, colonIndex);
-	const contentId = Number(key.slice(colonIndex + 1));
+	// Guard the empty/whitespace id before Number(): Number('') === 0 is finite, so a key like
+	// "Album:" would otherwise parse to a valid-looking contentId 0 and feed a bulk action against id 0.
+	// (A literal "Album:0" is still accepted — buildModerationRowKey supports a zero content id.)
+	const idText = key.slice(colonIndex + 1).trim();
+	if (idText === '') return null;
+	const contentId = Number(idText);
 	if (!Number.isFinite(contentId)) return null;
 	return {
 		contentType: contentType as ModeratedContentType,

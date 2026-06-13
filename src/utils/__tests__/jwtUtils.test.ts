@@ -1,9 +1,19 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { isTokenExpired } from '../jwtUtils';
+import { isTokenExpired, decodeJwtPayload } from '../jwtUtils';
 
 function makeJwt(payloadObj: Record<string, unknown>): string {
 	const header = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }));
 	const payload = btoa(JSON.stringify(payloadObj));
+	return `${header}.${payload}.x`;
+}
+
+/** Real JWTs encode the payload as base64url (`-`/`_`, no `=` padding) — what a raw atob() chokes on. */
+function makeJwtBase64Url(payloadObj: Record<string, unknown>): string {
+	const header = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }));
+	const payload = btoa(JSON.stringify(payloadObj))
+		.replace(/\+/g, '-')
+		.replace(/\//g, '_')
+		.replace(/=+$/, '');
 	return `${header}.${payload}.x`;
 }
 
@@ -44,5 +54,28 @@ describe('isTokenExpired', () => {
 		expect(isTokenExpired('')).toBe(true);
 		expect(isTokenExpired('not-a-jwt')).toBe(true);
 		expect(isTokenExpired('only.two')).toBe(true);
+	});
+
+	it('decodes a base64url-encoded payload (regression: raw atob threw on - / _)', () => {
+		const future = Math.floor(Date.now() / 1000) + 3600;
+		// `>>>` / `???` force `+` / `/` in standard base64 → `-` / `_` in base64url.
+		const jwt = makeJwtBase64Url({ exp: future, sub: 'a>>>b???c' });
+		const payloadSegment = jwt.split('.')[1];
+		expect(payloadSegment).toMatch(/[-_]/); // guard: this token truly exercises the base64url path
+		expect(isTokenExpired(jwt)).toBe(false);
+	});
+});
+
+describe('decodeJwtPayload', () => {
+	it('returns the parsed payload for a base64url token', () => {
+		const jwt = makeJwtBase64Url({ sub: 'a>>>b???c', role: 'SUPER_ADMIN' });
+		expect(decodeJwtPayload(jwt)).toMatchObject({ sub: 'a>>>b???c', role: 'SUPER_ADMIN' });
+	});
+
+	it('returns null for empty/malformed tokens', () => {
+		expect(decodeJwtPayload(null)).toBeNull();
+		expect(decodeJwtPayload(undefined)).toBeNull();
+		expect(decodeJwtPayload('only.one')).toBeNull();
+		expect(decodeJwtPayload('a..c')).toBeNull();
 	});
 });

@@ -370,7 +370,7 @@ export function ReelDetailPage() {
 									onClick={() =>
 										navigate(
 											getLocalizedPath(
-												`/content-moderation?contentType=Reel&faceId=${faceId}&contentId=${reelId}`
+												`/moderation?contentType=Reel&faceId=${faceId}&contentId=${reelId}`
 											)
 										)
 									}

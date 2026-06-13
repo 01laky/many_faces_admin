@@ -8,6 +8,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 | Version       | Theme                                        |
 | ------------- | -------------------------------------------- |
+| [1.2.1](#121) | Bug-fix pass: chat header, cache wipe, JWT   |
 | [1.2.0](#120) | Operator AI live token streaming in chat     |
 | [1.1.0](#110) | Operator AI RAG retrieval: 3-control AI page |
 | [1.0.5](#105) | Admin profile all-faces role grid            |
@@ -30,6 +31,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 ### Changed
 
 ### Fixed
+
+---
+
+## [1.2.1]
+
+### Fixed
+
+- Operator AI chat history now renders the message timestamp and author again — `mapOperatorMessageToUi` had dropped `createdAt`/`authorEmail`/`responseLocale`, which `formatMessageHeader` reads.
+- Logout / session expiry now also wipes the per-face operator content caches (`faceProfiles`, `faceChatRooms`, `faceVideoLounges`, `stories`, `reels`, `blogs`, `albums`) so a different operator session cannot read the previous one's tenant data from React Query (REQ-SECURITY-CACHE).
+- "Open in moderation queue" on the album/blog/reel detail pages navigated to a non-existent `/content-moderation` route (hit the catch-all redirect) — corrected to `/moderation`, preserving the `contentType`/`contentId` filters.
+- JWT decoding is base64url-safe in both `isTokenExpired` and `isSuperAdminFromToken`: a raw `atob` threw on tokens whose payload contains `-`/`_`, which could deny a genuine SUPER_ADMIN on the fast-path. The decode is unified in `jwtUtils.decodeJwtPayload`.
+- `parseModerationRowKey` rejects a blank id (`"Album:"` previously parsed to a deceptively valid `contentId: 0`).
+- `useConfirmModal` resolves `false` (not `true`) when a `confirmAction` rejects, so a failed action is no longer reported as confirmed.
+- The shared `radix/Button` and the grid-editor remove button default to `type="button"`, so a button that omits `type` inside a `<form>` no longer submits it accidentally (intentional `type="submit"` callers are unaffected).
+- Dev API URL scheme typo in `resolveApiUrl` (`http//host` → `http://host`).
 
 ---
 
@@ -223,7 +239,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 
 - Admin SPA foundation with OAuth2 and Docker dev scripts.
 
-[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.2.1...HEAD
 [1.0.5]: https://github.com/01laky/many_faces_admin/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/01laky/many_faces_admin/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/01laky/many_faces_admin/compare/v1.0.2...v1.0.3
@@ -238,4 +254,5 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 [0.3.0]: https://github.com/01laky/many_faces_admin/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/01laky/many_faces_admin/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/01laky/many_faces_admin/releases/tag/v0.1.0
+[1.2.1]: https://github.com/01laky/many_faces_admin/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/01laky/many_faces_admin/compare/v1.1.0...v1.2.0

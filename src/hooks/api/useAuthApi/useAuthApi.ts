@@ -37,6 +37,15 @@ const DOMAIN_QUERY_ROOTS = [
 	['pageRouteTranslations'],
 	['pageTypes'],
 	['publicStats'],
+	// Per-face operator content caches — must also be wiped on logout so a different
+	// operator session cannot read the previous one's tenant data from React Query (REQ-SECURITY-CACHE).
+	['faceProfiles'],
+	['faceChatRooms'],
+	['faceVideoLounges'],
+	['stories'],
+	['reels'],
+	['blogs'],
+	['albums'],
 ] as const;
 
 /** Clears auth, capabilities, and operator domain React Query cache (admin + portal parity on auth keys). */

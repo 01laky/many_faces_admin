@@ -408,7 +408,7 @@ export function BlogDetailPage() {
 									onClick={() =>
 										navigate(
 											getLocalizedPath(
-												`/content-moderation?contentType=Blog&faceId=${faceId}&contentId=${blogId}`
+												`/moderation?contentType=Blog&faceId=${faceId}&contentId=${blogId}`
 											)
 										)
 									}

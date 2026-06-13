@@ -46,6 +46,16 @@ describe('parseModerationRowKey', () => {
 		expect(parseModerationRowKey('no-colon')).toBeNull();
 		expect(parseModerationRowKey('Album:not-a-number')).toBeNull();
 	});
+
+	it('returns null when the id segment is missing or blank (Number("") === 0 guard)', () => {
+		// Regression: a key with an empty id parsed to a deceptively valid contentId 0.
+		expect(parseModerationRowKey('Album:')).toBeNull();
+		expect(parseModerationRowKey('Album:   ')).toBeNull();
+	});
+
+	it('still accepts a literal zero content id (symmetric with buildModerationRowKey)', () => {
+		expect(parseModerationRowKey('Reel:0')).toEqual({ contentType: 'Reel', contentId: 0 });
+	});
 });
 
 describe('buildBulkModerationPayload', () => {

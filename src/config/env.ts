@@ -57,7 +57,7 @@ export function resolveApiUrl(
 	if (host !== 'localhost' && host !== '127.0.0.1' && location.port === '8082') {
 		const scheme = location.protocol === 'http:' ? 'http' : 'https';
 		const apiPort = scheme === 'http' ? '8000' : '8001';
-		return `${scheme}//${host}:${apiPort}`;
+		return `${scheme}://${host}:${apiPort}`;
 	}
 	return fromEnv;
 }

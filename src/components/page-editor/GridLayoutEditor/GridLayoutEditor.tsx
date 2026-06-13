@@ -7,7 +7,7 @@ import { ComponentPickerModal } from '../ComponentPickerModal';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import './GridLayoutEditor.scss';
-import type { GridComponentType, GridSchema, GridLayoutEditorProps } from './types';
+import type { GridComponentType, GridItem, GridSchema, GridLayoutEditorProps } from './types';
 import { DEFAULT_BREAKPOINTS, DEFAULT_COLS, DEFAULT_ROW_HEIGHT } from './constants';
 
 let itemCounter = 0;
@@ -242,6 +242,7 @@ export function GridLayoutEditor({ value, onChange }: GridLayoutEditorProps) {
 											</span>
 										)}
 										<button
+											type="button"
 											className="grid-item-remove"
 											onClick={() => removeItem(item.i)}
 											title={t('pages.editPage.gridLayout.removeItem')}

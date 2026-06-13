@@ -45,7 +45,10 @@ export function useConfirmModal() {
 			await options.confirmAction();
 			finish(true);
 		} catch {
-			finish(true);
+			// A failed confirmAction must not resolve confirm() as "confirmed". Callers surface the error
+			// inside confirmAction (toast/state per the option doc); here we resolve false so any caller
+			// that awaits the boolean can distinguish success from failure.
+			finish(false);
 		} finally {
 			setConfirmBusy(false);
 		}

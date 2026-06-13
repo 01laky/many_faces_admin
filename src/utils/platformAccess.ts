@@ -3,6 +3,8 @@
  * Authoritative admin SPA gate remains GET /api/me/capabilities (`platform:super`).
  */
 
+import { decodeJwtPayload } from './jwtUtils';
+
 function readRoleClaim(payload: Record<string, unknown>): unknown {
 	return (
 		payload.role ??
@@ -13,15 +15,13 @@ function readRoleClaim(payload: Record<string, unknown>): unknown {
 
 /** True when the access token carries global SUPER_ADMIN (not portal-only ADMIN). */
 export function isSuperAdminFromToken(token: string | null | undefined): boolean {
-	if (!token) return false;
-	try {
-		const payload = JSON.parse(atob(token.split('.')[1] ?? '')) as Record<string, unknown>;
-		const role = readRoleClaim(payload);
-		if (Array.isArray(role)) {
-			return role.includes('SUPER_ADMIN');
-		}
-		return role === 'SUPER_ADMIN';
-	} catch {
-		return false;
+	// Shared base64url-safe decode (jwtUtils): a raw atob() here threw on tokens whose payload
+	// contains `-`/`_`, which silently denied a genuine SUPER_ADMIN on this fast-path.
+	const payload = decodeJwtPayload(token);
+	if (!payload) return false;
+	const role = readRoleClaim(payload);
+	if (Array.isArray(role)) {
+		return role.includes('SUPER_ADMIN');
 	}
+	return role === 'SUPER_ADMIN';
 }

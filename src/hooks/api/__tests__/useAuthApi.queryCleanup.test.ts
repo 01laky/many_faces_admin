@@ -18,4 +18,28 @@ describe('clearAuthAndCapabilitiesQueries', () => {
 		expect(qc.getQueryData(authKeys.user())).toBeUndefined();
 		expect(qc.getQueryData(meCapabilitiesKeys.session('fp'))).toBeUndefined();
 	});
+
+	it('wipes per-face operator content caches on logout (REQ-SECURITY-CACHE, no tenant leak)', () => {
+		// Regression: these roots were registered by their hooks but missing from DOMAIN_QUERY_ROOTS,
+		// so a previous operator's tenant data survived logout into the next session's cache.
+		const faceScopedRoots = [
+			'faceProfiles',
+			'faceChatRooms',
+			'faceVideoLounges',
+			'stories',
+			'reels',
+			'blogs',
+			'albums',
+		];
+		const qc = new QueryClient();
+		for (const root of faceScopedRoots) {
+			qc.setQueryData([root, 1, 'list'], [{ id: 1 }]);
+		}
+
+		clearAuthAndCapabilitiesQueries(qc);
+
+		for (const root of faceScopedRoots) {
+			expect(qc.getQueryData([root, 1, 'list'])).toBeUndefined();
+		}
+	});
 });
