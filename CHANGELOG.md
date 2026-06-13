@@ -99,6 +99,8 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 
 ---
 
+## [1.0.4]
+
 ### Changed
 
 - Extract sibling-panel Props into colocated `types.ts` (profile detail editor,
@@ -140,14 +142,6 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 
 - Add README shield badges (version, CI, stack tech) via sync-readme-badges.py.
 
-### Added
-
-- Add README shield badges (version, CI, stack tech) via sync-readme-badges.py.
-
-### Changed
-
-### Fixed
-
 ---
 
 ## [1.0.1]
@@ -155,14 +149,6 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 ### Changed
 
 - Document project author (Ladislav Kostolny, 01laky@gmail.com) in README and standard manifests.
-
-### Added
-
-### Changed
-
-- Document project author (Ladislav Kostolny, 01laky@gmail.com) in README and standard manifests.
-
-### Fixed
 
 ---
 
@@ -238,6 +224,8 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 - Admin SPA foundation with OAuth2 and Docker dev scripts.
 
 [Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.2.0...HEAD
+[1.0.5]: https://github.com/01laky/many_faces_admin/compare/v1.0.4...v1.0.5
+[1.0.4]: https://github.com/01laky/many_faces_admin/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/01laky/many_faces_admin/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/01laky/many_faces_admin/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/01laky/many_faces_admin/compare/v1.0.0...v1.0.1
