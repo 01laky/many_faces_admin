@@ -8,6 +8,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 | Version       | Theme                                        |
 | ------------- | -------------------------------------------- |
+| [1.2.3](#123) | formatBytes edge tests (test-gap fill)       |
 | [1.2.2](#122) | Refactor pass: dedup, dead code, stable keys |
 | [1.2.1](#121) | Bug-fix pass: chat header, cache wipe, JWT   |
 | [1.2.0](#120) | Operator AI live token streaming in chat     |
@@ -32,6 +33,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 ### Changed
 
 ### Fixed
+
+---
+
+## [1.2.3]
+
+### Added
+
+- Edge-case tests for the previously-untested `formatBytes` 1024-based size formatter (unit-test-gap-fill): nullish/non-finite → em dash, sub-kilobyte whole bytes, unit promotion at the 1024 boundary, the "one decimal below 10, none at/above 10" rule, MB/GB/TB scaling, and the TB cap.
 
 ---
 
@@ -260,7 +269,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 
 - Admin SPA foundation with OAuth2 and Docker dev scripts.
 
-[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.2.2...HEAD
+[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.2.3...HEAD
 [1.0.5]: https://github.com/01laky/many_faces_admin/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/01laky/many_faces_admin/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/01laky/many_faces_admin/compare/v1.0.2...v1.0.3
@@ -275,6 +284,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 [0.3.0]: https://github.com/01laky/many_faces_admin/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/01laky/many_faces_admin/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/01laky/many_faces_admin/releases/tag/v0.1.0
+[1.2.3]: https://github.com/01laky/many_faces_admin/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/01laky/many_faces_admin/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/01laky/many_faces_admin/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/01laky/many_faces_admin/compare/v1.1.0...v1.2.0
