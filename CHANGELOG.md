@@ -8,6 +8,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 | Version       | Theme                                        |
 | ------------- | -------------------------------------------- |
+| [1.2.4](#124) | Fix admin i18n load on direct Vite :8082     |
 | [1.2.3](#123) | formatBytes edge tests (test-gap fill)       |
 | [1.2.2](#122) | Refactor pass: dedup, dead code, stable keys |
 | [1.2.1](#121) | Bug-fix pass: chat header, cache wipe, JWT   |
@@ -33,6 +34,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 ### Changed
 
 ### Fixed
+
+---
+
+## [1.2.4]
+
+### Fixed
+
+- **Admin translations failed to load on the direct Vite dev server (`https://localhost:8082`).**
+  `resolveApiUrl` listed `:8082` in `ADMIN_DEV_PROXY_PORTS`, so it returned the page's own origin as
+  the API base. But `:8082` is the direct Vite dev server (`admin-demo-dev`, `8082:8081`) which has no
+  `/api` reverse proxy — same-origin `GET /api/localization/admin` hit Vite and returned `index.html`,
+  producing _"Could not load translations"_. Removed `:8082` from the proxy-port set so direct Vite on
+  localhost falls back to `VITE_API_URL` (`https://localhost:8001`) and remote-host Vite is handled by
+  the existing dedicated `:8082` branch (`host:8001`/`host:8000`). Only the nginx `admin-demo-proxy`
+  ports (`:8090`/`:8091`), which genuinely serve `/api` same-origin, remain. Regression tests added.
 
 ---
 
@@ -269,7 +285,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 
 - Admin SPA foundation with OAuth2 and Docker dev scripts.
 
-[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.2.3...HEAD
+[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.2.4...HEAD
 [1.0.5]: https://github.com/01laky/many_faces_admin/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/01laky/many_faces_admin/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/01laky/many_faces_admin/compare/v1.0.2...v1.0.3
@@ -284,6 +300,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 [0.3.0]: https://github.com/01laky/many_faces_admin/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/01laky/many_faces_admin/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/01laky/many_faces_admin/releases/tag/v0.1.0
+[1.2.4]: https://github.com/01laky/many_faces_admin/compare/v1.2.3...v1.2.4
 [1.2.3]: https://github.com/01laky/many_faces_admin/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/01laky/many_faces_admin/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/01laky/many_faces_admin/compare/v1.2.0...v1.2.1

@@ -37,8 +37,15 @@ function getBoolEnv(key: string, defaultValue: boolean): boolean {
 	return value === 'true' || value === '1';
 }
 
-/** Host ports where nginx proxies API on the same origin (docker-compose admin-demo-proxy / direct :8082). */
-const ADMIN_DEV_PROXY_PORTS = new Set(['8090', '8091', '8082']);
+/**
+ * Host ports where the admin-demo-proxy nginx serves `/api` on the same origin (docker-compose
+ * `admin-demo-proxy`: HTTP :8090 / HTTPS :8091). Port :8082 is deliberately excluded — that is the
+ * direct Vite dev server (`admin-demo-dev`, `8082:8081`), which has **no** `/api` reverse proxy, so
+ * a same-origin request there hits Vite and returns `index.html` (breaking `GET /api/localization/admin`
+ * with a non-JSON body). Direct Vite on localhost falls through to `fromEnv` (VITE_API_URL → :8001);
+ * direct Vite on a remote host is handled by the dedicated :8082 branch in `resolveApiUrl` below.
+ */
+const ADMIN_DEV_PROXY_PORTS = new Set(['8090', '8091']);
 
 /**
  * Docker admin HTTP entry (host :8090 → nginx :80) mirrors portal :9080 — browser must not call
