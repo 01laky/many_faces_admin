@@ -32,6 +32,7 @@ import {
 	isOperatorAiEphemeralReply,
 	mergeMessagePages,
 	parseConversationIdFromSearch,
+	truncateThreadTitle,
 	type UiChatMessage,
 } from '@/utils/operatorAiChatUtils';
 import { mapOperatorAiHubError } from '@/utils/operatorAiHubErrors';
@@ -508,21 +509,25 @@ export function ChatPage() {
 						{!listLoading && conversations.length === 0 && (
 							<p className="chat-page__sidebar-hint">{t('pages.chat.sidebarEmpty')}</p>
 						)}
-						{conversations.map((c) => (
-							<button
-								key={c.id}
-								type="button"
-								className={`chat-page__thread${c.id === conversationId ? ' chat-page__thread--active' : ''}`}
-								onClick={() => setActiveConversationId(c.id)}
-							>
-								<span className="chat-page__thread-title">
-									{conversationTitle(c.title, unnamed)}
-								</span>
-								<span className="chat-page__thread-meta">
-									{new Date(c.updatedAt).toLocaleString()}
-								</span>
-							</button>
-						))}
+						{conversations.map((c) => {
+							// First message becomes the title; truncate the displayed text to keep the sidebar
+							// width stable, and expose the full title via the row tooltip.
+							const fullTitle = conversationTitle(c.title, unnamed);
+							return (
+								<button
+									key={c.id}
+									type="button"
+									className={`chat-page__thread${c.id === conversationId ? ' chat-page__thread--active' : ''}`}
+									onClick={() => setActiveConversationId(c.id)}
+									title={fullTitle}
+								>
+									<span className="chat-page__thread-title">{truncateThreadTitle(fullTitle)}</span>
+									<span className="chat-page__thread-meta">
+										{new Date(c.updatedAt).toLocaleString()}
+									</span>
+								</button>
+							);
+						})}
 					</div>
 				</aside>
 
@@ -625,7 +630,19 @@ export function ChatPage() {
 									<div className="chat-page__message chat-page__message--ai">
 										<span className="chat-page__message-label">{t('pages.chat.ai')}</span>
 										<div className="chat-page__message-content chat-page__typing">
-											<p className="chat-page__typing-line">{t('pages.chat.waitingForAi')}</p>
+											{/* "Thinking" indicator. The label stays a standalone text node and the animated
+											    dots are a decorative, no-text sibling, so it reads as the localized word to
+											    assistive tech (announced once via role=status) while the dots are purely visual.
+											    Only this label line is the live region — the elapsed hint below ticks every
+											    second and is intentionally left out so it is not re-announced repeatedly. */}
+											<p className="chat-page__typing-line" role="status" aria-live="polite">
+												{t('pages.chat.waitingForAi')}
+												<span className="chat-page__typing-dots" aria-hidden="true">
+													<span />
+													<span />
+													<span />
+												</span>
+											</p>
 											{sendingElapsedSec > 0 && (
 												<p className="chat-page__typing-hint">
 													{t('pages.chat.waitingForAiElapsed', {

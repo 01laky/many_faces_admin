@@ -152,3 +152,17 @@ export function conversationTitle(title: string | null | undefined, unnamedLabel
 	const t = title?.trim();
 	return t && t.length > 0 ? t : unnamedLabel;
 }
+
+/** Max visible characters for a sidebar thread title before it is truncated with an ellipsis. */
+export const THREAD_TITLE_MAX = 24;
+
+/**
+ * Truncates a sidebar thread title to the first {@link THREAD_TITLE_MAX} characters plus a single `…`
+ * ellipsis. The first message of a conversation becomes its title, and a long one would otherwise stretch
+ * the chats sidebar; this keeps the panel width stable while the full text stays available via the row's
+ * `title` tooltip. Code-point safe (`Array.from`) so an emoji / surrogate pair at the cut is never split.
+ */
+export function truncateThreadTitle(s: string, max = THREAD_TITLE_MAX): string {
+	const chars = Array.from(s);
+	return chars.length > max ? chars.slice(0, max).join('').trimEnd() + '…' : s;
+}

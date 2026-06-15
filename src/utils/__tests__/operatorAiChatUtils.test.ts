@@ -10,6 +10,7 @@ import {
 	mapOperatorMessageToUi,
 	mergeMessagePages,
 	parseConversationIdFromSearch,
+	truncateThreadTitle,
 } from '../operatorAiChatUtils';
 
 describe('operatorAiChatUtils', () => {
@@ -160,5 +161,41 @@ describe('operatorAiChatUtils', () => {
 			{ id: 11, role: 'ai' as const, content: 'a' },
 		];
 		expect(appendExchangeIfNew(base, user, assistant)).toBe(base);
+	});
+
+	describe('truncateThreadTitle', () => {
+		it('returns short titles unchanged (no ellipsis)', () => {
+			expect(truncateThreadTitle('')).toBe('');
+			expect(truncateThreadTitle('Short title')).toBe('Short title');
+		});
+
+		it('returns an exactly-24-char title unchanged', () => {
+			const exact = 'Quarterly metrics review'; // 24 chars
+			expect(exact).toHaveLength(24);
+			expect(truncateThreadTitle(exact)).toBe(exact);
+		});
+
+		it('truncates to the first 24 chars + a single ellipsis', () => {
+			const long = 'Quarterly metrics review and notes'; // 34 chars
+			expect(truncateThreadTitle(long)).toBe('Quarterly metrics review…');
+		});
+
+		it('trims a trailing space before the ellipsis', () => {
+			// char 25 is a space → after slicing 24 we keep "…23chars" then a trailing space is trimmed.
+			const s = 'abcdefghijklmnopqrstuvw xyz'; // space at index 23, cut at 24
+			expect(truncateThreadTitle(s)).toBe('abcdefghijklmnopqrstuvw…');
+		});
+
+		it('does not split an emoji / surrogate pair at the cut (code-point safe)', () => {
+			// 24 leading chars then an astral emoji as the 25th code point → emoji dropped whole, not halved.
+			const s = 'x'.repeat(24) + '😀tail';
+			const out = truncateThreadTitle(s);
+			expect(out).toBe('x'.repeat(24) + '…');
+			expect(out).not.toContain('\ud83d'); // no lone high surrogate
+		});
+
+		it('honours a custom max', () => {
+			expect(truncateThreadTitle('abcdef', 3)).toBe('abc…');
+		});
 	});
 });
