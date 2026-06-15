@@ -326,13 +326,13 @@ $chat-page-inset: 0.75rem;
 .chat-page__typing-dots {
 	display: inline-flex;
 	align-items: flex-end;
-	gap: 3px;
-	margin-left: 4px;
+	gap: 6px;
+	margin-left: 6px;
 	vertical-align: baseline;
 
 	span {
-		width: 4px;
-		height: 4px;
+		width: 8px;
+		height: 8px;
 		border-radius: 50%;
 		background: currentColor;
 		opacity: 0.35;
@@ -357,7 +357,7 @@ $chat-page-inset: 0.75rem;
 	}
 	40% {
 		opacity: 1;
-		transform: translateY(-2px);
+		transform: translateY(-4px);
 	}
 }
 

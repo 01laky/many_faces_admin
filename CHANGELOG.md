@@ -6,28 +6,29 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 ### Release index
 
-| Version       | Theme                                             |
-| ------------- | ------------------------------------------------- |
-| [1.3.1](#131) | AI-chat "Thinking" dots + thread-title truncation |
-| [1.3.0](#130) | Operator-AI message request duration              |
-| [1.2.4](#124) | Fix admin i18n load on direct Vite :8082          |
-| [1.2.3](#123) | formatBytes edge tests (test-gap fill)            |
-| [1.2.2](#122) | Refactor pass: dedup, dead code, stable keys      |
-| [1.2.1](#121) | Bug-fix pass: chat header, cache wipe, JWT        |
-| [1.2.0](#120) | Operator AI live token streaming in chat          |
-| [1.1.0](#110) | Operator AI RAG retrieval: 3-control AI page      |
-| [1.0.5](#105) | Admin profile all-faces role grid                 |
-| [1.0.4](#104) | Colocation verify hardening + sibling Props       |
-| [1.0.3](#103) | Types/constants colocation rollout                |
-| [1.0.0](#100) | Push config panel                                 |
-| [0.8.0](#080) | Mail config, global search, ASH1, i18n            |
-| [0.7.0](#070) | Operator consoles, TanStack, infra smoke          |
-| [0.6.0](#060) | Platform DMs, server-driven tables                |
-| [0.5.0](#050) | Operator AI chat and user detail                  |
-| [0.4.0](#040) | Stats dashboard, registration invites             |
-| [0.3.0](#030) | Moderation queue, ACL                             |
-| [0.2.0](#020) | Dashboard, wall tickets, face routing             |
-| [0.1.0](#010) | Admin SPA foundation                              |
+| Version       | Theme                                              |
+| ------------- | -------------------------------------------------- |
+| [1.3.2](#132) | AI-chat: larger thinking dots, leaner waiting hint |
+| [1.3.1](#131) | AI-chat "Thinking" dots + thread-title truncation  |
+| [1.3.0](#130) | Operator-AI message request duration               |
+| [1.2.4](#124) | Fix admin i18n load on direct Vite :8082           |
+| [1.2.3](#123) | formatBytes edge tests (test-gap fill)             |
+| [1.2.2](#122) | Refactor pass: dedup, dead code, stable keys       |
+| [1.2.1](#121) | Bug-fix pass: chat header, cache wipe, JWT         |
+| [1.2.0](#120) | Operator AI live token streaming in chat           |
+| [1.1.0](#110) | Operator AI RAG retrieval: 3-control AI page       |
+| [1.0.5](#105) | Admin profile all-faces role grid                  |
+| [1.0.4](#104) | Colocation verify hardening + sibling Props        |
+| [1.0.3](#103) | Types/constants colocation rollout                 |
+| [1.0.0](#100) | Push config panel                                  |
+| [0.8.0](#080) | Mail config, global search, ASH1, i18n             |
+| [0.7.0](#070) | Operator consoles, TanStack, infra smoke           |
+| [0.6.0](#060) | Platform DMs, server-driven tables                 |
+| [0.5.0](#050) | Operator AI chat and user detail                   |
+| [0.4.0](#040) | Stats dashboard, registration invites              |
+| [0.3.0](#030) | Moderation queue, ACL                              |
+| [0.2.0](#020) | Dashboard, wall tickets, face routing              |
+| [0.1.0](#010) | Admin SPA foundation                               |
 
 ## [Unreleased]
 
@@ -36,6 +37,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 ### Changed
 
 ### Fixed
+
+---
+
+## [1.3.2]
+
+### Changed
+
+- Enlarged the AI-chat "Thinking" animated dots to ~2× (4→8px, with proportional gap/offset) for better visibility. Paired with the backend resx trim (1.6.3) the waiting state now reads as "Thinking" + dots over a plain "{{seconds}} s elapsed" line, without the CPU/RAM explanatory sentence.
 
 ---
 
@@ -304,7 +313,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 
 - Admin SPA foundation with OAuth2 and Docker dev scripts.
 
-[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.3.1...HEAD
+[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.3.2...HEAD
 [1.0.5]: https://github.com/01laky/many_faces_admin/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/01laky/many_faces_admin/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/01laky/many_faces_admin/compare/v1.0.2...v1.0.3
@@ -319,6 +328,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 [0.3.0]: https://github.com/01laky/many_faces_admin/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/01laky/many_faces_admin/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/01laky/many_faces_admin/releases/tag/v0.1.0
+[1.3.2]: https://github.com/01laky/many_faces_admin/compare/v1.3.1...v1.3.2
 [1.3.1]: https://github.com/01laky/many_faces_admin/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/01laky/many_faces_admin/compare/v1.2.4...v1.3.0
 [1.2.4]: https://github.com/01laky/many_faces_admin/compare/v1.2.3...v1.2.4
