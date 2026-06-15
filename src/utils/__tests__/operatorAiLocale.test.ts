@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatLocaleBadge, formatMessageHeader } from '../operatorAiLocale';
+import { formatLocaleBadge, formatMessageDuration, formatMessageHeader } from '../operatorAiLocale';
 
 const t = (key: string) => {
 	if (key === 'pages.chat.you') return 'You';
@@ -47,5 +47,54 @@ describe('operatorAiLocale', () => {
 		);
 		expect(header.startsWith('AI')).toBe(true);
 		expect(header).not.toContain('SK');
+	});
+
+	it('formatMessageDuration formats sub-second, seconds and m:ss', () => {
+		expect(formatMessageDuration(null)).toBe('');
+		expect(formatMessageDuration(undefined)).toBe('');
+		expect(formatMessageDuration(-5)).toBe('');
+		expect(formatMessageDuration(0)).toBe('<1s');
+		expect(formatMessageDuration(999)).toBe('<1s');
+		expect(formatMessageDuration(1000)).toBe('1s');
+		expect(formatMessageDuration(3200)).toBe('3s');
+		expect(formatMessageDuration(45_000)).toBe('45s');
+		expect(formatMessageDuration(59_000)).toBe('59s');
+		expect(formatMessageDuration(60_000)).toBe('1:00');
+		expect(formatMessageDuration(83_000)).toBe('1:23');
+		expect(formatMessageDuration(605_000)).toBe('10:05');
+	});
+
+	it('formatMessageHeader appends duration for assistant rows, omits it for user/legacy rows', () => {
+		const durationToken = /·\s(?:<1s|\d+s|\d+:\d{2})$/;
+
+		const ai = formatMessageHeader(
+			t,
+			{ id: 3, role: 'ai', content: 'Hi', createdAt: '2026-06-15T09:29:00.000Z', durationMs: 3200 },
+			'en'
+		);
+		expect(ai).toMatch(/·\s3s$/);
+
+		// User row: no duration even if (erroneously) present.
+		const user = formatMessageHeader(
+			t,
+			{
+				id: 4,
+				role: 'user',
+				content: 'Q',
+				authorEmail: 'a@b.com',
+				createdAt: '2026-06-15T09:29:00.000Z',
+				durationMs: 9999,
+			},
+			'en'
+		);
+		expect(user).not.toMatch(durationToken);
+
+		// Legacy assistant row (null duration): no extra token.
+		const legacy = formatMessageHeader(
+			t,
+			{ id: 5, role: 'ai', content: 'Hi', createdAt: '2026-06-15T09:29:00.000Z', durationMs: null },
+			'en'
+		);
+		expect(legacy).not.toMatch(durationToken);
 	});
 });

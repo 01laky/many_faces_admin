@@ -37,6 +37,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 ---
 
+## [1.3.0]
+
+### Added
+
+- **AI message request duration in the chat header.** Each assistant message now shows how long the request took next to its timestamp (e.g. `AI · Jun 15, 2026, 9:29 AM · 3s`). New `formatMessageDuration(ms)` helper: `<1s` for sub-second responses, whole seconds under a minute (`3s`, `45s`), and `m:ss` from one minute up (`1:23`, `10:05`). `formatMessageHeader` appends it for assistant rows only; user and legacy (null-duration) rows are unchanged. The value comes from the new `OperatorAiMessageDto.durationMs` (carried through `mapOperatorMessageToUi` for both loaded history and live `OperatorAiMessageAppended` events). Unit tests cover every formatter branch + the header behaviour.
+
+---
+
 ## [1.2.4]
 
 ### Fixed
@@ -285,7 +293,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 
 - Admin SPA foundation with OAuth2 and Docker dev scripts.
 
-[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.2.4...HEAD
+[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.3.0...HEAD
 [1.0.5]: https://github.com/01laky/many_faces_admin/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/01laky/many_faces_admin/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/01laky/many_faces_admin/compare/v1.0.2...v1.0.3
@@ -300,6 +308,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 [0.3.0]: https://github.com/01laky/many_faces_admin/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/01laky/many_faces_admin/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/01laky/many_faces_admin/releases/tag/v0.1.0
+[1.3.0]: https://github.com/01laky/many_faces_admin/compare/v1.2.4...v1.3.0
 [1.2.4]: https://github.com/01laky/many_faces_admin/compare/v1.2.3...v1.2.4
 [1.2.3]: https://github.com/01laky/many_faces_admin/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/01laky/many_faces_admin/compare/v1.2.1...v1.2.2

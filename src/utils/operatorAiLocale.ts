@@ -9,6 +9,21 @@ export function formatLocaleBadge(t: TFunction, responseLocale: string | null | 
 	return responseLocale.toUpperCase();
 }
 
+/**
+ * Format a server-measured request duration for the assistant message header.
+ * `<1s` for sub-second responses (cache hit / count fast-path), whole seconds under a minute
+ * (e.g. `3s`, `45s`), and `m:ss` from one minute up (e.g. `1:23`, `10:05`). Locale-neutral.
+ */
+export function formatMessageDuration(durationMs: number | null | undefined): string {
+	if (durationMs == null || !Number.isFinite(durationMs) || durationMs < 0) return '';
+	if (durationMs < 1000) return '<1s';
+	const totalSeconds = Math.round(durationMs / 1000);
+	if (totalSeconds < 60) return `${totalSeconds}s`;
+	const minutes = Math.floor(totalSeconds / 60);
+	const seconds = totalSeconds % 60;
+	return `${minutes}:${String(seconds).padStart(2, '0')}`;
+}
+
 export function formatMessageHeader(
 	t: TFunction,
 	msg: UiChatMessage,
@@ -31,6 +46,13 @@ export function formatMessageHeader(
 		parts.push(t('pages.chat.ai'));
 	}
 	if (timestamp) parts.push(timestamp);
+
+	// Assistant rows carry a server-measured request duration; show it next to the timestamp
+	// (e.g. "AI · Jun 15, 2026, 9:29 AM · 3s"). User and legacy (null) rows show nothing extra.
+	if (msg.role === 'ai') {
+		const duration = formatMessageDuration(msg.durationMs);
+		if (duration) parts.push(duration);
+	}
 
 	return parts.join(' · ');
 }

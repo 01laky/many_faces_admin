@@ -10,5 +10,6 @@ export type OperatorAiMessageDto = {
 	createdByUserId?: string | null;
 	authorEmail?: string | null;
 	responseLocale?: string | null;
+	durationMs?: number | null;
 	createdAt?: string;
 };

@@ -9,6 +9,8 @@ export interface UiChatMessage {
 	authorEmail?: string | null;
 	responseLocale?: string | null;
 	createdAt?: string | null;
+	/** Assistant rows only: server-measured request duration in ms (null for user/legacy rows). */
+	durationMs?: number | null;
 }
 
 /** Short label for admin UI (e.g. org/model-Instruct-2507 → model, qwen2.5:7b-instruct-q4_K_M → qwen2.5:7b). */
@@ -44,6 +46,7 @@ export function mapOperatorMessageToUi(m: OperatorAiMessage): UiChatMessage {
 		authorEmail: m.authorEmail,
 		responseLocale: m.responseLocale,
 		createdAt: m.createdAt,
+		durationMs: m.durationMs,
 	};
 }
 
