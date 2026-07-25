@@ -8,6 +8,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 | Version       | Theme                                              |
 | ------------- | -------------------------------------------------- |
+| [1.4.1](#141) | Security dep bumps: vite, axios, form-data         |
 | [1.4.0](#140) | CSP + strict transport headers on nginx host       |
 | [1.3.2](#132) | AI-chat: larger thinking dots, leaner waiting hint |
 | [1.3.1](#131) | AI-chat "Thinking" dots + thread-title truncation  |
@@ -38,6 +39,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 ### Changed
 
 ### Fixed
+
+---
+
+## [1.4.1]
+
+### Fixed
+
+- **Security: cleared all high-severity `yarn npm audit` advisories.** Three direct dependencies were bumped to the first release that carries the fix, each staying inside its current major:
+  - `vite` `^8.0.13` → `^8.0.16` (resolves 8.1.5) — [GHSA-fx2h-pf6j-xcff](https://github.com/advisories/GHSA-fx2h-pf6j-xcff), `server.fs.deny` bypass via Windows alternate path forms (vulnerable `>=8.0.0 <=8.0.15`). Dev-server-only exposure, but the floor is raised in `package.json` so the vulnerable range can never be re-resolved.
+  - `axios` `^1.16.1` → `^1.18.0` (resolves 1.18.1) — [GHSA-gcfj-64vw-6mp9](https://github.com/advisories/GHSA-gcfj-64vw-6mp9), the Node HTTP adapter could reuse an inherited proxy after interceptor config cloning (vulnerable `>=1.15.2 <1.18.0`).
+  - `form-data` `^4.0.5` → `^4.0.6` — [GHSA-hmw2-7cc7-3qxx](https://github.com/advisories/GHSA-hmw2-7cc7-3qxx), CRLF injection through unescaped multipart field names and filenames (vulnerable `>=4.0.0 <4.0.6`).
+
+  All three are direct dependencies with a single dependent (`yarn why` confirmed), so no `resolutions` entry was needed. `yarn npm audit --severity high` now reports "No audit suggestions"; `yarn validate`, `yarn test` (595 passed / 8 skipped) and `yarn build` are green on the new versions with no source changes required.
 
 ---
 
@@ -322,7 +336,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 
 - Admin SPA foundation with OAuth2 and Docker dev scripts.
 
-[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.4.1...HEAD
 [1.0.5]: https://github.com/01laky/many_faces_admin/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/01laky/many_faces_admin/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/01laky/many_faces_admin/compare/v1.0.2...v1.0.3
@@ -337,6 +351,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 [0.3.0]: https://github.com/01laky/many_faces_admin/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/01laky/many_faces_admin/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/01laky/many_faces_admin/releases/tag/v0.1.0
+[1.4.1]: https://github.com/01laky/many_faces_admin/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/01laky/many_faces_admin/compare/v1.3.2...v1.4.0
 [1.3.2]: https://github.com/01laky/many_faces_admin/compare/v1.3.1...v1.3.2
 [1.3.1]: https://github.com/01laky/many_faces_admin/compare/v1.3.0...v1.3.1
