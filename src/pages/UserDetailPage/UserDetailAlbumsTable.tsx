@@ -10,6 +10,7 @@ import { getModerationQueueLabel } from '@/utils/contentModeration';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
 
 import type { UserDetailAlbumsTableProps } from './types';
+import { USER_DETAIL_ALBUMS_TABLE_DEFAULT_SORT } from './constants';
 
 function resolveAlbumDetailFaceId(row: AlbumListItem, userFaceIds: number[]): number {
 	const albumFaceIds = row.faces?.map((f) => f.faceId) ?? [];
@@ -21,7 +22,7 @@ export function UserDetailAlbumsTable({ creatorId, userFaceIds }: UserDetailAlbu
 	const { t } = useTranslation('common');
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
-	const [sorting, setSorting] = useState<SortingState>([{ id: 'createdAt', desc: true }]);
+	const [sorting, setSorting] = useState<SortingState>(USER_DETAIL_ALBUMS_TABLE_DEFAULT_SORT);
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: ADMIN_TABLE_PAGE_SIZE,

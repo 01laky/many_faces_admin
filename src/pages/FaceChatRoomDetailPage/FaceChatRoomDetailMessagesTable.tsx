@@ -16,6 +16,7 @@ import { CHAT_ROOM_DETAIL_TEST_IDS } from '@/utils/faceChatRoomDetailUi';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
 
 import type { FaceChatRoomDetailMessagesTableProps } from './types';
+import { FACE_CHAT_ROOM_DETAIL_MESSAGES_TABLE_DEFAULT_SORT } from './constants';
 
 function formatDate(value: string | undefined): string {
 	if (!value) return '—';
@@ -29,7 +30,9 @@ export function FaceChatRoomDetailMessagesTable({
 }: FaceChatRoomDetailMessagesTableProps) {
 	const { t } = useTranslation('common');
 	const getLocalizedPath = useLocalizedLink();
-	const [sorting, setSorting] = useState<SortingState>([{ id: 'sentAt', desc: true }]);
+	const [sorting, setSorting] = useState<SortingState>(
+		FACE_CHAT_ROOM_DETAIL_MESSAGES_TABLE_DEFAULT_SORT
+	);
 	const [search, setSearch] = useState('');
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,

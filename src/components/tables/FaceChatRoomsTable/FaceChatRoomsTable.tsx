@@ -8,12 +8,13 @@ import { ADMIN_TABLE_PAGE_SIZE, formatNullableCount } from '@/utils/adminTableUt
 import { sortingStateToApi } from '@/utils/adminListQuery';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
 import type { FaceChatRoomsTableProps } from './types';
+import { FACE_CHAT_ROOMS_TABLE_DEFAULT_SORT } from './constants';
 
 export function FaceChatRoomsTable({ faceId }: FaceChatRoomsTableProps) {
 	const { t } = useTranslation('common');
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
-	const [sorting, setSorting] = useState<SortingState>([{ id: 'createdAt', desc: true }]);
+	const [sorting, setSorting] = useState<SortingState>(FACE_CHAT_ROOMS_TABLE_DEFAULT_SORT);
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: ADMIN_TABLE_PAGE_SIZE,

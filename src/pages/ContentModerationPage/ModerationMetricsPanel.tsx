@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Alert } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import type { ColumnDef } from '@tanstack/react-table';
 import {
 	dashboardHasOperationalWarnings,
@@ -14,25 +15,27 @@ import { ModerationMetricsBreakdownTable } from './ModerationMetricsBreakdownTab
 import type { ModerationMetricsPanelProps } from './types';
 
 export function ModerationMetricsPanel({ metrics }: ModerationMetricsPanelProps) {
+	const { t } = useTranslation('common');
+
 	const flagColumns = useMemo<ColumnDef<ModerationFlagCount, unknown>[]>(
 		() => [
 			{
 				accessorKey: 'flag',
-				header: 'Flag',
+				header: t('pages.moderation.metrics.colFlag'),
 			},
 			{
 				accessorKey: 'count',
-				header: 'Count',
+				header: t('pages.moderation.metrics.colCount'),
 			},
 		],
-		[]
+		[t]
 	);
 
 	const pendingByFaceColumns = useMemo<ColumnDef<ModerationFacePending, unknown>[]>(
 		() => [
 			{
 				id: 'face',
-				header: 'Face',
+				header: t('pages.moderation.metrics.colFace'),
 				cell: ({ row }) => (
 					<>
 						{row.original.faceTitle} (#{row.original.faceId})
@@ -41,10 +44,10 @@ export function ModerationMetricsPanel({ metrics }: ModerationMetricsPanelProps)
 			},
 			{
 				accessorKey: 'pendingCount',
-				header: 'Pending',
+				header: t('pages.moderation.metrics.colPending'),
 			},
 		],
-		[]
+		[t]
 	);
 
 	if (!metrics) return null;

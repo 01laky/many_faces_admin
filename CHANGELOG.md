@@ -8,6 +8,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 | Version       | Theme                                              |
 | ------------- | -------------------------------------------------- |
+| [1.5.4](#154) | Colocation gap fill: §2.14/§2.15 + AIS-U2/U4       |
 | [1.5.3](#153) | GPL-9 gate test + GPL-22 inline route fallback     |
 | [1.5.2](#152) | Sync package.json version and enforce it           |
 | [1.5.1](#151) | Localized moderation queue column headers          |
@@ -44,6 +45,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 ### Changed
 
 ### Fixed
+
+---
+
+## [1.5.4]
+
+### Added
+
+- **AIS-U2 / AIS-U4 — the two missing admin Vitest cases from the global-AI-switch prompt (§6.2).** `src/pages/SettingsPage/__tests__/SettingsPage.aiSwitch.test.tsx` exercises the real `useConfirmModal` + `ConfirmModal` pair (unlike the sibling `SettingsPage.test.tsx`, which mocks the confirm hook away): clicking the master switch opens the disable-confirmation dialog, and pressing Cancel closes the flow with the PUT spy (`useUpdateOperatorAiSystemSettings().mutateAsync`) never invoked and the switch still `aria-checked="true"` — the switch renders server state, so a cancelled confirm leaves it exactly where the server says (AIS-U2: "switch reverts; no PUT"). `src/pages/DashboardPage/__tests__/DashboardPage.test.tsx` pins the dashboard AI-off banner (AIS-U4): with `aiEnabled: false` the page's only `role="status"` element carries `pages.dashboard.aiDisabledBanner.message` and its CTA deep-links to `/settings#settings-ai-master`; with `aiEnabled: true` — and also before the settings query has resolved — the banner is absent.
+
+### Changed
+
+- **`useAdminGlobalSearch` re-foldered per §2.14 of the types-colocation prompt.** The flat `src/hooks/api/useAdminGlobalSearch.ts` carried 3 dedicated type aliases (2 exported), past the §2.14 flat-file waiver (≤ 2). `git mv` into `src/hooks/api/useAdminGlobalSearch/useAdminGlobalSearch.ts` (history preserved; the colocated edge test moved with it), `AdminGlobalSearchStatus`, `UseAdminGlobalSearchResult`, and `UseAdminGlobalSearchOptions` extracted to colocated `types.ts`, and a barrel `index.ts` added that re-exports the hook + `@internal` test helpers from the entry and the types from `./types` — the 1.5.0 (83cd896) convention that keeps type re-exports from silently degrading to `any`. External importers keep the `@/hooks/api/useAdminGlobalSearch` path; it now resolves through the barrel.
+- **§2.15 — TanStack default-sort literals moved out of TSX into colocated `constants.ts`.** 18 inline `useState<SortingState>([{ id: …, desc: … }])` literals became named `*_DEFAULT_SORT` constants (files created where missing): the 9 `components/tables` modules (StoriesTable, UsersTable, AlbumsTable, ReelsTable, BlogsTable, PagesTable, FaceVideoLoungesTable, FaceProfilesTable, FaceChatRoomsTable) and the 9 page-embedded tables (FaceProfileDetail reviews + comments, FaceChatRoomDetail members + messages, UserDetail blogs/stories/albums/reels, and the ContentModeration queue sort in the page's existing `constants.ts`). Purely mechanical — same column ids, same directions, behaviour identical.
+- **`ModerationMetricsPanel` breakdown headers localized.** The hardcoded `Flag`/`Count`/`Face`/`Pending` column headers of the two metrics breakdown tables now consume the backend resx keys `pages.moderation.metrics.colFlag|colCount|colFace|colPending` as bare `t('…')` calls with `t` first in the `useMemo` deps — the same pattern `ModerationQueueTable` uses for its `pages.moderation.col*` keys.
+
+### Removed
+
+- **Dead `toOperatorAiResponseLocale` util and its test.** The operator-AI hub stopped taking a response-locale argument when RAG decision D10 removed response locales, leaving `src/utils/toOperatorAiResponseLocale.ts` referenced only by its own test — a grep confirmed no other importer. Both `src/utils/toOperatorAiResponseLocale.ts` and `src/utils/__tests__/toOperatorAiResponseLocale.test.ts` are deleted (−2 tests, replaced by +3 AIS cases above).
 
 ---
 
@@ -430,7 +449,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 
 - Admin SPA foundation with OAuth2 and Docker dev scripts.
 
-[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.5.3...HEAD
+[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.5.4...HEAD
 [1.0.5]: https://github.com/01laky/many_faces_admin/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/01laky/many_faces_admin/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/01laky/many_faces_admin/compare/v1.0.2...v1.0.3
@@ -445,6 +464,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 [0.3.0]: https://github.com/01laky/many_faces_admin/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/01laky/many_faces_admin/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/01laky/many_faces_admin/releases/tag/v0.1.0
+[1.5.4]: https://github.com/01laky/many_faces_admin/compare/v1.5.3...v1.5.4
 [1.5.3]: https://github.com/01laky/many_faces_admin/compare/v1.5.2...v1.5.3
 [1.5.2]: https://github.com/01laky/many_faces_admin/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/01laky/many_faces_admin/compare/v1.5.0...v1.5.1

@@ -11,13 +11,14 @@ import { resolveAdminUserDetailPath } from '@/utils/resolveAdminUserDetailPath';
 import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
 import { sortingStateToApi } from '@/utils/adminListQuery';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
+import { USERS_TABLE_DEFAULT_SORT } from './constants';
 
 export function UsersTable() {
 	const { t } = useTranslation('common');
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
 	const { user: authUser } = useAuth();
-	const [sorting, setSorting] = useState<SortingState>([{ id: 'createdAt', desc: true }]);
+	const [sorting, setSorting] = useState<SortingState>(USERS_TABLE_DEFAULT_SORT);
 	const [search, setSearch] = useState('');
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,

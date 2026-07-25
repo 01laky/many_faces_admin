@@ -10,12 +10,13 @@ import { resolveStoryDetailFaceId } from '@/utils/storyDetailPaths';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
 
 import type { UserDetailStoriesTableProps } from './types';
+import { USER_DETAIL_STORIES_TABLE_DEFAULT_SORT } from './constants';
 
 export function UserDetailStoriesTable({ creatorId, userFaceIds }: UserDetailStoriesTableProps) {
 	const { t } = useTranslation('common');
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
-	const [sorting, setSorting] = useState<SortingState>([{ id: 'createdAt', desc: true }]);
+	const [sorting, setSorting] = useState<SortingState>(USER_DETAIL_STORIES_TABLE_DEFAULT_SORT);
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: ADMIN_TABLE_PAGE_SIZE,

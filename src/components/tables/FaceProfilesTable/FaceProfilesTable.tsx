@@ -8,12 +8,13 @@ import { ADMIN_TABLE_PAGE_SIZE } from '@/utils/adminTableUtils';
 import { sortingStateToApi } from '@/utils/adminListQuery';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
 import type { FaceProfilesTableProps } from './types';
+import { FACE_PROFILES_TABLE_DEFAULT_SORT } from './constants';
 
 export function FaceProfilesTable({ faceId }: FaceProfilesTableProps) {
 	const { t } = useTranslation('common');
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
-	const [sorting, setSorting] = useState<SortingState>([{ id: 'displayName', desc: false }]);
+	const [sorting, setSorting] = useState<SortingState>(FACE_PROFILES_TABLE_DEFAULT_SORT);
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: ADMIN_TABLE_PAGE_SIZE,

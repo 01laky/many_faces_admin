@@ -10,25 +10,11 @@ import {
 	ADMIN_SEARCH_PAGE_SIZE,
 	type AdminSearchEntityType,
 } from '@/constants/adminGlobalSearchConstants';
-
-export type AdminGlobalSearchStatus = 'idle' | 'loading' | 'loadingMore' | 'ready' | 'error';
-
-export type UseAdminGlobalSearchResult = {
-	query: string;
-	setQuery: (value: string) => void;
-	debouncedQuery: string;
-	selectedTypes: AdminSearchEntityType[];
-	setSelectedTypes: (types: AdminSearchEntityType[]) => void;
-	toggleEntityType: (type: AdminSearchEntityType) => void;
-	hits: AdminSearchHitDto[];
-	hasMore: boolean;
-	nextOffset: number;
-	searchAvailable: boolean;
-	message: string | null;
-	status: AdminGlobalSearchStatus;
-	loadMore: () => void;
-	reset: () => void;
-};
+import type {
+	AdminGlobalSearchStatus,
+	UseAdminGlobalSearchOptions,
+	UseAdminGlobalSearchResult,
+} from './types';
 
 /** @internal Exported for unit tests. */
 export function shouldFetchAdminSearch(
@@ -64,11 +50,6 @@ export function applyAdminSearchResponse(
 		message: response.message ?? null,
 	};
 }
-
-type UseAdminGlobalSearchOptions = {
-	token: string | null;
-	enabled?: boolean;
-};
 
 export function useAdminGlobalSearch({
 	token,

@@ -10,12 +10,13 @@ import { getModerationQueueLabel } from '@/utils/contentModeration';
 import { stopAdminTableRowNavigation } from '@/utils/adminTableRowClick';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
 import type { AlbumsTableProps } from './types';
+import { ALBUMS_TABLE_DEFAULT_SORT } from './constants';
 
 export function AlbumsTable({ faceId }: AlbumsTableProps) {
 	const { t } = useTranslation('common');
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
-	const [sorting, setSorting] = useState<SortingState>([{ id: 'createdAt', desc: true }]);
+	const [sorting, setSorting] = useState<SortingState>(ALBUMS_TABLE_DEFAULT_SORT);
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: ADMIN_TABLE_PAGE_SIZE,

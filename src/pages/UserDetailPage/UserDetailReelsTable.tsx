@@ -11,12 +11,13 @@ import { resolveReelDetailFaceId } from '@/utils/reelDetailPaths';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
 
 import type { UserDetailReelsTableProps } from './types';
+import { USER_DETAIL_REELS_TABLE_DEFAULT_SORT } from './constants';
 
 export function UserDetailReelsTable({ creatorId, userFaceIds }: UserDetailReelsTableProps) {
 	const { t } = useTranslation('common');
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
-	const [sorting, setSorting] = useState<SortingState>([{ id: 'createdAt', desc: true }]);
+	const [sorting, setSorting] = useState<SortingState>(USER_DETAIL_REELS_TABLE_DEFAULT_SORT);
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: ADMIN_TABLE_PAGE_SIZE,

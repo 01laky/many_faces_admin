@@ -15,6 +15,7 @@ import { PROFILE_DETAIL_TEST_IDS } from '@/utils/faceProfileDetailUi';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
 
 import type { FaceProfileDetailCommentsTableProps } from './types';
+import { FACE_PROFILE_DETAIL_COMMENTS_TABLE_DEFAULT_SORT } from './constants';
 
 function formatDate(value: string | undefined): string {
 	if (!value) return '—';
@@ -36,7 +37,9 @@ export function FaceProfileDetailCommentsTable({
 }: FaceProfileDetailCommentsTableProps) {
 	const { t } = useTranslation('common');
 	const getLocalizedPath = useLocalizedLink();
-	const [sorting, setSorting] = useState<SortingState>([{ id: 'createdAt', desc: true }]);
+	const [sorting, setSorting] = useState<SortingState>(
+		FACE_PROFILE_DETAIL_COMMENTS_TABLE_DEFAULT_SORT
+	);
 	const [search, setSearch] = useState('');
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,

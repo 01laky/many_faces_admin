@@ -28,6 +28,7 @@ import { ModerationFilters } from './ModerationFilters';
 import { ModerationItemDrawer } from './ModerationItemDrawer';
 import { ModerationMetricsPanel } from './ModerationMetricsPanel';
 import { ModerationQueueTable } from './ModerationQueueTable';
+import { MODERATION_QUEUE_DEFAULT_SORT } from './constants';
 import './ContentModerationPage.scss';
 
 /** Parses numeric filter text fields; empty input means "no filter" (undefined), invalid numbers are ignored. */
@@ -87,7 +88,7 @@ export function ContentModerationPage() {
 		pageIndex: 0,
 		pageSize: ADMIN_TABLE_PAGE_SIZE,
 	});
-	const [sorting, setSorting] = useState<SortingState>([{ id: 'submittedAtUtc', desc: true }]);
+	const [sorting, setSorting] = useState<SortingState>(MODERATION_QUEUE_DEFAULT_SORT);
 
 	const filters = {
 		contentId: parseOptionalInt(contentIdText),

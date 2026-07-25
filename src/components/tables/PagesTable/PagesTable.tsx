@@ -12,12 +12,13 @@ import { sortingStateToApi } from '@/utils/adminListQuery';
 import { stopAdminTableRowNavigation } from '@/utils/adminTableRowClick';
 import { FaceDetailEntityTableShell } from '@/components/tables/FaceDetailEntityTableShell/FaceDetailEntityTableShell';
 import type { PagesTableProps } from './types';
+import { PAGES_TABLE_DEFAULT_SORT } from './constants';
 
 export function PagesTable({ faceId }: PagesTableProps) {
 	const { t } = useTranslation('common');
 	const navigate = useNavigate();
 	const getLocalizedPath = useLocalizedLink();
-	const [sorting, setSorting] = useState<SortingState>([{ id: 'index', desc: false }]);
+	const [sorting, setSorting] = useState<SortingState>(PAGES_TABLE_DEFAULT_SORT);
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: ADMIN_TABLE_PAGE_SIZE,
