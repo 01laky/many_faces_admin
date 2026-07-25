@@ -8,6 +8,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 | Version       | Theme                                              |
 | ------------- | -------------------------------------------------- |
+| [1.4.0](#140) | CSP + strict transport headers on nginx host       |
 | [1.3.2](#132) | AI-chat: larger thinking dots, leaner waiting hint |
 | [1.3.1](#131) | AI-chat "Thinking" dots + thread-title truncation  |
 | [1.3.0](#130) | Operator-AI message request duration               |
@@ -37,6 +38,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 ### Changed
 
 ### Fixed
+
+---
+
+## [1.4.0]
+
+### Added
+
+- **Content-Security-Policy baseline on the static host (ASH1-E1/E2/E3, FE-A1).** `nginx.conf` now sends a strict `Content-Security-Policy` (`script-src 'self'`, `style-src 'self' 'unsafe-inline'` for the inline preloader, `connect-src 'self' https: wss:`, `frame-ancestors 'none'`, `object-src 'none'`), tightens `X-Frame-Options` to `DENY`, and adds `Referrer-Policy: no-referrer`. Documented in [`docs/SECURITY.md`](./docs/SECURITY.md) §6 as a compensating control for `localStorage` token storage (DOC-4); the production checklist item is now ticked.
 
 ---
 
@@ -313,7 +322,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 
 - Admin SPA foundation with OAuth2 and Docker dev scripts.
 
-[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.3.2...HEAD
+[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.4.0...HEAD
 [1.0.5]: https://github.com/01laky/many_faces_admin/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/01laky/many_faces_admin/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/01laky/many_faces_admin/compare/v1.0.2...v1.0.3
@@ -328,6 +337,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 [0.3.0]: https://github.com/01laky/many_faces_admin/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/01laky/many_faces_admin/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/01laky/many_faces_admin/releases/tag/v0.1.0
+[1.4.0]: https://github.com/01laky/many_faces_admin/compare/v1.3.2...v1.4.0
 [1.3.2]: https://github.com/01laky/many_faces_admin/compare/v1.3.1...v1.3.2
 [1.3.1]: https://github.com/01laky/many_faces_admin/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/01laky/many_faces_admin/compare/v1.2.4...v1.3.0

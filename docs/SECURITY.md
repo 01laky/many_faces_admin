@@ -42,7 +42,7 @@ sequenceDiagram
 | `auth_refresh_token` | Refresh token                          |
 | `auth_user`          | Cached display name/email (non-secret) |
 
-Tokens are stored in **`localStorage`**. Any XSS on this origin could read them — the app avoids `dangerouslySetInnerHTML`, sanitizes operator-edited URLs/text, and redacts secrets in frontend logs.
+Tokens are stored in **`localStorage`**. Any XSS on this origin could read them — the app avoids `dangerouslySetInnerHTML`, sanitizes operator-edited URLs/text, and redacts secrets in frontend logs. As a **compensating control (DOC-4)** the static host ships a strict `script-src 'self'` CSP (no inline/third-party scripts — see [§6](#6-https-csp-and-response-headers)), which makes token theft via an injected `<script>` substantially harder.
 
 **Shared computers:** always log out; do not use Remember me on untrusted machines.
 
@@ -71,11 +71,35 @@ Tokens are stored in **`localStorage`**. Any XSS on this origin could read them 
 
 Never commit real production secrets to git. Use deployment env injection (CI secrets, host env files).
 
-## 6. HTTPS and API URL
+## 6. HTTPS, CSP and response headers
 
 - Production admin must be served over **HTTPS**.
 - `VITE_API_URL` must use **`https://`** in production — mixed content (HTTPS page calling `http://` API) is blocked at startup.
 - API URL must match backend **CORS** allowed origins.
+- Local HTTPS dev cert alignment with backend CORS: [`../../docs/guides/dev-https.md`](../../docs/guides/dev-https.md) (**ASH1-E4**).
+
+The production image serves the built SPA through nginx (`nginx.conf`), which sets a stricter policy
+than portal because the admin console is `SUPER_ADMIN`-only:
+
+| Header                    | Value                                                                                                                                                                                                                                               | Item        |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `Content-Security-Policy` | `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https: wss:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'` | **ASH1-E1** |
+| `X-Frame-Options`         | `DENY` (+ CSP `frame-ancestors 'none'`) — admin must never be framed                                                                                                                                                                                | **ASH1-E2** |
+| `Referrer-Policy`         | `no-referrer` — strictest, admin URLs never leak to third parties                                                                                                                                                                                   | **ASH1-E3** |
+| `X-Content-Type-Options`  | `nosniff`                                                                                                                                                                                                                                           | —           |
+
+**Why this exact CSP:**
+
+- `script-src 'self'` — the built bundle is a single external ES module (`dist/index.html` has no
+  inline `<script>`), so no `'unsafe-inline'`/hash is needed for scripts.
+- `style-src 'self' 'unsafe-inline'` — `index.html` ships the inline preloader `<style>` and
+  `@font-face`, and React/runtime libraries inject `style=` attributes. This is the one relaxation.
+- `connect-src 'self' https: wss:` — REST API (env-configured origin) plus SignalR websockets;
+  narrow to the concrete API host per deployment.
+
+Production behind TLS should additionally send `Strict-Transport-Security` and may add
+`upgrade-insecure-requests` to the CSP (omitted from the container config so a plain-HTTP LAN demo is
+not broken).
 
 ## 7. SignalR / real-time
 
@@ -107,7 +131,7 @@ JWT is sent via SignalR **`accessTokenFactory`** (Authorization header on negoti
 
 - [ ] HTTPS for admin static host and API (`VITE_API_URL`)
 - [ ] Replace demo OAuth client secret
-- [ ] Configure nginx/CSP headers for static admin host (see monorepo deploy docs)
+- [x] Configure nginx/CSP headers for static admin host (shipped in `nginx.conf` — see [§6](#6-https-csp-and-response-headers)); narrow `connect-src` to the concrete API host per deployment
 - [ ] Enable backend audit logging (BSH3)
 - [ ] Run `yarn npm audit` and patch critical CVEs
 - [ ] Run `node scripts/verify-admin-security-tests.mjs` in CI
