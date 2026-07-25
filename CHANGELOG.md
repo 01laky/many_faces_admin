@@ -8,7 +8,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 | Version       | Theme                                              |
 | ------------- | -------------------------------------------------- |
-| [1.5.2](#152) | Sync package.json version and enforce it |
+| [1.5.3](#153) | GPL-9 gate test + GPL-22 inline route fallback     |
+| [1.5.2](#152) | Sync package.json version and enforce it           |
 | [1.5.1](#151) | Localized moderation queue column headers          |
 | [1.5.0](#150) | Real `tsc --build` gate + 149 type-error cleanup   |
 | [1.4.2](#142) | Detail-page Vitest gap fill (RDM/SDM/ADM/ADPM)     |
@@ -43,6 +44,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 ### Changed
 
 ### Fixed
+
+---
+
+## [1.5.3]
+
+### Added
+
+- **GPL-9 — the missing admin case in the global-app-preloader test bundle.** `src/components/AppBootstrapGate/__tests__/AppBootstrapGate.test.tsx` wires the tree the way `App.tsx` does — real `AuthProvider` → real `AppBootstrapGate` → real `useAppBootstrapReady` → real `GlobalAppPreloader`, with the real `ProtectedRoute` standing in for `AppRoutes` — and mocks only the provider's I/O leaves (auth storage, `assertAdminAppAccessAllowed`, the auth/capabilities query hooks, `setAuthToken`, cross-tab session sync). Admin readiness is deliberately not the portal's: there is no faces config in the operator SPA, so the single blocking input is the `isSessionHydrated` latch, which is set in the `finally` of the bootstrap effect — that is, only after `assertAdminAppAccessAllowed` (which calls `GET /api/me/capabilities`) settles. Three cases: (1) while that capabilities check is in flight there is **exactly one** full-viewport loader — `global-app-preloader` carrying `--bootstrap`, `role="status"`, `aria-busy="true"` — and no route content, and once it resolves the protected page renders with zero loaders left behind it, counting the legacy 100vh `Loading...` guard shell and the `Loading translations` pre-React caption; (2) the gate really does wait for `assertAdminAppAccessAllowed(storedToken)`, and a **denied** result still opens the gate, because the latch lives in `finally` — the route guard redirects instead of the app hanging on an infinite preloader (§4); (3) a `login()` after the gate opened does not re-cover the app even though `AuthContext.isLoading` goes true again, which is the §10 anti-pattern the latch exists to prevent. Mutation-checked: making the gate always render children fails cases 1 and 2.
+- **GPL-22 test — `src/routes/RouteLoadingFallback/__tests__/RouteLoadingFallback.test.tsx`.** Mounts a real `Suspense` boundary whose lazy chunk never resolves and asserts the mounted fallback carries `global-app-preloader--route-fallback` and **not** `--bootstrap`, drops the brand wordmark and the CSS bootstrap dots, and keeps the `Loading page` label. Vitest does not evaluate SCSS, so a second case reads `globalAppPreloader.scss` and pins the position contract at source — only `--bootstrap` carries `position: fixed` / `inset: 0` / `min-height: 100dvh`, while `--route-fallback` is `position: static` with the 64px `ROUTE_FALLBACK_*` logo token.
+
+### Changed
+
+- **`RouteLoadingFallback` renders the small inline preloader instead of the full-viewport bootstrap shell (GPL-22, §3.6.3 tier C).** The call site passed no `variant`, so it defaulted to `bootstrap`: every first visit to a code-split section — admin lazy-loads every page through `lazyAdminPages` behind one top-level `Suspense` in `AppRoutes` — repainted the fixed, full-viewport, 408px-logo brand animation over the console and looked like a cold start. The `route-fallback` variant and its `ROUTE_FALLBACK_*` tokens (64px logo, 16px `ThreeDot`, 32px spinner slot, `position: static`, transparent background, no wordmark) already existed; only the call site was wrong. Matches the identical portal fix — the preloader prompt scopes GPL-22 to portal **and** admin.
 
 ---
 
@@ -416,7 +430,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 
 - Admin SPA foundation with OAuth2 and Docker dev scripts.
 
-[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.5.2...HEAD
+[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.5.3...HEAD
 [1.0.5]: https://github.com/01laky/many_faces_admin/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/01laky/many_faces_admin/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/01laky/many_faces_admin/compare/v1.0.2...v1.0.3
@@ -431,6 +445,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 [0.3.0]: https://github.com/01laky/many_faces_admin/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/01laky/many_faces_admin/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/01laky/many_faces_admin/releases/tag/v0.1.0
+[1.5.3]: https://github.com/01laky/many_faces_admin/compare/v1.5.2...v1.5.3
 [1.5.2]: https://github.com/01laky/many_faces_admin/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/01laky/many_faces_admin/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/01laky/many_faces_admin/compare/v1.4.2...v1.5.0

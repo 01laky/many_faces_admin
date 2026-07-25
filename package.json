@@ -2,7 +2,7 @@
 	"name": "many_faces_admin",
 	"author": "Ladislav Kostolny <01laky@gmail.com>",
 	"private": true,
-	"version": "1.5.2",
+	"version": "1.5.3",
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
