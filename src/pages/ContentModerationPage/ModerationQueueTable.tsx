@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Alert, Button, Card, Col, Form, Row, Spinner } from 'react-bootstrap';
 import { useReactTable, getCoreRowModel, flexRender, type ColumnDef } from '@tanstack/react-table';
+import { useTranslation } from 'react-i18next';
 import type { ModerationItem } from '@/hooks/api/useContentModerationApi';
 import {
 	Table,
@@ -51,13 +52,14 @@ export function ModerationQueueTable({
 	onBulkReasonChange,
 	onRunBulkAction,
 }: ModerationQueueTableProps) {
+	const { t } = useTranslation('common');
 	const rows = items;
 
 	const columns = useMemo<ColumnDef<ModerationItem>[]>(
 		() => [
 			{
 				id: 'select',
-				header: 'Select',
+				header: t('pages.moderation.colSelect'),
 				enableSorting: false,
 				cell: ({ row }) => {
 					const item = row.original;
@@ -73,36 +75,36 @@ export function ModerationQueueTable({
 			},
 			{
 				accessorKey: 'contentType',
-				header: 'Type',
+				header: t('pages.moderation.colType'),
 				enableSorting: true,
 				cell: (info) => String(info.getValue()),
 			},
 			{
 				accessorKey: 'title',
-				header: 'Title',
+				header: t('pages.moderation.colTitle'),
 				enableSorting: true,
 				// PI-8: plain text only — never render queue fields as HTML.
 				cell: (info) => String(info.getValue() ?? ''),
 			},
 			{
 				id: 'face',
-				header: 'Face',
+				header: t('pages.moderation.colFace'),
 				cell: ({ row }) => row.original.faceTitle || String(row.original.faceId),
 			},
 			{
 				id: 'author',
-				header: 'Author',
+				header: t('pages.moderation.colAuthor'),
 				cell: ({ row }) => row.original.creatorName.trim() || row.original.creatorId,
 			},
 			{
 				id: 'status',
-				header: 'Status',
+				header: t('pages.moderation.colStatus'),
 				cell: ({ row }) =>
 					getModerationQueueLabel(row.original.approvalStatus, row.original.aiReviewStatus),
 			},
 			{
 				id: 'ai',
-				header: 'AI',
+				header: t('pages.moderation.colAi'),
 				cell: ({ row }) => {
 					const item = row.original;
 					const flags = parseModerationFlags(item.aiReviewFlagsJson);
@@ -116,7 +118,7 @@ export function ModerationQueueTable({
 			},
 			{
 				id: 'reason',
-				header: 'Reason',
+				header: t('pages.moderation.colReason'),
 				enableSorting: false,
 				cell: ({ row }) => {
 					const key = buildModerationRowKey(row.original);
@@ -132,7 +134,7 @@ export function ModerationQueueTable({
 			},
 			{
 				id: 'actions',
-				header: 'Actions',
+				header: t('common.actions'),
 				enableSorting: false,
 				cell: ({ row }) => {
 					const item = row.original;
@@ -155,7 +157,7 @@ export function ModerationQueueTable({
 				},
 			},
 		],
-		[selectedKeys, reasonByItem, onToggleSelected, onReasonChange, onSelectItem, onRunAction]
+		[t, selectedKeys, reasonByItem, onToggleSelected, onReasonChange, onSelectItem, onRunAction]
 	);
 
 	/*

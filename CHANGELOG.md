@@ -8,6 +8,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 | Version       | Theme                                              |
 | ------------- | -------------------------------------------------- |
+| [1.5.1](#151) | Localized moderation queue column headers          |
 | [1.5.0](#150) | Real `tsc --build` gate + 149 type-error cleanup   |
 | [1.4.2](#142) | Detail-page Vitest gap fill (RDM/SDM/ADM/ADPM)     |
 | [1.4.1](#141) | Security dep bumps: vite, axios, form-data         |
@@ -41,6 +42,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 ### Changed
 
 ### Fixed
+
+---
+
+## [1.5.1]
+
+### Changed
+
+- **Moderation queue table headers are now localized.** `ModerationQueueTable` rendered all nine
+  column headers as hardcoded English literals. They now resolve through `useTranslation('common')`
+  against the backend `resx` bundle: `pages.moderation.colSelect`, `colType`, `colTitle`, `colFace`,
+  `colAuthor`, `colStatus`, `colAi`, `colReason`, plus `common.actions` for the actions column
+  (reusing the shared key instead of adding a duplicate, matching `FacesTable`). All eight
+  `pages.moderation.col*` keys ship in the backend for every supported locale (en/sk/cs/de/fr/it).
+  `t` was added to the `columns` `useMemo` dependency array so headers re-render on language change.
 
 ---
 
@@ -392,7 +407,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 
 - Admin SPA foundation with OAuth2 and Docker dev scripts.
 
-[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.5.1...HEAD
 [1.0.5]: https://github.com/01laky/many_faces_admin/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/01laky/many_faces_admin/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/01laky/many_faces_admin/compare/v1.0.2...v1.0.3
@@ -407,6 +422,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 [0.3.0]: https://github.com/01laky/many_faces_admin/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/01laky/many_faces_admin/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/01laky/many_faces_admin/releases/tag/v0.1.0
+[1.5.1]: https://github.com/01laky/many_faces_admin/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/01laky/many_faces_admin/compare/v1.4.2...v1.5.0
 [1.4.2]: https://github.com/01laky/many_faces_admin/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/01laky/many_faces_admin/compare/v1.4.0...v1.4.1
