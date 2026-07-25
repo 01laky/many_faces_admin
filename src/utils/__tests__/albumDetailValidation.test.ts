@@ -6,7 +6,7 @@ import {
 } from '../albumDetailValidation';
 
 describe('albumDetailValidation', () => {
-	it('rejects empty, short, and overlong fields (ADM-U1)', () => {
+	it('rejects empty, short, and overlong fields (ADM-U1, RDM-U1, ADPM-U10)', () => {
 		expect(validateReasonAndUserMessage({ reason: '', userMessage: '' }).valid).toBe(false);
 		expect(
 			validateReasonAndUserMessage({ reason: '123456789', userMessage: '123456789' }).valid

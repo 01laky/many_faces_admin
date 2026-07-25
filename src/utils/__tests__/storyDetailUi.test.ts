@@ -9,17 +9,17 @@ import {
 describe('isStoryLive', () => {
 	const now = new Date('2026-05-20T12:00:00Z');
 
-	it('returns false for draft', () => {
+	it('SDM-U1: returns false for draft', () => {
 		expect(isStoryLive('Draft', null, null, now)).toBe(false);
 	});
 
-	it('returns true inside published window', () => {
+	it('SDM-U1: returns true inside published window', () => {
 		expect(isStoryLive('Published', '2026-05-20T10:00:00Z', '2026-05-20T14:00:00Z', now)).toBe(
 			true
 		);
 	});
 
-	it('returns false after expiresAt', () => {
+	it('SDM-U1: returns false after expiresAt', () => {
 		expect(isStoryLive('Published', '2026-05-20T10:00:00Z', '2026-05-20T11:00:00Z', now)).toBe(
 			false
 		);
@@ -27,37 +27,37 @@ describe('isStoryLive', () => {
 });
 
 describe('storyStateLabelKey', () => {
-	it('maps known states', () => {
+	it('SDM-U1: maps known states', () => {
 		expect(storyStateLabelKey('Expired')).toBe('pages.storyDetail.stateExpired');
 	});
 });
 
 describe('resolveStoryDetailFaceId', () => {
-	it('prefers shared face with user', () => {
+	it('SDM-U7: prefers shared face with user', () => {
 		expect(resolveStoryDetailFaceId({ faces: [{ faceId: 10 }, { faceId: 20 }] }, [20])).toBe(20);
 	});
 
-	it('falls back to first story face when no overlap', () => {
+	it('SDM-U7: falls back to first story face when no overlap', () => {
 		expect(resolveStoryDetailFaceId({ faces: [{ faceId: 10 }] }, [99])).toBe(10);
 	});
 
-	it('falls back to first user face when story has no faces', () => {
+	it('SDM-U7: falls back to first user face when story has no faces', () => {
 		expect(resolveStoryDetailFaceId({}, [5, 6])).toBe(5);
 	});
 
-	it('returns 0 when nothing is available', () => {
+	it('SDM-U7: returns 0 when nothing is available', () => {
 		expect(resolveStoryDetailFaceId({}, [])).toBe(0);
 	});
 });
 
 describe('mapStoryDetailError', () => {
-	it('maps live last-image block', () => {
+	it('SDM-U10: maps live last-image block', () => {
 		expect(mapStoryDetailError(new Error('image_delete_blocked_live'))).toBe(
 			'pages.storyDetail.imageDeleteBlockedLive'
 		);
 	});
 
-	it('returns null for unknown errors', () => {
+	it('SDM-U10: returns null for unknown errors', () => {
 		expect(mapStoryDetailError(new Error('other'))).toBeNull();
 		expect(mapStoryDetailError('x')).toBeNull();
 	});

@@ -8,6 +8,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 | Version       | Theme                                              |
 | ------------- | -------------------------------------------------- |
+| [1.4.2](#142) | Detail-page Vitest gap fill (RDM/SDM/ADM/ADPM)     |
 | [1.4.1](#141) | Security dep bumps: vite, axios, form-data         |
 | [1.4.0](#140) | CSP + strict transport headers on nginx host       |
 | [1.3.2](#132) | AI-chat: larger thinking dots, leaner waiting hint |
@@ -39,6 +40,28 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 ### Changed
 
 ### Fixed
+
+---
+
+## [1.4.2]
+
+### Added
+
+- **Closed the admin-side Vitest gaps in four detail-page test matrices.** An audit found the `U`/page-level rows of `admin-reel-detail-moderation`, `admin-story-detail-management`, `admin-album-detail-photos-delete-notify` and `admin-face-profile-detail-management` only partly implemented — the reel, story and face-profile detail pages had no page-level test at all, and the album matrix was missing the grid/modal/dialog component tests. Ten new test files, 66 new cases, no production code touched:
+  - `src/pages/ReelDetailPage/__tests__/ReelDetailPage.test.tsx` — RDM-U3 (moderation card hidden for a non–super-admin token), RDM-U4 (open-chat deep link), RDM-U6 (Open in queue carries `contentId`), RDM-U7 (Approve opens the override dialog instead of mutating when AI recommended reject), RDM-U8 (Template B card order + testids), RDM-U9 (preview modal mounted with `showDelete={false}`), plus loading/error/empty-video states.
+  - `src/pages/ContentModerationPage/__tests__/ContentModerationPage.urlInit.test.tsx` — RDM-U6: the queue initialises `contentId`/`contentType` from the URL and drops the default `PendingApproval` filter on a `contentId` deep link.
+  - `src/pages/ContentModerationPage/__tests__/ModerationItemDrawer.test.tsx` — RDM-U11: the drawer's "Open reel detail" targets `/reels/{id}?faceId=…` (and the album/blog equivalents).
+  - `src/pages/StoryDetailPage/__tests__/StoryDetailPage.test.tsx` — SDM-U3, U4, U5, U6, U8, U9, U10, U11: Template B testids, live/expired badges, conditional viewers card, per-image delete through the reason dialog, post-delete navigation to the face path, the `image_delete_blocked_live` toast mapping and super-admin gating of the tile delete controls.
+  - `src/pages/FaceProfileDetailPage/__tests__/FaceProfileDetailPage.test.tsx` — ADPM-U1, U2, U3, U4, U5, U8: Template B cards, absence of any moderation-queue control, management gating, open-chat deep link, conditional reviews card and the face-ban/unban control swap.
+  - `src/pages/FaceProfileDetailPage/__tests__/FaceProfileDetailCommentsTable.test.tsx` — ADPM-U12: the per-row delete reports only its own comment id and no row carries a navigate handler.
+  - `src/hooks/api/__tests__/useFaceProfilesApi.test.tsx` — ADPM-U6: comment/review deletes invalidate `faceProfilesKeys.all` and the profile detail key, and a failed delete invalidates nothing. First consumer of the previously unused `testUtils.createTestQueryClient` helper.
+  - `src/components/AlbumDeleteReasonDialog/__tests__/AlbumDeleteReasonDialog.test.tsx` — ADM-U5 / RDM-U10 / ADPM-U10: Confirm stays disabled until reason and creator message are both valid, the 2001-character ceiling re-locks it, and the `requireUserMessage={false}` approve-override variant unlocks on a reason alone.
+  - `src/components/ContentMediaGrid/__tests__/ContentMediaGrid.test.tsx` — ADM-U3 at the rendered-DOM level (the existing test covered only the pure `handleGridDeleteClick` helper).
+  - `src/components/ContentMediaPreviewModal/__tests__/ContentMediaPreviewModal.test.tsx` — ADM-U4 at the rendered-DOM level, plus the `showDelete` gate that backs RDM-U9.
+
+### Changed
+
+- **Existing helper tests now carry their prompt case IDs in the test name** (`reelDetailMedia`, `reelDetailPaths`, `storyDetailMedia`, `storyDetailUi`, `StoryDetailPage.paths`, `albumDetailValidation`), so every `RDM-U*`, `SDM-U*`, `ADM-U*` and `ADPM-U*` row in the four matrices is greppable from the test tree. Assertions are unchanged.
 
 ---
 
@@ -336,7 +359,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 
 - Admin SPA foundation with OAuth2 and Docker dev scripts.
 
-[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.4.1...HEAD
+[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.4.2...HEAD
 [1.0.5]: https://github.com/01laky/many_faces_admin/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/01laky/many_faces_admin/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/01laky/many_faces_admin/compare/v1.0.2...v1.0.3
@@ -351,6 +374,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 [0.3.0]: https://github.com/01laky/many_faces_admin/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/01laky/many_faces_admin/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/01laky/many_faces_admin/releases/tag/v0.1.0
+[1.4.2]: https://github.com/01laky/many_faces_admin/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/01laky/many_faces_admin/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/01laky/many_faces_admin/compare/v1.3.2...v1.4.0
 [1.3.2]: https://github.com/01laky/many_faces_admin/compare/v1.3.1...v1.3.2
