@@ -8,6 +8,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 | Version       | Theme                                              |
 | ------------- | -------------------------------------------------- |
+| [1.5.2](#152) | Sync package.json version and enforce it |
 | [1.5.1](#151) | Localized moderation queue column headers          |
 | [1.5.0](#150) | Real `tsc --build` gate + 149 type-error cleanup   |
 | [1.4.2](#142) | Detail-page Vitest gap fill (RDM/SDM/ADM/ADPM)     |
@@ -42,6 +43,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 ### Changed
 
 ### Fixed
+
+---
+
+## [1.5.2]
+
+### Fixed
+
+- **`package.json` `version` had drifted from `VERSION`, and nothing checked it.** CLAUDE.md requires the frontends to keep the two in sync; portal and admin had never been synced (`0.0.0` against a `VERSION` well past 1.x) and mobile sat one patch behind, because `scripts/bump-version.sh` does not touch `package.json`. `scripts/verify-version-files.sh` only compared `VERSION` against the newest CHANGELOG heading, so the rule lived as prose and prose does not fail a build. The script now also asserts `package.json` version equals `VERSION`, with an error naming the likely cause. Verified both ways: setting `package.json` to `9.9.9` fails the gate, restoring it passes. `yarn install --immutable` stays clean, so the version change does not dirty the lockfile.
 
 ---
 
@@ -407,7 +416,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 
 - Admin SPA foundation with OAuth2 and Docker dev scripts.
 
-[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.5.1...HEAD
+[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.5.2...HEAD
 [1.0.5]: https://github.com/01laky/many_faces_admin/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/01laky/many_faces_admin/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/01laky/many_faces_admin/compare/v1.0.2...v1.0.3
@@ -422,6 +431,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 [0.3.0]: https://github.com/01laky/many_faces_admin/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/01laky/many_faces_admin/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/01laky/many_faces_admin/releases/tag/v0.1.0
+[1.5.2]: https://github.com/01laky/many_faces_admin/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/01laky/many_faces_admin/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/01laky/many_faces_admin/compare/v1.4.2...v1.5.0
 [1.4.2]: https://github.com/01laky/many_faces_admin/compare/v1.4.1...v1.4.2
