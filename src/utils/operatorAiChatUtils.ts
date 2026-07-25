@@ -36,10 +36,15 @@ export function conversationIdToSearchParam(id: number | null): string {
 }
 
 export function mapOperatorMessageToUi(m: OperatorAiMessage): UiChatMessage {
+	// `OperatorAiMessage` is the generated DTO, where openapi-typescript-codegen marks every field
+	// optional even though the API always populates `id` and `content`. Normalize here — at the one
+	// seam between DTO and UI model — instead of asserting: `content` becomes '' so the string
+	// predicates below (`.toLowerCase()`) can never be handed undefined, and `id` falls back to 0,
+	// which no server-assigned id ever uses, so a malformed row cannot collide with a real message.
 	return {
-		id: m.id,
+		id: m.id ?? 0,
 		role: m.role === 'User' ? 'user' : 'ai',
-		content: m.content,
+		content: m.content ?? '',
 		// Carry the header metadata so loaded history renders like live messages.
 		// ChatPage → formatMessageHeader reads createdAt + authorEmail; without these,
 		// persisted messages showed no timestamp and fell back to a generic author label.
@@ -92,7 +97,7 @@ export function isLegacyTransientAiStatusContent(content: string): boolean {
 
 export function mapPageToUiMessages(items: OperatorAiMessage[]): UiChatMessage[] {
 	return items
-		.filter((m) => m.role !== 'Assistant' || !isTransientAiStatusContent(m.content))
+		.filter((m) => m.role !== 'Assistant' || !isTransientAiStatusContent(m.content ?? ''))
 		.map(mapOperatorMessageToUi);
 }
 
@@ -141,10 +146,12 @@ export function appendExchangeToMessagesPage(
 	userMessage: OperatorAiMessage,
 	assistantMessage: OperatorAiMessage
 ): OperatorAiMessagesPage {
-	if (page.items.some((m) => m.id === userMessage.id)) return page;
+	// `items` is optional/nullable on the generated page DTO; an absent list is an empty page.
+	const items = page.items ?? [];
+	if (items.some((m) => m.id === userMessage.id)) return page;
 	return {
 		...page,
-		items: [...page.items, userMessage, assistantMessage],
+		items: [...items, userMessage, assistantMessage],
 	};
 }
 

@@ -8,10 +8,10 @@ export const fetchAlbums = async (params: UseAlbumsParams): Promise<UseAlbumsLis
 	const page = params.page || 1;
 	const pageSize = params.pageSize || ADMIN_TABLE_PAGE_SIZE;
 	const query: Record<string, string | number> = {
-		faceId: params.faceId,
 		page,
 		pageSize,
 	};
+	if (params.faceId != null) query.faceId = params.faceId;
 	if (params.search?.trim()) query.search = params.search.trim();
 	if (params.sortBy) {
 		query.sortBy = params.sortBy;

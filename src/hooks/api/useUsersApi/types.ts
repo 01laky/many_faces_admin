@@ -6,13 +6,16 @@ export interface User {
 	createdAt?: string;
 }
 
-export interface UseUsersParams {
+// Declared as a type alias, not an interface: only aliases get TypeScript's implicit index
+// signature, which is what lets the params bag be passed to `logger.info(msg, properties)`
+// (`Record<string, unknown>`).
+export type UseUsersParams = {
 	page?: number;
 	pageSize?: number;
 	search?: string;
 	sortBy?: string;
 	sortDir?: 'asc' | 'desc';
-}
+};
 
 export interface UseUsersResponse {
 	users: User[];

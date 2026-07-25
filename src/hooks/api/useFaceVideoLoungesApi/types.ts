@@ -1,3 +1,5 @@
+import type { ApiSortDir } from '../../../utils/adminListQuery';
+
 export interface FaceVideoLoungeListItem {
 	id: number;
 	title: string;

@@ -7,3 +7,4 @@ export {
 	useDeleteFaceProfileComment,
 	useDeleteFaceProfileReview,
 } from './useFaceProfilesApi';
+export type { FaceProfileListItem, FaceProfileCommentItem, FaceProfileReviewItem } from './types';

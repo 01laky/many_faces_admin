@@ -47,7 +47,7 @@ export function StoryDetailPage() {
 
 	const backPath = getLocalizedPath(`/faces/${faceId}`);
 	const mediaItems = useMemo(
-		() => (data ? storyImagesToMediaItems(data.id, data.title, data.images ?? []) : []),
+		() => (data ? storyImagesToMediaItems(data.title, data.images ?? []) : []),
 		[data]
 	);
 	const live = data ? isStoryLive(data.state, data.publishedAt, data.expiresAt) : false;
@@ -342,10 +342,17 @@ export function StoryDetailPage() {
 				requireUserMessage
 			/>
 
+			{/*
+			  Props must match ContentMediaPreviewModalProps: `show`/`index`/`onIndexChange`. This call
+			  site previously passed `open`/`initialIndex`, so `index` was undefined, `items[index]`
+			  resolved to undefined and the modal always early-returned null — the story image preview
+			  never opened. Mirrors AlbumDetailPage/BlogDetailPage.
+			*/}
 			<ContentMediaPreviewModal
-				open={previewIndex != null}
+				show={previewIndex !== null && mediaItems.length > 0}
 				items={mediaItems}
-				initialIndex={previewIndex ?? 0}
+				index={previewIndex ?? 0}
+				onIndexChange={setPreviewIndex}
 				onClose={() => setPreviewIndex(null)}
 				showDelete={false}
 			/>

@@ -49,12 +49,12 @@ export function LanguageSwitcher({ variant = 'header', id }: LanguageSwitcherPro
 
 		// Get English route name from current translated path
 		const currentLang = (lang as SupportedLanguage) || currentLanguage;
-		const englishRoute = getEnglishRoute(cleanPath, currentLang, (key: string) => {
+		const englishRoute = getEnglishRoute(cleanPath, (key: string) => {
 			return i18nT(key, { lng: currentLang });
 		});
 
 		// Translate to new language
-		const translatedPath = getTranslatedRoute(englishRoute, langCode, (key: string) => {
+		const translatedPath = getTranslatedRoute(englishRoute, (key: string) => {
 			return i18nT(key, { lng: langCode });
 		});
 

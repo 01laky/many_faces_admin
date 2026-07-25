@@ -9,7 +9,6 @@ export interface StoryImageDto {
 
 /** Maps API story images to grid items sorted by sortOrder ascending. */
 export function storyImagesToMediaItems(
-	storyId: number,
 	title: string,
 	images: StoryImageDto[]
 ): ContentMediaItem[] {

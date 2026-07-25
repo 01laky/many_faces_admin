@@ -3,7 +3,7 @@ import { storyImagesToMediaItems } from '../storyDetailMedia';
 
 describe('storyImagesToMediaItems', () => {
 	it('SDM-U2: sorts by sortOrder', () => {
-		const items = storyImagesToMediaItems(1, 'T', [
+		const items = storyImagesToMediaItems('T', [
 			{ id: 2, imageUrl: 'b', sortOrder: 1 },
 			{ id: 1, imageUrl: 'a', sortOrder: 0 },
 		]);

@@ -11,7 +11,7 @@ import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { useCreateUser, type CreateUserData } from '@/hooks/api/useUsersApi';
 import { toast } from 'react-toastify';
 import '../../styles/forms/UserFormPage.scss';
-import type { CreateUserFormData } from './types';
+import type { CreateUserFormData, CreateUserFormValues } from './types';
 
 export function CreateUserPage() {
 	const { t } = useTranslation('common');
@@ -39,7 +39,7 @@ export function CreateUserPage() {
 		register,
 		handleSubmit,
 		formState: { errors },
-	} = useForm<CreateUserFormData>({
+	} = useForm<CreateUserFormValues, unknown, CreateUserFormData>({
 		resolver: yupResolver(validationSchema),
 		defaultValues: {
 			email: '',

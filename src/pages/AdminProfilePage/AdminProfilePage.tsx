@@ -226,7 +226,6 @@ export function AdminProfilePage() {
 							<p>{t('pages.adminProfile.emailConfirm.banner', { email: profile.email })}</p>
 							<Button
 								variant="outline"
-								size="sm"
 								onClick={() => void handleResendConfirm()}
 								disabled={resendEmailConfirmation.isPending}
 							>

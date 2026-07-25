@@ -203,7 +203,7 @@ export function FaceVideoLoungeDetailPage() {
 							{t('pages.videoLoungeDetail.descriptionSection')}
 						</h2>
 						{data.description?.trim() ? (
-							<ModerationPlainTextPreview text={data.description} />
+							<ModerationPlainTextPreview label="" value={data.description} />
 						) : (
 							<p className="text-muted">{t('pages.videoLoungeDetail.descriptionEmpty')}</p>
 						)}

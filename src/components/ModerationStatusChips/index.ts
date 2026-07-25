@@ -1,1 +1,2 @@
-export { ModerationStatusChips, type ModerationStatusChipsProps } from './ModerationStatusChips';
+export { ModerationStatusChips } from './ModerationStatusChips';
+export type { ModerationStatusChipsProps } from './types';

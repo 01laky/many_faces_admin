@@ -1,3 +1,5 @@
+import type { ContentMediaItem } from '@/types/contentMedia';
+
 export interface ContentMediaPreviewModalProps {
 	show: boolean;
 	items: ContentMediaItem[];

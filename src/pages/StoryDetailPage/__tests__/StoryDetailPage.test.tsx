@@ -275,4 +275,31 @@ describe('StoryDetailPage', () => {
 
 		expect(screen.getByText('pages.storyDetail.notFound')).toBeTruthy();
 	});
+
+	/**
+	 * Regression: the page used to pass `open`/`initialIndex` to ContentMediaPreviewModal, whose
+	 * contract is `show`/`index`/`onIndexChange`. `index` arrived undefined, so `items[index]` was
+	 * undefined and the modal always early-returned null — the preview was unreachable dead code
+	 * and no type error surfaced because `yarn type-check` never checked this project.
+	 */
+	it('opens the image preview on the clicked tile and can page to the next image', () => {
+		renderPage();
+
+		expect(screen.queryByTestId('preview-viewer')).toBeNull();
+
+		// Tiles are sorted by sortOrder, so index 1 is the sortOrder=1 image.
+		const tiles = screen
+			.getByTestId('content-media-grid')
+			.querySelectorAll<HTMLButtonElement>('button.content-media-grid__tile');
+		fireEvent.click(tiles[1]);
+
+		const viewer = screen.getByTestId('preview-viewer');
+		expect(viewer.querySelector('img')?.getAttribute('src')).toBe('https://cdn.test/one.jpg');
+
+		// onIndexChange must be wired too, otherwise the modal opens but cannot navigate.
+		fireEvent.click(screen.getByRole('button', { name: 'pages.albumDetail.previewNext' }));
+		expect(screen.getByTestId('preview-viewer').querySelector('img')?.getAttribute('src')).toBe(
+			'https://cdn.test/zero.jpg'
+		);
+	});
 });

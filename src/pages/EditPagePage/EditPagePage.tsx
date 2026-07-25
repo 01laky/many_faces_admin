@@ -27,7 +27,7 @@ import {
 import { toast } from 'react-toastify';
 import { sanitizeGridSchemaForSave } from '@/utils/gridSchemaSecurity';
 import '../../styles/forms/PageFormPage.scss';
-import type { EditPageFormData } from './types';
+import type { EditPageFormData, EditPageFormValues } from './types';
 
 export function EditPagePage() {
 	const { id } = useParams<{ id: string }>();
@@ -116,7 +116,7 @@ export function EditPagePage() {
 		handleSubmit,
 		reset,
 		formState: { errors },
-	} = useForm<EditPageFormData>({
+	} = useForm<EditPageFormValues, unknown, EditPageFormData>({
 		resolver: yupResolver(validationSchema),
 		defaultValues: {
 			name: '',

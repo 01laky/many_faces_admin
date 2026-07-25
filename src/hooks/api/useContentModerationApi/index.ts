@@ -11,3 +11,10 @@ export {
 	useModerationItems,
 	useModerationMetrics,
 } from './useContentModerationApi';
+export type {
+	ModerationItem,
+	ModerationEvent,
+	ModerationMetrics,
+	ModerationFlagCount,
+	ModerationFacePending,
+} from './useContentModerationApi';

@@ -30,8 +30,19 @@ export interface ModerationFilterState {
 	minQueueAgeHoursText: string;
 }
 
+/**
+ * Setter half of the filter props, derived from `ModerationFilterState` by key remapping:
+ * `contentType` -> `setContentType`, and so on. Without the `set${Capitalize<K>}` remap the two
+ * halves collide on every key (a value and a function under one name), which is what made
+ * `ModerationFiltersProps` unusable. `ModerationFilters` only ever calls these with a concrete
+ * value, so a plain `(value: T) => void` is the right contract — a React `Dispatch<SetStateAction<T>>`
+ * from the page is assignable to it, but callers cannot pass a functional updater the component
+ * would not support.
+ */
 export type ModerationFilterSetters = {
-	[K in keyof ModerationFilterState]: (value: ModerationFilterState[K]) => void;
+	[K in keyof ModerationFilterState as `set${Capitalize<K>}`]: (
+		value: ModerationFilterState[K]
+	) => void;
 };
 
 export interface ModerationFiltersProps extends ModerationFilterState, ModerationFilterSetters {}

@@ -185,7 +185,6 @@ export function FaceWallTicketsPage() {
 					<Button
 						key={value || 'all'}
 						variant={statusFilter === value ? 'primary' : 'outline'}
-						size="sm"
 						disabled={actionBusy}
 						onClick={() => {
 							setStatusFilter(value);
@@ -386,7 +385,6 @@ export function FaceWallTicketsPage() {
 											<Button
 												variant="outline"
 												className="text-danger"
-												size="sm"
 												disabled={actionBusy}
 												onClick={async () => {
 													const ok = await confirm({

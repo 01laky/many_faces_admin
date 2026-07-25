@@ -4,9 +4,11 @@ import {
 	fetchAdminMailSettings,
 	testAdminMailSmtp,
 	updateAdminMailSettings,
-	type UpdateAdminMailSettingsRequest,
 } from '@/api/adminMailSettingsApiClient';
-import type { AdminMailSettingsDto } from '@/api/models/AdminMailSettingsDto';
+import type {
+	AdminMailSettingsDto,
+	UpdateAdminMailSettingsRequest,
+} from '@/api/models/AdminMailSettingsDto';
 import { infraWorkerConfigQueryKey } from '@/hooks/api/useAdminInfraApi';
 import { adminMailSettingsQueryKey } from './constants';
 

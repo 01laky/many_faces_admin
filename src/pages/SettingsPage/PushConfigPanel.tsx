@@ -159,7 +159,7 @@ export function PushConfigPanel({ workerConfig, configLoading }: PushConfigPanel
 			return;
 		}
 		try {
-			const result = await testFcm.mutateAsync();
+			const result = await testFcm.mutateAsync(undefined);
 			if (result.fcmReachable) {
 				toast.success(
 					result.message ??

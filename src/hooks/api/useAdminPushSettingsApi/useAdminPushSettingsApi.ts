@@ -4,10 +4,12 @@ import {
 	fetchAdminPushSettings,
 	testAdminPushFcm,
 	updateAdminPushSettings,
-	type TestAdminPushFcmRequest,
-	type UpdateAdminPushSettingsRequest,
 } from '@/api/adminPushSettingsApiClient';
-import type { AdminPushSettingsDto } from '@/api/models/AdminPushSettingsDto';
+import type {
+	AdminPushSettingsDto,
+	TestAdminPushFcmRequest,
+	UpdateAdminPushSettingsRequest,
+} from '@/api/models/AdminPushSettingsDto';
 import { infraWorkerConfigQueryKey } from '@/hooks/api/useAdminInfraApi';
 import { adminPushSettingsQueryKey } from './constants';
 

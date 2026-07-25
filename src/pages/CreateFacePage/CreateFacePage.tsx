@@ -11,7 +11,7 @@ import { useLocalizedLink } from '@/hooks/useLocalizedLink';
 import { useCreateFace, type CreateFaceData } from '@/hooks/api/useFacesApi';
 import { toast } from 'react-toastify';
 import '../../styles/forms/FaceFormPage.scss';
-import type { CreateFaceFormData } from './types';
+import type { CreateFaceFormData, CreateFaceFormValues } from './types';
 
 export function CreateFacePage() {
 	const { t } = useTranslation('common');
@@ -39,7 +39,7 @@ export function CreateFacePage() {
 		register,
 		handleSubmit,
 		formState: { errors },
-	} = useForm<CreateFaceFormData>({
+	} = useForm<CreateFaceFormValues, unknown, CreateFaceFormData>({
 		resolver: yupResolver(validationSchema),
 		defaultValues: {
 			index: '',

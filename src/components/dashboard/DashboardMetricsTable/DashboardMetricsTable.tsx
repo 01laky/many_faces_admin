@@ -16,7 +16,12 @@ import { buildSectionRows, METRIC_SECTIONS } from './metricSections';
 import { MetricSectionChart } from './MetricSectionChart';
 import './DashboardMetricsTable.scss';
 import type { DashboardMetricsTableProps } from './types';
-import { WALL_BAR_COLORS, SECTION_CHIP_COLORS, sectionChartData } from './constants';
+import {
+	WALL_BAR_COLORS,
+	SECTION_CHIP_COLORS,
+	sectionChartData,
+	formatChartTooltipValue,
+} from './constants';
 
 /**
  * Platform metrics grouped by domain with one comparison chart per section and compact stat chips.
@@ -138,7 +143,7 @@ export function DashboardMetricsTable({ summary }: DashboardMetricsTableProps) {
 										width={88}
 										tick={{ fontSize: 11, fill: '#475569' }}
 									/>
-									<Tooltip formatter={(v: number) => v.toLocaleString()} />
+									<Tooltip formatter={formatChartTooltipValue} />
 									<Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={16}>
 										{wallSlices.map((row, index) => (
 											<Cell

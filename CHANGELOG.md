@@ -8,6 +8,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 
 | Version       | Theme                                              |
 | ------------- | -------------------------------------------------- |
+| [1.5.0](#150) | Real `tsc --build` gate + 149 type-error cleanup   |
 | [1.4.2](#142) | Detail-page Vitest gap fill (RDM/SDM/ADM/ADPM)     |
 | [1.4.1](#141) | Security dep bumps: vite, axios, form-data         |
 | [1.4.0](#140) | CSP + strict transport headers on nginx host       |
@@ -40,6 +41,38 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) — **version h
 ### Changed
 
 ### Fixed
+
+---
+
+## [1.5.0]
+
+### Added
+
+- **`src/pages/StoryDetailPage/__tests__/StoryDetailPage.test.tsx`: a regression case for the image preview.** Clicking a grid tile must mount the preview viewer on the clicked image and the next/prev controls must page it. The case fails against the old prop names, so it pins the fix below.
+- **`formatChartTooltipValue` + `ChartTooltipValue` in `src/components/dashboard/DashboardMetricsTable/constants.ts`.** A shared recharts tooltip formatter that narrows the real `ValueType | undefined` union (number, string, `ReadonlyArray`, undefined) instead of the four call sites each claiming `(v: number)`.
+
+### Changed
+
+- **`yarn type-check` now runs `tsc --build --noEmit` and actually type-checks this SPA.** The root `tsconfig.json` is `"files": []` with project references, so plain `tsc` (no `--build`) checked the _root_ project — zero files — exited 0, and never visited `tsconfig.app.json` or `tsconfig.node.json`. `vite build` does not type-check either, so nothing in `yarn validate` or in CI had ever checked types here and every type error merged silently. Proven both directions: with `const __probe: number = 'nope'` injected into `src/main.tsx`, `yarn type-check` exits 0 before the change and 2 after; the clean tree exits 0. Same fix and reasoning as `many_faces_portal` 1.1.5 (commit `5102fab`).
+- **Closed the 149 type errors that the no-op gate had been hiding, across 77 files.** No `any`, no `as unknown as`, no `@ts-ignore`/`@ts-expect-error` anywhere in the fix; runtime behaviour is unchanged except for the three genuine bugs listed under Fixed. The bulk resolved at their source rather than per call site:
+  - **Barrel files never re-exported their colocated types** (~47 errors). `ConfirmModal`, `GlobalAppPreloader`, `ModerationStatusChips`, `AdminTablePagination` and `WallTicketsTable` re-exported their `*Props` from the component module instead of `./types`; twelve `src/hooks/api/*` barrels exported only values. A failed type re-export degrades to `any`, which is why one broken line in `ConfirmModal/index.ts` made `ConfirmModalOptions = Pick<ConfirmModalProps, …>` resolve to all-required and broke fourteen unrelated `confirm({…})` call sites.
+  - **`ModerationFilterSetters` collided with `ModerationFilterState`** (18 errors). The mapped type reused the _state_ key names, so `ModerationFiltersProps` extended two types that disagreed on every key. Now key-remapped to `set${Capitalize<K>}`, matching what `ModerationFilters` destructures.
+  - **react-hook-form input vs. output shapes** (15 errors across five forms). `yupResolver` is typed `Resolver<Input, Context, InferType<schema>>`: the input keeps every key present and widens `.optional()` fields to `T | undefined`, while the output turns them into optional keys — two shapes that cannot be collapsed into one interface. Each form now declares a `…FormValues` input type beside its `…FormData` output type and calls `useForm<…FormValues, unknown, …FormData>`.
+  - **Radix `TableCellProps`/`TableHeaderCellProps` extended `HTMLAttributes`**, which has no `colSpan` (4 errors). They render `<td>`/`<th>` and spread `...props`, so the attribute already worked — the base type was simply wrong. Now `TdHTMLAttributes`/`ThHTMLAttributes`.
+  - **Generated-client optionality handled honestly** (~12 errors in `ChatPage`, `operatorAiChatUtils`, `useAlbumsApi`). `openapi-typescript-codegen` marks server-guaranteed fields optional; these now default or guard at the DTO→UI seam (`items ?? []`, `content ?? ''`, `id ?? null` for a selector that takes `number | null`) instead of asserting.
+  - **Interfaces have no implicit index signature** (4 errors). `UseFacesParams`, `UsePagesParams`, `UseUsersParams` (passed to `logger.info`'s `Record<string, unknown>`) and `GridSchema`/`GridItem` (passed to `sanitizeGridSchemaForSave`'s `GridSchemaLike`) are now type aliases, which do.
+  - **Dead bindings removed** (5 errors): a private duplicate of `isAdminScopedApiRequest` in `src/api/interceptors.ts` shadowing the real exported-and-tested one in `src/api/interceptorPolicy.ts`, plus unused parameters on `shouldSyncUserMessageFromReason`, `storyImagesToMediaItems`, `getTranslatedRoute` and `getEnglishRoute` (call sites and tests updated; `getAllRouteTranslations` in the same file already took no language argument).
+  - Remaining singles: recharts label/tooltip prop types, the `ModerationPlainTextPreview` and `Button` variant contracts, `useAdminListSortValidationFeedback`'s setter type (it only ever calls `setSorting([])`), `testFcm.mutateAsync(undefined)`, and the `en.common.pages` bundle node in `fetchLocalizationBundle`.
+- **`tsconfig.app.json` excludes test files**, mirroring `many_faces_portal`: `src/**/__tests__/**`, `src/**/*.test.ts`, `src/**/*.test.tsx`. Without it the vitest globals (`describe`/`it`/`expect`) error under the newly-real gate. Keeping tests inside the gate would be better in principle; matching the sibling SPA is the deliberate choice here rather than silently diverging, and it is the one piece of this change that is a convention decision rather than a fix.
+- **`tsconfig.app.json` drops `"baseUrl": "."`** — deprecated in TS 6 (TS5101) and unnecessary, since `paths` entries resolve relative to the config file. Matches `many_faces_portal/tsconfig.app.json`.
+- **Dead `size="sm"` props removed from seven Radix `Button` call sites.** The Radix `Button` has no `size` prop and no `.radix-button-sm` style, so the attribute only leaked to the DOM with no visual effect. Removing it changes nothing on screen; adding real size styling would have been a visual change beyond this fix.
+
+### Fixed
+
+- **The story image preview modal was dead code.** `StoryDetailPage` passed `open`/`initialIndex` to `ContentMediaPreviewModal`, whose contract is `show`/`index`/`onIndexChange`. `index` arrived `undefined`, so `items[index]` was `undefined` and the component hit its `if (!item) return null` guard on every render — clicking a story image never opened anything. Now matches the working `AlbumDetailPage`/`BlogDetailPage` call sites, with `onIndexChange` wired so next/prev work.
+- **The video-lounge description never rendered.** `FaceVideoLoungeDetailPage` passed `text={data.description}` to `ModerationPlainTextPreview`, whose props are `label`/`value`; `value` was `undefined`, so the `<pre>` rendered empty. Now `label="" value={data.description}`, matching `FaceChatRoomDetailPage`.
+- **Story detail deep links from the user-detail table used the wrong face.** `resolveStoryDetailFaceId` reads `row.faces`, but `StoryListItem` never declared it (its `AlbumListItem` and `ReelListItem` siblings do), so the lookup always fell through to the user's first face. `faces?: StoryFaceRef[]` moved onto `StoryListItem`, inherited by `StoryDetail`.
+- **The selected section chip in `ProfileDetailSectionPickerModal` rendered unstyled.** It asked for `variant="default"`, which is not one of the Radix `Button` variants, so no `radix-button-*` class was applied at all. Now `primary`, the selected-toggle variant already used by `FaceWallTicketsPage`.
 
 ---
 
@@ -359,7 +392,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 
 - Admin SPA foundation with OAuth2 and Docker dev scripts.
 
-[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.4.2...HEAD
+[Unreleased]: https://github.com/01laky/many_faces_admin/compare/v1.5.0...HEAD
 [1.0.5]: https://github.com/01laky/many_faces_admin/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/01laky/many_faces_admin/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/01laky/many_faces_admin/compare/v1.0.2...v1.0.3
@@ -374,6 +407,7 @@ three controls and removes the legacy stats-mode + response-locale UI from the o
 [0.3.0]: https://github.com/01laky/many_faces_admin/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/01laky/many_faces_admin/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/01laky/many_faces_admin/releases/tag/v0.1.0
+[1.5.0]: https://github.com/01laky/many_faces_admin/compare/v1.4.2...v1.5.0
 [1.4.2]: https://github.com/01laky/many_faces_admin/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/01laky/many_faces_admin/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/01laky/many_faces_admin/compare/v1.3.2...v1.4.0

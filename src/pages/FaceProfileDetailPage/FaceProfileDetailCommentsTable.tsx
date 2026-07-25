@@ -99,7 +99,6 @@ export function FaceProfileDetailCommentsTable({
 				cell: ({ row }) => (
 					<Button
 						variant="outline"
-						size="sm"
 						onClick={(e) => {
 							e.stopPropagation();
 							onDeleteComment(row.original.id);

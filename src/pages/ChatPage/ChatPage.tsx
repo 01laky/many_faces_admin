@@ -85,9 +85,9 @@ export function ChatPage() {
 		const first = pages[0];
 		let older: UiChatMessage[] = [];
 		for (let i = 1; i < pages.length; i++) {
-			older = mergeMessagePages(mapPageToUiMessages(pages[i].items), older);
+			older = mergeMessagePages(mapPageToUiMessages(pages[i].items ?? []), older);
 		}
-		const latest = first ? mapPageToUiMessages(first.items) : [];
+		const latest = first ? mapPageToUiMessages(first.items ?? []) : [];
 		return {
 			serverMessages: filterTransientStatusExchanges(mergeMessagePages(latest, older)),
 			hasMore: hasNextPage ?? first?.hasMore ?? false,
@@ -169,7 +169,7 @@ export function ChatPage() {
 				queryClient.setQueryData<OperatorAiConversationListItem[]>(conversationsKey, (prev) => {
 					const rest = (prev ?? []).filter((c) => c.id !== item.id);
 					return [item, ...rest].sort(
-						(a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+						(a, b) => new Date(b.updatedAt ?? 0).getTime() - new Date(a.updatedAt ?? 0).getTime()
 					);
 				});
 				return;
@@ -372,7 +372,7 @@ export function ChatPage() {
 
 	const handleNewChat = async () => {
 		const created = await createConversation.mutateAsync();
-		setActiveConversationId(created.id);
+		setActiveConversationId(created.id ?? null);
 	};
 
 	const handleDelete = async () => {
@@ -495,7 +495,6 @@ export function ChatPage() {
 						<h1 className="chat-page__title">{t('pages.chat.title')}</h1>
 						<Button
 							type="button"
-							size="sm"
 							onClick={() => void handleNewChat()}
 							disabled={createConversation.isPending}
 						>
@@ -518,12 +517,12 @@ export function ChatPage() {
 									key={c.id}
 									type="button"
 									className={`chat-page__thread${c.id === conversationId ? ' chat-page__thread--active' : ''}`}
-									onClick={() => setActiveConversationId(c.id)}
+									onClick={() => setActiveConversationId(c.id ?? null)}
 									title={fullTitle}
 								>
 									<span className="chat-page__thread-title">{truncateThreadTitle(fullTitle)}</span>
 									<span className="chat-page__thread-meta">
-										{new Date(c.updatedAt).toLocaleString()}
+										{new Date(c.updatedAt ?? 0).toLocaleString()}
 									</span>
 								</button>
 							);
@@ -550,7 +549,6 @@ export function ChatPage() {
 						{conversationId != null && (
 							<Button
 								type="button"
-								size="sm"
 								onClick={() => void handleDelete()}
 								disabled={deleteConversation.isPending}
 							>

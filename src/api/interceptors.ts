@@ -59,17 +59,6 @@ const processQueue = (error: unknown, token: string | null = null) => {
 	failedQueue = [];
 };
 
-/** True when the request targets the admin face API base (not OAuth or other hosts). */
-function isAdminScopedApiRequest(config: AxiosRequestConfig | InternalAxiosRequestConfig): boolean {
-	const rawUrl = config.url ?? '';
-	if (rawUrl.includes('/oauth2/token')) return false;
-	const base = env.apiUrl.replace(/\/+$/, '');
-	const absolute = rawUrl.startsWith('http')
-		? rawUrl
-		: `${base}${rawUrl.startsWith('/') ? '' : '/'}${rawUrl}`;
-	return absolute.startsWith(base);
-}
-
 /* ------------------------------------------------------------------ */
 /*  Force-logout (outside React)                                       */
 /* ------------------------------------------------------------------ */

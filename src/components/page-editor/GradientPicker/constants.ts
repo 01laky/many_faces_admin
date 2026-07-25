@@ -1,3 +1,5 @@
+import type { GradientSettings } from './types';
+
 export const DEFAULT_GRADIENT: GradientSettings = {
 	type: 'linear',
 	colors: ['#667eea', '#764ba2'],

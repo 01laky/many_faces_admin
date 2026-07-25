@@ -10,6 +10,7 @@ import {
 	XAxis,
 	YAxis,
 } from 'recharts';
+import { formatChartTooltipValue } from './constants';
 import type { MetricSectionChartProps } from './types';
 
 export type { MetricSectionChartDatum, MetricSectionChartProps } from './types';
@@ -19,7 +20,9 @@ const renderBarLabel = (props: {
 	y?: number | string;
 	width?: number | string;
 	height?: number | string;
-	value?: number | string;
+	// recharts types the label value as `RenderableText`; the `value == null` guard below covers
+	// the nullish arms, and React renders a boolean child as nothing.
+	value?: number | string | boolean | null;
 }) => {
 	const { x, y, width, height, value } = props;
 	if (value == null || x == null || y == null || width == null || height == null) {
@@ -120,7 +123,7 @@ export function MetricSectionChart({
 								<Cell key={row.name} fill={row.fill} />
 							))}
 						</Pie>
-						<Tooltip formatter={(v: number) => v.toLocaleString()} />
+						<Tooltip formatter={formatChartTooltipValue} />
 					</PieChart>
 				) : layout === 'vertical-bar' ? (
 					<BarChart
@@ -135,7 +138,7 @@ export function MetricSectionChart({
 							width={108}
 							tick={{ fontSize: 11, fill: '#475569' }}
 						/>
-						<Tooltip formatter={(v: number) => v.toLocaleString()} />
+						<Tooltip formatter={formatChartTooltipValue} />
 						<Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={18} fill={accentColor}>
 							{data.map((row) => (
 								<Cell key={row.name} fill={row.fill} />
@@ -154,7 +157,7 @@ export function MetricSectionChart({
 							height={56}
 						/>
 						<YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#64748b' }} />
-						<Tooltip formatter={(v: number) => v.toLocaleString()} />
+						<Tooltip formatter={formatChartTooltipValue} />
 						<Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={48}>
 							{data.map((row) => (
 								<Cell key={row.name} fill={row.fill} />

@@ -34,7 +34,7 @@ export function AlbumDeleteReasonDialog({
 
 	const handleReasonChange = (value: string) => {
 		setReason(value);
-		if (copyReason || shouldSyncUserMessageFromReason(value, userMessage, lastSyncedReason)) {
+		if (copyReason || shouldSyncUserMessageFromReason(userMessage, lastSyncedReason)) {
 			const synced = nextSyncedUserMessage(value);
 			setUserMessage(synced);
 			setLastSyncedReason(value);
@@ -92,18 +92,10 @@ export function AlbumDeleteReasonDialog({
 								rows={3}
 								value={userMessage}
 								onChange={(e) => setUserMessage(e.target.value)}
-								isInvalid={Boolean(
-									requireUserMessage && 'userMessageError' in validation
-										? validation.userMessageError
-										: false
-								)}
+								isInvalid={Boolean(pairedValidation.userMessageError)}
 							/>
 							<Form.Control.Feedback type="invalid">
-								{fieldError(
-									requireUserMessage && 'userMessageError' in validation
-										? validation.userMessageError
-										: undefined
-								)}
+								{fieldError(pairedValidation.userMessageError)}
 							</Form.Control.Feedback>
 						</Form.Group>
 					</>

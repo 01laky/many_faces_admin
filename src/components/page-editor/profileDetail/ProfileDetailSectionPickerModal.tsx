@@ -28,7 +28,7 @@ export function ProfileDetailSectionPickerModal({
 						<Button
 							key={type}
 							type="button"
-							variant={currentType === type ? 'default' : 'outline'}
+							variant={currentType === type ? 'primary' : 'outline'}
 							onClick={() => onSelect(type)}
 						>
 							{t(`pages.profileDetailTemplate.sections.${type}`)}

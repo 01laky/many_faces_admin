@@ -18,7 +18,7 @@ describe('routeTranslations', () => {
 	});
 
 	it('translates /user-chat path segment for Slovak', () => {
-		expect(getTranslatedRoute('user-chat', 'sk', (key) => t(key, { lng: 'sk' }))).toBe(
+		expect(getTranslatedRoute('user-chat', (key) => t(key, { lng: 'sk' }))).toBe(
 			'chat-pouzivatelia'
 		);
 	});

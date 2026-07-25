@@ -23,3 +23,24 @@ export function sectionChartData(
 		fill: SECTION_CHIP_COLORS[index % SECTION_CHIP_COLORS.length]!,
 	}));
 }
+
+/** Value union recharts hands to a `<Tooltip formatter>` (`ValueType | undefined`). */
+export type ChartTooltipValue = number | string | ReadonlyArray<number | string> | undefined;
+
+/**
+ * Formats a recharts tooltip value as a localized number.
+ *
+ * Recharts types the incoming value as `ValueType | undefined`, not `number`, so the callers here
+ * cannot declare `(v: number) => …` — that claims recharts will never pass a string, an array or
+ * undefined, which its own types explicitly allow. Every chart in this folder feeds a numeric
+ * `value` field, so the number branch is the live path; the rest are rendered verbatim instead of
+ * crashing on `.toLocaleString()` if a dataset ever changes shape.
+ */
+export function formatChartTooltipValue(value: ChartTooltipValue): string {
+	if (value == null) return '';
+	if (typeof value === 'number') return value.toLocaleString();
+	if (typeof value === 'string') return value;
+	return value
+		.map((entry) => (typeof entry === 'number' ? entry.toLocaleString() : entry))
+		.join(', ');
+}

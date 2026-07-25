@@ -18,7 +18,7 @@ import {
 } from '@/hooks/api/usePageRouteTranslationsApi';
 import { toast } from 'react-toastify';
 import '../../styles/forms/PageFormPage.scss';
-import type { CreatePageFormData } from './types';
+import type { CreatePageFormData, CreatePageFormValues } from './types';
 
 export function CreatePagePage() {
 	const { faceId } = useParams<{ faceId: string }>();
@@ -76,7 +76,7 @@ export function CreatePagePage() {
 		register,
 		handleSubmit,
 		formState: { errors },
-	} = useForm<CreatePageFormData>({
+	} = useForm<CreatePageFormValues, unknown, CreatePageFormData>({
 		resolver: yupResolver(validationSchema),
 		defaultValues: {
 			pageTypeId: pageTypes[0]?.id || 0,

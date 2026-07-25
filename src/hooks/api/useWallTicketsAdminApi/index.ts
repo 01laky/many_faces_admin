@@ -9,3 +9,8 @@ export {
 	useAdminPostWallTicketComment,
 	useAdminDeleteWallTicketComment,
 } from './useWallTicketsAdminApi';
+export type {
+	AdminWallTicketRow,
+	AdminWallTicketDetail,
+	AdminWallTicketCreateBody,
+} from './useWallTicketsAdminApi';

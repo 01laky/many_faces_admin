@@ -15,7 +15,7 @@ import { PagesTable } from '@/components/tables/PagesTable';
 import { toast } from 'react-toastify';
 import { isAdminScopeFace } from '@/utils/adminScopeFace';
 import '../../styles/forms/FaceFormPage.scss';
-import type { EditFaceFormData } from './types';
+import type { EditFaceFormData, EditFaceFormValues } from './types';
 
 export function EditFacePage() {
 	const { id } = useParams<{ id: string }>();
@@ -58,7 +58,7 @@ export function EditFacePage() {
 		setValue,
 		watch,
 		formState: { errors },
-	} = useForm<EditFaceFormData>({
+	} = useForm<EditFaceFormValues, unknown, EditFaceFormData>({
 		resolver: yupResolver(validationSchema),
 		defaultValues: {
 			index: '',

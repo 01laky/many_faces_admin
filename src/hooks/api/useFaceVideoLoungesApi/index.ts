@@ -10,3 +10,4 @@ export {
 	useOperatorVideoLoungeKickAll,
 	useOperatorVideoLoungeStealthJoin,
 } from './useFaceVideoLoungesApi';
+export type { FaceVideoLoungeListItem } from './types';

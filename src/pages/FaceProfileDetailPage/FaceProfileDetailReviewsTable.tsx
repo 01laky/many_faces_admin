@@ -106,7 +106,6 @@ export function FaceProfileDetailReviewsTable({
 				cell: ({ row }) => (
 					<Button
 						variant="outline"
-						size="sm"
 						onClick={(e) => {
 							e.stopPropagation();
 							onDeleteReview(row.original.id);

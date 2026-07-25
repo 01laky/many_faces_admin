@@ -16,7 +16,8 @@
 		"noEmit": true,
 		"jsx": "react-jsx",
 		"resolveJsonModule": true,
-		"baseUrl": ".",
+		/* No `baseUrl`: it is deprecated in TS 6 (TS5101) and unnecessary here — `paths` entries
+		   resolve relative to this file. Matches many_faces_portal/tsconfig.app.json. */
 		"paths": {
 			"@/*": ["./src/*"]
 		},
@@ -29,5 +30,6 @@
 		"noFallthroughCasesInSwitch": true,
 		"noUncheckedSideEffectImports": true
 	},
-	"include": ["src"]
+	"include": ["src"],
+	"exclude": ["src/**/__tests__/**", "src/**/*.test.ts", "src/**/*.test.tsx"]
 }

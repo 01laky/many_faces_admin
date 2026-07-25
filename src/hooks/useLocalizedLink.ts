@@ -21,7 +21,7 @@ export function useLocalizedLink() {
 		const targetLang = (lang as typeof currentLanguage) || currentLanguage;
 
 		// Translate the path based on target language
-		const translatedPath = getTranslatedRoute(cleanPath, targetLang, (key: string) => {
+		const translatedPath = getTranslatedRoute(cleanPath, (key: string) => {
 			// Use i18nT with specific language
 			return i18nT(key, { lng: targetLang });
 		});

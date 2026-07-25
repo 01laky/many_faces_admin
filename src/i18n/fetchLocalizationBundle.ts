@@ -22,10 +22,21 @@ export function clearLocalizationBundleCache(app: 'admin' = 'admin'): void {
 	void app;
 }
 
+/**
+ * Minimal shape of the `en.common.pages` bundle node read by the sanity check below. `resources` is
+ * declared as nested `Record<…, unknown>`, so `pages` arrives as `unknown` and has to be described
+ * before it can be walked — the leaves stay `unknown` because the `typeof` guards below narrow them.
+ */
+interface AdminSentinelPages {
+	storyDetail?: { createdAt?: unknown; managementSection?: unknown };
+	settings?: { infra?: Record<string, unknown> };
+}
+
 /** Sentinel keys for post-.resx deploy sanity (story detail + settings infra panels). */
 function bundleHasRequiredAdminKeys(body: LocalizationBundleResponse): boolean {
-	const storyDetail = body.resources?.en?.common?.pages?.storyDetail;
-	const infra = body.resources?.en?.common?.pages?.settings?.infra;
+	const pages = body.resources?.en?.common?.pages as AdminSentinelPages | undefined;
+	const storyDetail = pages?.storyDetail;
+	const infra = pages?.settings?.infra;
 	const mail = infra?.mail as { title?: string; config?: { save?: string } } | undefined;
 	const push = infra?.push as
 		| {

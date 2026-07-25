@@ -13,7 +13,7 @@ import {
 export function useAdminListSortValidationFeedback(
 	error: unknown,
 	isError: boolean,
-	setSorting: React.Dispatch<React.SetStateAction<SortingState>>
+	setSorting: (sorting: SortingState) => void
 ): void {
 	const lastMessageRef = useRef<string | null>(null);
 

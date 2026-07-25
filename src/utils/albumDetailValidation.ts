@@ -34,7 +34,6 @@ export function validateReasonAndUserMessage(fields: ReasonUserMessageFields): {
 
 /** Sync userMessage from reason until the operator edits userMessage manually. */
 export function shouldSyncUserMessageFromReason(
-	reason: string,
 	userMessage: string,
 	lastSyncedReason: string
 ): boolean {

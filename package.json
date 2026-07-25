@@ -13,7 +13,7 @@
 		"fix": "eslint . --fix && prettier --write .",
 		"format:check": "prettier --check .",
 		"format:api": "prettier --write \"src/api/**/*.{ts,tsx}\"",
-		"type-check": "tsc --noEmit",
+		"type-check": "tsc --build --noEmit",
 		"validate": "yarn type-check && yarn lint && yarn format:check && yarn lint:tables",
 		"lint:pages-api": "node scripts/lint-pages-no-api-services.mjs",
 		"lint:tables": "node scripts/lint-admin-tanstack-table.mjs",

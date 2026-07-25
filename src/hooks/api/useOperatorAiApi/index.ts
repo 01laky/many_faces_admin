@@ -19,3 +19,8 @@ export {
 	useCreateOperatorAiConversation,
 	useDeleteOperatorAiConversation,
 } from './useOperatorAiApi';
+export type {
+	OperatorAiConversationListItem,
+	OperatorAiMessagesPage,
+	OperatorAiMessageAppendedEvent,
+} from './useOperatorAiApi';

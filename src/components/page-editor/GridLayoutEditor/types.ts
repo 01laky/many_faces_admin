@@ -24,7 +24,9 @@ export type GridComponentType =
 	| 'storyGrid'
 	| 'storyCarousel';
 
-export interface GridItem {
+// Type alias rather than interface, for the same reason as `GridSchema` below: `GridSchemaItemLike`
+// carries an index signature, which only aliases satisfy implicitly.
+export type GridItem = {
 	i: string;
 	x: number;
 	y: number;
@@ -44,14 +46,16 @@ export interface GridItem {
 	boundUserProfileId?: string;
 	boundReelId?: number;
 	boundStoryId?: number;
-}
+};
 
-export interface GridSchema {
+// Type alias rather than interface: `sanitizeGridSchemaForSave` constrains on `GridSchemaLike`,
+// which carries an index signature that only aliases satisfy implicitly.
+export type GridSchema = {
 	items: GridItem[];
 	breakpoints: Record<string, number>;
 	cols: Record<string, number>;
 	rowHeight: number;
-}
+};
 
 export interface GridLayoutEditorProps {
 	value: GridSchema | null;

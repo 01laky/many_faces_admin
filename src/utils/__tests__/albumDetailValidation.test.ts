@@ -25,9 +25,9 @@ describe('albumDetailValidation', () => {
 	});
 
 	it('syncs user message from reason when unchanged (ADM-U7)', () => {
-		expect(shouldSyncUserMessageFromReason('new reason', '', '')).toBe(true);
-		expect(shouldSyncUserMessageFromReason('new reason', 'old sync', 'old sync')).toBe(true);
-		expect(shouldSyncUserMessageFromReason('new reason', 'custom text', 'old sync')).toBe(false);
+		expect(shouldSyncUserMessageFromReason('', '')).toBe(true);
+		expect(shouldSyncUserMessageFromReason('old sync', 'old sync')).toBe(true);
+		expect(shouldSyncUserMessageFromReason('custom text', 'old sync')).toBe(false);
 		expect(nextSyncedUserMessage('copied')).toBe('copied');
 	});
 });

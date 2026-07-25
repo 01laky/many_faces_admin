@@ -5,6 +5,8 @@ import type { ApiSortDir } from '../../../utils/adminListQuery';
 export interface StoryListItem {
 	id: number;
 	title: string;
+	/** Faces the story is published to — used to resolve the faceId for detail navigation. */
+	faces?: StoryFaceRef[];
 	creatorId?: string;
 	creatorName?: string;
 	imageCount?: number;
@@ -25,7 +27,6 @@ export interface StoryDetail extends StoryListItem {
 	scheduledPublishAt?: string | null;
 	updatedAt?: string | null;
 	images?: StoryImageDto[];
-	faces?: StoryFaceRef[];
 	likesCount?: number;
 	commentsCount?: number;
 	viewCount?: number;

@@ -44,15 +44,10 @@ const routeKeyToEnglish: Record<string, string> = {
 /**
  * Get translated route path for a given language
  * @param englishPath - English route path (e.g., 'login', 'register')
- * @param language - Target language
- * @param t - Translation function from i18next
+ * @param t - Translation function from i18next (already bound to the target language)
  * @returns Translated route path
  */
-export function getTranslatedRoute(
-	englishPath: string,
-	language: SupportedLanguage,
-	t: (key: string) => string
-): string {
+export function getTranslatedRoute(englishPath: string, t: (key: string) => string): string {
 	// If path is empty or root, return empty
 	if (!englishPath || englishPath === '/') {
 		return '';
@@ -80,15 +75,10 @@ export function getTranslatedRoute(
 /**
  * Get English route path from translated path
  * @param translatedPath - Translated route path (e.g., 'prihlasenie', 'registracia')
- * @param language - Current language
- * @param t - Translation function from i18next
+ * @param t - Translation function from i18next (already bound to the current language)
  * @returns English route path
  */
-export function getEnglishRoute(
-	translatedPath: string,
-	language: SupportedLanguage,
-	t: (key: string) => string
-): string {
+export function getEnglishRoute(translatedPath: string, t: (key: string) => string): string {
 	// If path is empty or root, return empty
 	if (!translatedPath || translatedPath === '/') {
 		return '';

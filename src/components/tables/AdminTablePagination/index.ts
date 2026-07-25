@@ -1,2 +1,2 @@
 export { AdminTablePagination } from './AdminTablePagination';
-export type { AdminTablePaginationProps } from './AdminTablePagination';
+export type { AdminTablePaginationProps } from './types';
